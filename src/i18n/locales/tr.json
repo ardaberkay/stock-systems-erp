@@ -1,0 +1,33 @@
+{
+    "filters": {
+        "today": "Bugün",
+        "yesterday": "Dün",
+        "weekly": "Haftalık",
+        "monthly": "Aylık",
+        "yearly": "Yıllık",
+        "selectDate": "Tarih seç",
+        "selectDateTime": "Tarih ve saat seç",
+        "time": "Saat",
+        "done": "Tamam"
+    },
+    "dashboard": {
+        "totalSales": "Toplam Satış",
+        "soldProduct": "Satılan Ürün",
+        "orders": "Sipariş",
+        "unit": "Adet",
+        "unitCod": "ad.",
+        "bestSellers": "Çok Satılanlar",
+        "all": "Tümü",
+        "size": "Beden"
+    },
+    "theme": {
+        "lightTheme": "Açık",
+        "darkTheme": "Koyu"
+    },
+    "tabs": {
+        "dashboard": "Genel",
+        "stock": "Ürünler",
+        "order": "Siparişler",
+        "report": "Raporlar"
+    }
+}

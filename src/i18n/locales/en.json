@@ -1,0 +1,33 @@
+{
+  "filters": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "selectDate": "Select date",
+    "selectDateTime": "Select date and time",
+    "time": "Time",
+    "done": "Done"
+  },
+  "dashboard": {
+    "totalSales": "Total Sales",
+    "soldProduct": "Products Sold",
+    "orders": "Orders",
+    "unit": "Unit",
+    "unitCod": "pcs.",
+    "bestSellers": "Best Sellers",
+    "all": "All",
+    "size": "Size"
+  },
+  "theme": {
+    "lightTheme": "Light",
+    "darkTheme": "Dark"
+  },
+  "tabs": {
+    "dashboard": "General",
+    "stock": "Stocks",
+    "order": "Orders",
+    "report": "Reports"
+}
+}
