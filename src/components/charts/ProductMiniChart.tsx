@@ -1,4 +1,4 @@
-import type { Period } from '@/mocks/dashboard';
+import type { Period } from '@/constants/periods';
 import { miniChartData } from '@/mocks/dashboard';
 import type { AppColors } from '@/theme/colors';
 import { LineChart } from 'panelui-native';

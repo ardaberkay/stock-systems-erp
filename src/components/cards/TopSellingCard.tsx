@@ -1,5 +1,6 @@
 import ProductMiniChart from '@/components/charts/ProductMiniChart';
-import type { Period, baseProducts } from '@/mocks/dashboard';
+import type { Period } from '@/constants/periods';
+import type { baseProducts } from '@/mocks/dashboard';
 import type { AppColors } from '@/theme/colors';
 import { FONT_FAMILY, FONT_SIZE, typography } from '@/theme/typography';
 import { formatMoney } from '@/utils/formatter';

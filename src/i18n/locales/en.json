@@ -1,14 +1,41 @@
 {
+  "common": {
+    "retry": "Try again",
+    "close": "Close",
+    "cancel": "Cancel",
+    "back": "Back"
+  },
+  "errors": {
+    "config": "Server address is not configured.",
+    "network": "No internet connection. Check your connection and try again.",
+    "timeout": "The server did not respond. Please try again.",
+    "unauthorized": "Your session has expired. Please sign in again.",
+    "forbidden": "You are not allowed to do this.",
+    "notFound": "The record you are looking for was not found.",
+    "validation": "Some of the submitted information is invalid.",
+    "server": "Something went wrong on the server. Please try again later.",
+    "parse": "The server returned an unexpected response.",
+    "unknown": "An unexpected error occurred."
+  },
+  "drawer": {
+    "open": "Open menu",
+    "settings": "Settings"
+  },
+  "language": {
+    "tr": "Türkçe",
+    "en": "English"
+  },
   "filters": {
     "today": "Today",
     "yesterday": "Yesterday",
     "weekly": "Weekly",
     "monthly": "Monthly",
     "yearly": "Yearly",
-    "selectDate": "Select date",
-    "selectDateTime": "Select date and time",
-    "time": "Time",
-    "done": "Done"
+    "selectPeriod": "Select period",
+    "changePeriod": "Change period",
+    "customDate": "Date range",
+    "apply": "Apply",
+    "selectRangeHint": "Pick a start and end day"
   },
   "dashboard": {
     "totalSales": "Total Sales",
@@ -18,16 +45,30 @@
     "unitCod": "pcs.",
     "bestSellers": "Best Sellers",
     "all": "All",
-    "size": "Size"
+    "size": "Size",
+    "notifications": "Notifications",
+    "toggleSoldLine": "Show or hide the products sold line",
+    "toggleOrdersLine": "Show or hide the orders line"
   },
   "theme": {
     "lightTheme": "Light",
-    "darkTheme": "Dark"
+    "darkTheme": "Dark",
+    "darkMode": "Dark mode"
   },
   "tabs": {
     "dashboard": "General",
     "stock": "Stocks",
     "order": "Orders",
     "report": "Reports"
-}
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": "Appearance",
+    "language": "Language"
+  },
+  "auth": {
+    "logout": "Log out",
+    "logoutConfirmTitle": "Log out?",
+    "logoutConfirmMessage": "You will be signed out of your account."
+  }
 }

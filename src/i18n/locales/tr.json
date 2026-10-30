@@ -1,14 +1,41 @@
 {
+    "common": {
+        "retry": "Tekrar dene",
+        "close": "Kapat",
+        "cancel": "Vazgeç",
+        "back": "Geri"
+    },
+    "errors": {
+        "config": "Sunucu adresi ayarlanmamış.",
+        "network": "İnternet bağlantısı yok. Bağlantınızı kontrol edip tekrar deneyin.",
+        "timeout": "Sunucu yanıt vermedi. Lütfen tekrar deneyin.",
+        "unauthorized": "Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.",
+        "forbidden": "Bu işlem için yetkiniz yok.",
+        "notFound": "Aradığınız kayıt bulunamadı.",
+        "validation": "Gönderilen bilgilerde hata var.",
+        "server": "Sunucuda bir sorun oluştu. Lütfen daha sonra tekrar deneyin.",
+        "parse": "Sunucudan beklenmeyen bir yanıt geldi.",
+        "unknown": "Beklenmeyen bir hata oluştu."
+    },
+    "drawer": {
+        "open": "Menüyü aç",
+        "settings": "Ayarlar"
+    },
+    "language": {
+        "tr": "Türkçe",
+        "en": "English"
+    },
     "filters": {
         "today": "Bugün",
         "yesterday": "Dün",
         "weekly": "Haftalık",
         "monthly": "Aylık",
         "yearly": "Yıllık",
-        "selectDate": "Tarih seç",
-        "selectDateTime": "Tarih ve saat seç",
-        "time": "Saat",
-        "done": "Tamam"
+        "selectPeriod": "Dönem seç",
+        "changePeriod": "Dönemi değiştir",
+        "customDate": "Tarih aralığı",
+        "apply": "Uygula",
+        "selectRangeHint": "Başlangıç ve bitiş gününü seçin"
     },
     "dashboard": {
         "totalSales": "Toplam Satış",
@@ -18,16 +45,30 @@
         "unitCod": "ad.",
         "bestSellers": "Çok Satılanlar",
         "all": "Tümü",
-        "size": "Beden"
+        "size": "Beden",
+        "notifications": "Bildirimler",
+        "toggleSoldLine": "Satılan ürün çizgisini aç veya kapat",
+        "toggleOrdersLine": "Sipariş çizgisini aç veya kapat"
     },
     "theme": {
         "lightTheme": "Açık",
-        "darkTheme": "Koyu"
+        "darkTheme": "Koyu",
+        "darkMode": "Koyu mod"
     },
     "tabs": {
         "dashboard": "Genel",
         "stock": "Ürünler",
         "order": "Siparişler",
         "report": "Raporlar"
+    },
+    "settings": {
+        "title": "Ayarlar",
+        "appearance": "Görünüm",
+        "language": "Dil"
+    },
+    "auth": {
+        "logout": "Çıkış yap",
+        "logoutConfirmTitle": "Çıkış yapılsın mı?",
+        "logoutConfirmMessage": "Hesabınızdan çıkış yapacaksınız."
     }
 }

@@ -1,4 +1,4 @@
-import type { Period } from '@/mocks/dashboard';
+import type { Period } from '@/constants/periods';
 import {
   chartData,
   miniChartData,
@@ -35,8 +35,8 @@ export default function RevenueLineChart({
 
   const data = useMemo(() => {
     const revenuePoints =
-      period === 'Bugün'
-        ? chartData.Bugün.map((point, index) => {
+      period === 'today'
+        ? chartData.today.map((point, index) => {
             const day = selectedDate.getDate();
             const month = selectedDate.getMonth();
 

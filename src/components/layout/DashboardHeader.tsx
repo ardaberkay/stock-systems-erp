@@ -1,6 +1,9 @@
 import type { AppColors } from '@/theme/colors';
-import { FONT_FAMILY, FONT_SIZE, typography } from '@/theme/typography';
-import { formatDateTime, formatMoney } from '@/utils/formatter';
+import { FONT_FAMILY, FONT_SIZE, LINE_HEIGHT, typography } from '@/theme/typography';
+import { ICON_SIZE, SPACING } from '@/theme/spacing';
+import { formatMoney } from '@/utils/formatter';
+import TrendingUp from 'lucide-react-native/icons/trending-up';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Pressable,
@@ -12,27 +15,26 @@ import {
 type DashboardHeaderProps = {
   colors: AppColors;
   totalRevenue: number;
-  selectedDate: Date;
-  customDateActive: boolean;
   multiplier: number;
   showSold: boolean;
   showOrders: boolean;
   onToggleSold: () => void;
   onToggleOrders: () => void;
   locale: string;
+  // Ciro satırının solunda gösterilen dönem filtresi
+  periodFilter: ReactNode;
 };
 
 export default function DashboardHeader({
   colors,
   totalRevenue,
-  selectedDate,
-  customDateActive,
   multiplier,
   showSold,
   showOrders,
   onToggleSold,
   onToggleOrders,
   locale,
+  periodFilter,
 }: DashboardHeaderProps) {
   const { t } = useTranslation();
 
@@ -46,31 +48,30 @@ export default function DashboardHeader({
 
   return (
     <View style={styles.revenueSection}>
+      {/* Solda dönem filtresi, sağda önceki döneme göre değişim */}
       <View style={styles.revenueHeader}>
-        <Text style={styles.totalSalesLabel}>
-          {customDateActive
-            ? `${t('dashboard.totalSales')} · ${formatDateTime(
-                selectedDate,
-                locale,
-              )}`
-            : t('dashboard.totalSales')}
-        </Text>
+        {periodFilter}
 
         <View style={styles.changeBadge}>
-          <Text style={styles.changeText}>
-            ↑ {changeLabel}
-          </Text>
+          <TrendingUp size={ICON_SIZE.sm} color={colors.success} />
+          <Text style={styles.changeText}>{changeLabel}</Text>
         </View>
       </View>
 
-      <Text style={styles.revenueAmount}>
+      {/* "Toplam satış" yazısı yok; ekran okuyucu için etiket olarak verilir */}
+      <Text
+        accessibilityLabel={`${t('dashboard.totalSales')}: ${formatMoney(totalRevenue, locale)}`}
+        style={styles.revenueAmount}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+      >
         {formatMoney(totalRevenue, locale)}
       </Text>
 
       <View style={styles.metricsRow}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Satılan ürün çizgisini aç veya kapat"
+          accessibilityLabel={t('dashboard.toggleSoldLine')}
           accessibilityState={{ selected: showSold }}
           onPress={onToggleSold}
           style={[
@@ -106,7 +107,7 @@ export default function DashboardHeader({
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Sipariş çizgisini aç veya kapat"
+          accessibilityLabel={t('dashboard.toggleOrdersLine')}
           accessibilityState={{ selected: showOrders }}
           onPress={onToggleOrders}
           style={[
@@ -151,30 +152,25 @@ function createStyles(colors: AppColors) {
     },
     revenueHeader: {
       width: '100%',
+      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      position: 'relative',
-      marginTop: 20,
-    },
-    totalSalesLabel: {
-      ...typography.caption,
-      color: colors.textSecondary,
-      fontSize: FONT_SIZE.xs,
-      fontFamily: FONT_FAMILY.medium,
+      justifyContent: 'space-between',
+      marginTop: SPACING.sm,
     },
     revenueAmount: {
       ...typography.metric,
       alignSelf: 'center',
       color: colors.text,
-      fontSize: FONT_SIZE['4xl'],
+      fontSize: FONT_SIZE['5xl'],
+      lineHeight: FONT_SIZE['5xl'] * LINE_HEIGHT.tight,
       fontFamily: FONT_FAMILY.bold,
-      letterSpacing: -1.1,
-      marginTop: 4,
+      letterSpacing: -1.4,
+      marginTop: SPACING.md,
     },
     changeBadge: {
-      position: 'absolute',
-      right: 0,
-      top: 0,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.xxs,
       backgroundColor: colors.successBackground,
       paddingHorizontal: 8,
       paddingVertical: 4,
@@ -191,7 +187,7 @@ function createStyles(colors: AppColors) {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'stretch',
-      marginTop: 10,
+      marginTop: SPACING.md,
       gap: 8,
     },
     metric: {

@@ -1,21 +1,25 @@
 import TopSellingCard from '@/components/cards/TopSellingCard';
 import RevenueLineChart from '@/components/charts/RevenueLineChart';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import PeriodChipFilters from '@/components/ui/PeriodChipFilters';
-import type { Period } from '@/mocks/dashboard';
+import PeriodFilter from '@/components/filters/PeriodFilter';
 import {
   baseProducts,
+  getRangeMock,
   periodMultipliers,
   revenueTotals,
 } from '@/mocks/dashboard';
-import { lightColors, type AppColors } from '@/theme/colors';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useLocale } from '@/hooks/useLocale';
+import { useDashboardFilterStore } from '@/stores/dashboardFilterStore';
+import type { AppColors } from '@/theme/colors';
+import { ICON_SIZE, MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, FONT_SIZE, typography } from '@/theme/typography';
-import { formatDateTime } from '@/utils/formatter';
-import {
-  BellIcon,
-  MenuIcon,
-  PlayIcon,
-} from 'panelui-native';
+import { useNavigation } from 'expo-router';
+import { DrawerActions } from 'expo-router/react-navigation';
+import Bell from 'lucide-react-native/icons/bell';
+import ChevronRight from 'lucide-react-native/icons/chevron-right';
+import Menu from 'lucide-react-native/icons/menu';
+import Play from 'lucide-react-native/icons/play';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -28,30 +32,32 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function DashboardScreen() {
-  const { t, i18n } = useTranslation();
-  const locale = (
-    i18n.resolvedLanguage ?? i18n.language
-  ).startsWith('en')
-    ? 'en-US'
-    : 'tr-TR';
-  const [revenuePeriod, setRevenuePeriod] = useState<Period>('Bugün');
-  const [productsPeriod, setProductsPeriod] = useState<Period>('Bugün');
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [customDateActive, setCustomDateActive] = useState(false);
+  const { t } = useTranslation();
+  const navigation = useNavigation();
+  const { colors } = useAppTheme();
+  const locale = useLocale();
+  // Tüm dashboard (ciro, grafik, çok satanlar) tek bir dönem filtresine bağlıdır
+  const selection = useDashboardFilterStore((state) => state.selection);
+  const [today] = useState(() => new Date());
   const [notifications, setNotifications] = useState(3);
   const [showSold, setShowSold] = useState(false);
   const [showOrders, setShowOrders] = useState(false);
 
-  // Dashboard şimdilik açık tema renklerini kullanıyor.
-  const colors: AppColors = lightColors;
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  // Mock: tarih aralığında ciro ve grafik dönemi aralığın uzunluğundan türetilir
+  const rangeMock =
+    selection.kind === 'range' ? getRangeMock(selection.from, selection.to) : null;
+  const period = selection.kind === 'preset' ? selection.period : rangeMock?.chartPeriod ?? 'today';
+  const selectedDate = selection.kind === 'range' ? selection.from : today;
+
+  const multiplier = rangeMock?.multiplier ?? periodMultipliers[period];
+  const totalRevenue = rangeMock?.totalRevenue ?? revenueTotals[period];
 
   const products = useMemo(() => {
     return baseProducts
       .map((product) => {
-        const sold = Math.round(
-          product.sold * periodMultipliers[productsPeriod],
-        );
+        const sold = Math.round(product.sold * multiplier);
 
         return {
           ...product,
@@ -60,35 +66,7 @@ export default function DashboardScreen() {
         };
       })
       .sort((a, b) => b.sold - a.sold);
-  }, [productsPeriod]);
-
-  const totalRevenue = customDateActive
-    ? Math.round(
-      revenueTotals.Bugün *
-      (1 + ((selectedDate.getDate() % 5) - 2) * 0.035),
-    )
-    : revenueTotals[revenuePeriod];
-
-  const multiplier = customDateActive
-    ? 1
-    : periodMultipliers[revenuePeriod];
-
-  const handleDateChange = (date: Date) => {
-    setSelectedDate(date);
-    setRevenuePeriod('Bugün');
-    setProductsPeriod('Bugün');
-    setCustomDateActive(true);
-  };
-
-  const handleRevenuePeriodChange = (period: Period) => {
-    setRevenuePeriod(period);
-    setCustomDateActive(false);
-  };
-
-  const handleProductsPeriodChange = (period: Period) => {
-    setProductsPeriod(period);
-    setCustomDateActive(false);
-  };
+  }, [multiplier]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -101,16 +79,16 @@ export default function DashboardScreen() {
         <View style={styles.topBar}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Menüyü aç"
-            onPress={() => console.log('Menü açılacak')}
+            accessibilityLabel={t('drawer.open')}
+            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
             style={styles.iconButton}
           >
-            <MenuIcon size={27} color={colors.text} />
+            <Menu size={ICON_SIZE.lg} color={colors.text} />
           </Pressable>
 
           <View style={styles.logo}>
             <View style={styles.logoMark}>
-              <PlayIcon size={17} color={colors.surface} />
+              <Play size={ICON_SIZE.sm} color={colors.surface} fill={colors.surface} />
             </View>
 
             <Text style={styles.logoText}>
@@ -120,14 +98,14 @@ export default function DashboardScreen() {
 
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Bildirimler"
+            accessibilityLabel={t('dashboard.notifications')}
             onPress={() => {
               setNotifications(0);
               console.log('Bildirimler açılacak');
             }}
             style={styles.iconButton}
           >
-            <BellIcon size={23} color={colors.text} />
+            <Bell size={ICON_SIZE.lg} color={colors.text} />
 
             {notifications > 0 && (
               <View style={styles.notificationDot} />
@@ -135,23 +113,11 @@ export default function DashboardScreen() {
           </Pressable>
         </View>
 
-        {/* Ciro grafiğinin filtreleri */}
-        <PeriodChipFilters
-          value={revenuePeriod}
-          onChange={handleRevenuePeriodChange}
-          selectedDate={selectedDate}
-          onDateChange={handleDateChange}
-          colors={colors}
-          locale={locale}
-          formatDateTime={(date) => formatDateTime(date, locale)}
-        />
-
-        {/* Toplam ciro ve metrikler */}
+        {/* Toplam ciro, tüm dashboard'u etkileyen dönem filtresi ve metrikler */}
         <DashboardHeader
+          periodFilter={<PeriodFilter />}
           colors={colors}
           totalRevenue={totalRevenue}
-          selectedDate={selectedDate}
-          customDateActive={customDateActive}
           multiplier={multiplier}
           showSold={showSold}
           showOrders={showOrders}
@@ -166,7 +132,7 @@ export default function DashboardScreen() {
 
         {/* Ana ciro grafiği */}
         <RevenueLineChart
-          period={revenuePeriod}
+          period={period}
           selectedDate={selectedDate}
           showSold={showSold}
           showOrders={showOrders}
@@ -182,24 +148,14 @@ export default function DashboardScreen() {
 
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel={t('dashboard.all')}
             onPress={() => console.log('Tüm ürünler açılacak')}
+            style={styles.seeAllButton}
           >
-            <Text style={styles.seeAll}>
-              {t('dashboard.all')} <Text>›</Text>
-            </Text>
+            <Text style={styles.seeAll}>{t('dashboard.all')}</Text>
+            <ChevronRight size={ICON_SIZE.sm} color={colors.orange} />
           </Pressable>
         </View>
-
-        {/* Ürünlerin filtreleri */}
-        <PeriodChipFilters
-          value={productsPeriod}
-          onChange={handleProductsPeriodChange}
-          selectedDate={selectedDate}
-          onDateChange={handleDateChange}
-          colors={colors}
-          locale={locale}
-          formatDateTime={(date) => formatDateTime(date, locale)}
-        />
 
         {/* Ürün kartları */}
         <View style={styles.productList}>
@@ -207,7 +163,7 @@ export default function DashboardScreen() {
             <TopSellingCard
               key={product.sku}
               product={product}
-              period={productsPeriod}
+              period={period}
               colors={colors}
               locale={locale}
               onPress={() =>
@@ -240,7 +196,7 @@ function createStyles(colors: AppColors) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: 24,
+      marginBottom: SPACING.xs,
       marginHorizontal: 20,
     },
     iconButton: {
@@ -285,28 +241,33 @@ function createStyles(colors: AppColors) {
       borderWidth: 1.5,
       borderColor: colors.background,
     },
+    // Başlık, altındaki kartların kenarıyla hizalı durur
     sectionHeader: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: 12,
-      marginHorizontal: 20,
+      marginBottom: SPACING.xs,
+      marginHorizontal: SPACING.md,
     },
     sectionTitle: {
+      ...typography.h3,
       color: colors.text,
-      fontSize: FONT_SIZE.xl,
       fontFamily: FONT_FAMILY.bold,
-      letterSpacing: -0.4,
+    },
+    seeAllButton: {
+      minHeight: MIN_TOUCH_SIZE,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.xxs,
     },
     seeAll: {
+      ...typography.label,
       color: colors.orange,
-      fontSize: FONT_SIZE.sm,
-      fontFamily: FONT_FAMILY.bold,
+      fontFamily: FONT_FAMILY.semiBold,
     },
     productList: {
-      gap: 10,
-      marginTop: 12,
-      marginHorizontal: 12,
+      gap: SPACING.sm,
+      marginHorizontal: SPACING.md,
     },
   });
 }

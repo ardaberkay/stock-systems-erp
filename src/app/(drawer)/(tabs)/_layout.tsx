@@ -1,15 +1,16 @@
-import { lightColors } from '@/theme/colors';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import { NativeTabs } from 'expo-router/native-tabs';
 import { useTranslation } from 'react-i18next';
 
 export default function TabsLayout() {
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
 
   return (
     <NativeTabs
-      tintColor={lightColors.orange}
-      backgroundColor={lightColors.background}
-      indicatorColor="#FFE6CC"
+      tintColor={colors.orange}
+      backgroundColor={colors.background}
+      indicatorColor={colors.orangeLight}
       labelVisibilityMode="labeled"
     >
       <NativeTabs.Trigger name="index">
@@ -44,7 +45,7 @@ export default function TabsLayout() {
 
       <NativeTabs.Trigger name="report">
         <NativeTabs.Trigger.Label>
-          {t('tabs.reports')}
+          {t('tabs.report')}
         </NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: 'chart.bar', selected: 'chart.bar.fill' }}

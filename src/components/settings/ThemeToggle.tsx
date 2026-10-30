@@ -1,55 +1,51 @@
+import Switch from '@/components/ui/Switch';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemeStore } from '@/stores/themeStore';
 import type { AppColors } from '@/theme/colors';
+import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import Moon from 'lucide-react-native/icons/moon';
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { StyleSheet, Text, View } from 'react-native';
 
-type ThemeToggleProps = {
-  colors: AppColors;
-  isDarkMode: boolean;
-  onToggle: () => void;
-};
+export default function ThemeToggle() {
+  const { t } = useTranslation();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const mode = useThemeStore((state) => state.mode);
+  const setMode = useThemeStore((state) => state.setMode);
 
-export default function ThemeToggle({
-  colors,
-  isDarkMode,
-  onToggle,
-}: ThemeToggleProps) {
   return (
-    <Pressable
-      accessibilityRole="switch"
-      accessibilityLabel="Koyu temayı aç veya kapat"
-      accessibilityState={{ checked: isDarkMode }}
-      onPress={onToggle}
-      style={[
-        styles.button,
-        {
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-        },
-      ]}
-    >
-      <Text
-        style={[
-          styles.text,
-          { color: colors.text },
-        ]}
-      >
-        {isDarkMode ? '☀ Açık' : '☾ Koyu'}
-      </Text>
-    </Pressable>
+    <View style={styles.row}>
+      <Moon size={ICON_SIZE.md} color={colors.icon} />
+      <Text style={styles.label}>{t('theme.darkMode')}</Text>
+      <Switch
+        value={mode === 'dark'}
+        onValueChange={(isDark) => setMode(isDark ? 'dark' : 'light')}
+        accessibilityLabel={t('theme.darkMode')}
+      />
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    minHeight: 36,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    ...typography.caption,
-    fontWeight: '600',
-  },
-});
+function createStyles(colors: AppColors) {
+  return StyleSheet.create({
+    row: {
+      minHeight: MIN_TOUCH_SIZE + SPACING.sm,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.md,
+      paddingHorizontal: SPACING.md,
+      borderRadius: RADIUS.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    label: {
+      ...typography.body,
+      flex: 1,
+      color: colors.text,
+    },
+  });
+}

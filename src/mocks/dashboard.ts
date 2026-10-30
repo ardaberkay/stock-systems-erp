@@ -1,6 +1,4 @@
-export const PERIODS = ['Bugün', 'Dün', 'Haftalık', 'Aylık', 'Yıllık'] as const;
-
-export type Period = (typeof PERIODS)[number];
+import type { Period } from '@/constants/periods';
 
 export type ChartPoint = {
     time: string;
@@ -23,7 +21,7 @@ export type Product = {
 };
 
 export const chartData: Record<Period, ChartPoint[]> = {
-    Bugün: [
+    today: [
         { time: '09:00', revenue: 1200 },
         { time: '10:00', revenue: 1850 },
         { time: '11:00', revenue: 1500 },
@@ -38,7 +36,7 @@ export const chartData: Record<Period, ChartPoint[]> = {
         { time: '20:00', revenue: 4330 },
         { time: '21:00', revenue: 3600 },
     ],
-    Dün: [
+    yesterday: [
         { time: '09:00', revenue: 900 },
         { time: '10:00', revenue: 1600 },
         { time: '11:00', revenue: 2100 },
@@ -53,7 +51,7 @@ export const chartData: Record<Period, ChartPoint[]> = {
         { time: '20:00', revenue: 3300 },
         { time: '21:00', revenue: 2500 },
     ],
-    Haftalık: [
+    weekly: [
         { time: 'Pzt', revenue: 12500 },
         { time: 'Sal', revenue: 15800 },
         { time: 'Çar', revenue: 14200 },
@@ -67,7 +65,7 @@ export const chartData: Record<Period, ChartPoint[]> = {
         { time: 'Per', revenue: 23400 },
         { time: 'Cum', revenue: 26500 },
     ],
-    Aylık: [
+    monthly: [
         { time: '1', revenue: 82000 },
         { time: '3', revenue: 96500 },
         { time: '5', revenue: 88400 },
@@ -81,7 +79,7 @@ export const chartData: Record<Period, ChartPoint[]> = {
         { time: '26', revenue: 157000 },
         { time: '30', revenue: 164000 },
     ],
-    Yıllık: [
+    yearly: [
         { time: 'Oca', revenue: 240000 },
         { time: 'Şub', revenue: 218000 },
         { time: 'Mar', revenue: 275000 },
@@ -98,23 +96,23 @@ export const chartData: Record<Period, ChartPoint[]> = {
 };
 
 export const revenueTotals: Record<Period, number> = {
-    Bugün: 24580,
-    Dün: 21800,
-    Haftalık: 154600,
-    Aylık: 612400,
-    Yıllık: 3812500,
+    today: 24580,
+    yesterday: 21800,
+    weekly: 154600,
+    monthly: 612400,
+    yearly: 3812500,
 };
 
 export const periodMultipliers: Record<Period, number> = {
-    Bugün: 1,
-    Dün: 0.9,
-    Haftalık: 5.8,
-    Aylık: 24,
-    Yıllık: 280,
+    today: 1,
+    yesterday: 0.9,
+    weekly: 5.8,
+    monthly: 24,
+    yearly: 280,
 };
 
 export const miniChartData: Record<Period, MiniChartPoint[]> = {
-    Bugün: [
+    today: [
         { time: '09', sold: 8 },
         { time: '10', sold: 13 },
         { time: '11', sold: 10 },
@@ -128,7 +126,7 @@ export const miniChartData: Record<Period, MiniChartPoint[]> = {
         { time: '19', sold: 21 },
         { time: '20', sold: 25 },
     ],
-    Dün: [
+    yesterday: [
         { time: '09', sold: 6 },
         { time: '10', sold: 10 },
         { time: '11', sold: 14 },
@@ -142,7 +140,7 @@ export const miniChartData: Record<Period, MiniChartPoint[]> = {
         { time: '19', sold: 19 },
         { time: '20', sold: 15 },
     ],
-    Haftalık: [
+    weekly: [
         { time: 'Pzt', sold: 12 },
         { time: 'Sal', sold: 17 },
         { time: 'Çar', sold: 14 },
@@ -151,7 +149,7 @@ export const miniChartData: Record<Period, MiniChartPoint[]> = {
         { time: 'Cmt', sold: 28 },
         { time: 'Paz', sold: 24 },
     ],
-    Aylık: [
+    monthly: [
         { time: '1', sold: 15 },
         { time: '5', sold: 20 },
         { time: '8', sold: 17 },
@@ -162,7 +160,7 @@ export const miniChartData: Record<Period, MiniChartPoint[]> = {
         { time: '27', sold: 34 },
         { time: '30', sold: 29 },
     ],
-    Yıllık: [
+    yearly: [
         { time: 'Oca', sold: 16 },
         { time: 'Şub', sold: 13 },
         { time: 'Mar', sold: 20 },
@@ -270,3 +268,21 @@ export const baseProducts: Product[] = [
         price: 500,
     },
 ];
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Mock: seçilen tarih aralığı için ciro, çarpan ve grafiğin hangi dönem verisini
+// kullanacağı. Backend gelince bu hesap sunucudan gelen veriyle değişecek.
+export function getRangeMock(from: Date, to: Date) {
+    const days = Math.round((to.getTime() - from.getTime()) / DAY_MS) + 1;
+    const chartPeriod: Period =
+        days <= 1 ? 'today' : days <= 7 ? 'weekly' : days <= 31 ? 'monthly' : 'yearly';
+    // Tarihe göre küçük bir oynama, aynı aralık her seferinde aynı sonucu verir
+    const variation = 1 + ((from.getDate() % 5) - 2) * 0.035;
+
+    return {
+        chartPeriod,
+        totalRevenue: Math.round(revenueTotals.today * days * variation),
+        multiplier: days,
+    };
+}
