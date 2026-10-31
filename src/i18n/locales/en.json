@@ -3,7 +3,9 @@
     "retry": "Try again",
     "close": "Close",
     "cancel": "Cancel",
-    "back": "Back"
+    "back": "Back",
+    "clear": "Clear",
+    "comingSoon": "This feature is coming soon."
   },
   "errors": {
     "config": "Server address is not configured.",
@@ -52,6 +54,54 @@
     "notifications": "Notifications",
     "toggleSoldLine": "Show or hide the products sold line",
     "toggleOrdersLine": "Show or hide the orders line"
+  },
+  "stock": {
+    "searchPlaceholder": "Search by product name or code",
+    "resultCount": "{{value}} results",
+    "empty": "No products yet.",
+    "noResults": "No products match your search.",
+    "addProduct": "Add new product",
+    "toggleDetails": "Show or hide product details",
+    "viewImages": "Open product images",
+    "imageCounter": "{{current}} / {{total}}",
+    "stockValue": "Stock: {{value}}",
+    "cost": "Cost",
+    "brand": "Brand",
+    "type": "Type",
+    "category": "Category",
+    "status": "Status",
+    "edit": "Edit",
+    "delete": "Delete",
+    "filterTitle": "Filters",
+    "resetFilters": "Reset",
+    "stockTitle": "Stock",
+    "sortTitle": "Sort",
+    "stockFilter": {
+      "all": "All",
+      "inStock": "In stock",
+      "lowStock": "Low stock",
+      "outOfStock": "Out of stock"
+    },
+    "statusFilter": {
+      "all": "All",
+      "active": "Active",
+      "passive": "Passive"
+    },
+    "sort": {
+      "newest": "Newest",
+      "name": "By name",
+      "stockDesc": "Stock high to low",
+      "stockAsc": "Stock low to high",
+      "priceDesc": "Price high to low",
+      "priceAsc": "Price low to high"
+    },
+    "catalog": {
+      "title": "Catalog management",
+      "types": "Product types",
+      "colors": "Product colors",
+      "categories": "Product categories",
+      "brands": "Brands"
+    }
   },
   "theme": {
     "lightTheme": "Light",

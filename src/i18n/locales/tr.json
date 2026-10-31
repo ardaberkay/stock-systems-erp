@@ -3,7 +3,9 @@
         "retry": "Tekrar dene",
         "close": "Kapat",
         "cancel": "Vazgeç",
-        "back": "Geri"
+        "back": "Geri",
+        "clear": "Temizle",
+        "comingSoon": "Bu özellik yakında eklenecek."
     },
     "errors": {
         "config": "Sunucu adresi ayarlanmamış.",
@@ -52,6 +54,54 @@
         "notifications": "Bildirimler",
         "toggleSoldLine": "Satılan ürün çizgisini aç veya kapat",
         "toggleOrdersLine": "Sipariş çizgisini aç veya kapat"
+    },
+    "stock": {
+        "searchPlaceholder": "Ürün adı veya kodu ara",
+        "resultCount": "{{value}} sonuç",
+        "empty": "Henüz ürün yok.",
+        "noResults": "Aramanla eşleşen ürün yok.",
+        "addProduct": "Yeni ürün ekle",
+        "toggleDetails": "Ürün detayını aç veya kapat",
+        "viewImages": "Ürün görsellerini aç",
+        "imageCounter": "{{current}} / {{total}}",
+        "stockValue": "Stok: {{value}}",
+        "cost": "Maliyet",
+        "brand": "Marka",
+        "type": "Tip",
+        "category": "Kategori",
+        "status": "Durum",
+        "edit": "Düzenle",
+        "delete": "Sil",
+        "filterTitle": "Filtreler",
+        "resetFilters": "Sıfırla",
+        "stockTitle": "Stok",
+        "sortTitle": "Sıralama",
+        "stockFilter": {
+            "all": "Tümü",
+            "inStock": "Stokta",
+            "lowStock": "Az stok",
+            "outOfStock": "Tükendi"
+        },
+        "statusFilter": {
+            "all": "Tümü",
+            "active": "Aktif",
+            "passive": "Pasif"
+        },
+        "sort": {
+            "newest": "En yeni",
+            "name": "Ada göre",
+            "stockDesc": "Stok çoktan aza",
+            "stockAsc": "Stok azdan çoğa",
+            "priceDesc": "Fiyat yüksekten düşüğe",
+            "priceAsc": "Fiyat düşükten yükseğe"
+        },
+        "catalog": {
+            "title": "Katalog yönetimi",
+            "types": "Ürün tipleri",
+            "colors": "Ürün renkleri",
+            "categories": "Ürün kategorileri",
+            "brands": "Markalar"
+        }
     },
     "theme": {
         "lightTheme": "Açık",

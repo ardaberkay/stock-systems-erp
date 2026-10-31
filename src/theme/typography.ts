@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native';
 
 export const FONT_FAMILY = {
   regular: 'Inter_400Regular',
+  italic: 'Inter_400Regular_Italic',
   medium: 'Inter_500Medium',
   semiBold: 'Inter_600SemiBold',
   bold: 'Inter_700Bold',

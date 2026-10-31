@@ -6,6 +6,7 @@ import { RADIUS } from '@/theme/spacing';
 import { FONT_FAMILY } from '@/theme/typography';
 import {
   Inter_400Regular,
+  Inter_400Regular_Italic,
   Inter_500Medium,
   Inter_600SemiBold,
   Inter_700Bold,
@@ -27,6 +28,7 @@ void SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
+    Inter_400Regular_Italic,
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
@@ -87,6 +89,31 @@ export default function RootLayout() {
             options={{
               presentation: 'formSheet',
               sheetAllowedDetents: 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: RADIUS.xxl,
+              contentStyle: { backgroundColor: colors.surface },
+            }}
+          />
+          <Stack.Screen
+            name="product-catalog"
+            options={{
+              presentation: 'formSheet',
+              sheetAllowedDetents: 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: RADIUS.xxl,
+              contentStyle: { backgroundColor: colors.surface },
+            }}
+          />
+          <Stack.Screen
+            name="product-images"
+            options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+          />
+          {/* Marka ve tip listesi uzun olabildiği için içeriğe göre değil, sabit yükseklikte açılır */}
+          <Stack.Screen
+            name="product-filters"
+            options={{
+              presentation: 'formSheet',
+              sheetAllowedDetents: [0.8],
               sheetGrabberVisible: true,
               sheetCornerRadius: RADIUS.xxl,
               contentStyle: { backgroundColor: colors.surface },

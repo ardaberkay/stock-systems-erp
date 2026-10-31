@@ -35,7 +35,7 @@ yarn-error.*
 .env*.local
 
 # API dokümanları (Postman koleksiyonu gerçek kullanıcı adı/şifre içerir)
-docs/api/
+docs/
 
 # typescript
 *.tsbuildinfo

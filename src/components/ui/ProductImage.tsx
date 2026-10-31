@@ -12,7 +12,7 @@ type ProductImageProps = {
 };
 
 const IMAGE_SIZE = 100;
-const FADE_DURATION_MS = 200;
+const FADE_DURATION_MS = 100;
 
 // Görsel yoksa, yüklenirken veya adres bozuksa nötr varsayılan alan görünür.
 export default function ProductImage({ uri, accessibilityLabel }: ProductImageProps) {
@@ -30,6 +30,8 @@ export default function ProductImage({ uri, accessibilityLabel }: ProductImagePr
           source={{ uri: uri ?? undefined }}
           style={StyleSheet.absoluteFill}
           contentFit="cover"
+          // Listede yukarı aşağı kaydırırken görseller yeniden indirilmesin
+          cachePolicy="memory-disk"
           transition={FADE_DURATION_MS}
           accessibilityLabel={accessibilityLabel}
           onError={() => setFailedUri(uri ?? null)}

@@ -1,5 +1,6 @@
 import ProductMiniChart from "@/components/charts/ProductMiniChart";
 import Skeleton from "@/components/skeleton/Skeleton";
+import ProductColor from "@/components/ui/ProductColor";
 import ProductImage from "@/components/ui/ProductImage";
 import type { Product } from "@/schemas/products";
 import type { AppColors } from "@/theme/colors";
@@ -7,7 +8,6 @@ import { ICON_SIZE, RADIUS, SPACING } from "@/theme/spacing";
 import { FONT_FAMILY, FONT_SIZE, typography } from "@/theme/typography";
 import { formatMoney, formatNumber } from "@/utils/formatter";
 import type { BestSeller } from "@/utils/orderStats";
-import { getProductColorHex } from "@/utils/productColor";
 import Tag from "lucide-react-native/icons/tag";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -36,7 +36,6 @@ export default function TopSellingCard({
   const styles = useMemo(() => createStyles(colors), [colors]);
   const name =
     product?.name ?? t("dashboard.productFallback", { id: item.productId });
-  const colorHex = getProductColorHex(product?.colorName);
 
   return (
     <View style={styles.productCard}>
@@ -78,18 +77,7 @@ export default function TopSellingCard({
 
         {/* Adet ve ciro ürünün toplamıdır; sağda alt alta tek blok gibi okunur */}
         <View style={styles.productSpacedRow}>
-          <View style={styles.productColor}>
-            {colorHex && (
-              <View
-                style={[styles.productColorDot, { backgroundColor: colorHex }]}
-              />
-            )}
-            {product?.colorName && (
-              <Text style={styles.productColorText} numberOfLines={1}>
-                {product.colorName}
-              </Text>
-            )}
-          </View>
+          <ProductColor colorName={product?.colorName} />
 
           <View style={styles.productSoldBadge}>
             <Tag size={SMALL_ICON_SIZE} color={colors.purple} />
@@ -156,7 +144,7 @@ function createStyles(colors: AppColors) {
     productSku: {
       ...typography.caption,
       color: colors.textSecondary,
-      fontStyle: "italic",
+      fontFamily: FONT_FAMILY.italic,
       flexShrink: 1,
     },
     productTopSize: {
@@ -171,26 +159,6 @@ function createStyles(colors: AppColors) {
       ...typography.caption,
       color: colors.textSecondary,
       fontFamily: FONT_FAMILY.semiBold,
-    },
-    productColor: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: SPACING.xs,
-      minWidth: 0,
-      flexShrink: 1,
-    },
-    // Açık renkler koyu temada ve kart zemininde kaybolmasın diye her noktada kenarlık var
-    productColorDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      borderWidth: 1,
-      borderColor: colors.textDisabled,
-    },
-    productColorText: {
-      ...typography.caption,
-      color: colors.textSecondary,
-      flexShrink: 1,
     },
     productSoldBadge: {
       flexDirection: "row",
