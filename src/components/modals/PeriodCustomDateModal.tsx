@@ -1,10 +1,12 @@
 import DateRangePicker from '@/components/ui/DateRangePicker';
+import { MAX_RANGE_DAYS } from '@/constants/periods';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useLocale } from '@/hooks/useLocale';
 import { useDashboardFilterStore } from '@/stores/dashboardFilterStore';
 import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
+import { countDays, toDayKey } from '@/utils/dateKey';
 import { formatDateRange } from '@/utils/formatter';
 import { router } from 'expo-router';
 import type { DateRange } from 'panelui-native';
@@ -14,7 +16,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Dönem seçim sheet'inin üstüne ikinci bir native sheet olarak açılır.
-export default function PeriodCustomDateScreen() {
+export default function PeriodCustomDateModal() {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const locale = useLocale();
@@ -31,7 +33,11 @@ export default function PeriodCustomDateScreen() {
   // Yalnızca başlangıç seçiliyse tek günlük aralık sayılır
   const from = draft?.from;
   const to = draft?.to ?? draft?.from;
-  const canApply = from !== undefined && to !== undefined;
+  const isTooLong =
+    from !== undefined &&
+    to !== undefined &&
+    countDays(toDayKey(from), toDayKey(to)) > MAX_RANGE_DAYS;
+  const canApply = from !== undefined && to !== undefined && !isTooLong;
 
   const apply = () => {
     if (!from || !to) {
@@ -49,6 +55,9 @@ export default function PeriodCustomDateScreen() {
         <Text style={styles.summary}>
           {from && to ? formatDateRange(from, to, locale) : t('filters.selectRangeHint')}
         </Text>
+        {isTooLong && (
+          <Text style={styles.error}>{t('filters.maxRangeError', { days: MAX_RANGE_DAYS })}</Text>
+        )}
       </View>
 
       <DateRangePicker value={draft} onChange={setDraft} locale={locale} maxDate={today} />
@@ -84,6 +93,10 @@ function createStyles(colors: AppColors) {
     summary: {
       ...typography.bodySmall,
       color: colors.textSecondary,
+    },
+    error: {
+      ...typography.bodySmall,
+      color: colors.error,
     },
     applyButton: {
       minHeight: MIN_TOUCH_SIZE + SPACING.xs,

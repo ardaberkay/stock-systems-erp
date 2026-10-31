@@ -1,5 +1,6 @@
 // Dashboard dönem filtreleri; görünen ad `filters.<anahtar>` çevirisinden gelir.
-export const PERIODS = ['today', 'yesterday', 'weekly', 'monthly', 'yearly'] as const;
+// weekly son 7 günü, monthly son 30 günü kapsar; ikisi de bugünü içerir.
+export const PERIODS = ['today', 'yesterday', 'weekly', 'monthly'] as const;
 
 export type Period = (typeof PERIODS)[number];
 
@@ -9,3 +10,6 @@ export type PeriodSelection =
   | { kind: 'range'; from: Date; to: Date };
 
 export const DEFAULT_PERIOD_SELECTION: PeriodSelection = { kind: 'preset', period: 'today' };
+
+// API tek istekte en fazla 30 gün kabul eder (MaxQueryRangeIs30Days).
+export const MAX_RANGE_DAYS = 30;

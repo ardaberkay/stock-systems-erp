@@ -1,5 +1,5 @@
-import PeriodSelectScreen from '@/screens/DashboardTab/PeriodSelectScreen';
+import PeriodSelectModal from '@/components/modals/PeriodSelectModal';
 
 export default function PeriodSelect() {
-  return <PeriodSelectScreen />;
+  return <PeriodSelectModal />;
 }

@@ -13,6 +13,7 @@
     "forbidden": "You are not allowed to do this.",
     "notFound": "The record you are looking for was not found.",
     "validation": "Some of the submitted information is invalid.",
+    "rateLimit": "Too many requests. Please wait a moment and try again.",
     "server": "Something went wrong on the server. Please try again later.",
     "parse": "The server returned an unexpected response.",
     "unknown": "An unexpected error occurred."
@@ -28,24 +29,26 @@
   "filters": {
     "today": "Today",
     "yesterday": "Yesterday",
-    "weekly": "Weekly",
-    "monthly": "Monthly",
-    "yearly": "Yearly",
+    "weekly": "Last 7 days",
+    "monthly": "Last 30 days",
     "selectPeriod": "Select period",
     "changePeriod": "Change period",
     "customDate": "Date range",
     "apply": "Apply",
-    "selectRangeHint": "Pick a start and end day"
+    "selectRangeHint": "Pick a start and end day",
+    "maxRangeError": "You can select up to {{days}} days."
   },
   "dashboard": {
     "totalSales": "Total Sales",
     "soldProduct": "Products Sold",
     "orders": "Orders",
-    "unit": "Unit",
     "unitCod": "pcs.",
     "bestSellers": "Best Sellers",
-    "all": "All",
-    "size": "Size",
+    "topSize": "Popular: {{size}}",
+    "previousDay": "Yesterday",
+    "emptyPeriod": "No sales in this period.",
+    "productFallback": "Product #{{id}}",
+    "changeFromPrevious": "Change from previous period",
     "notifications": "Notifications",
     "toggleSoldLine": "Show or hide the products sold line",
     "toggleOrdersLine": "Show or hide the orders line"

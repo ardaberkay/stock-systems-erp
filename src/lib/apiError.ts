@@ -6,6 +6,7 @@ export type ApiErrorKind =
   | 'forbidden'
   | 'notFound'
   | 'validation'
+  | 'rateLimit'
   | 'server'
   | 'parse'
   | 'unknown';
@@ -32,6 +33,11 @@ export class ApiError extends Error {
   static fromStatus(status: number, data?: unknown): ApiError {
     return new ApiError(kindFromStatus(status), { status, data });
   }
+
+  // Sunucu hataları HTTP 200 ve `{status: false, error: 'Kod'}` olarak gelir.
+  static fromServiceCode(code: string | null | undefined): ApiError {
+    return new ApiError(kindFromServiceCode(code ?? ''), { data: code });
+  }
 }
 
 function kindFromStatus(status: number): ApiErrorKind {
@@ -39,7 +45,15 @@ function kindFromStatus(status: number): ApiErrorKind {
   if (status === 403) return 'forbidden';
   if (status === 404) return 'notFound';
   if (status === 400 || status === 422) return 'validation';
+  if (status === 429) return 'rateLimit';
   if (status >= 500) return 'server';
+  return 'unknown';
+}
+
+function kindFromServiceCode(code: string): ApiErrorKind {
+  if (code === 'Rate Limit Exceeded') return 'rateLimit';
+  if (code === 'ServiceUserNotFound') return 'unauthorized';
+  if (code === 'MaxQueryRangeIs30Days' || code.endsWith('FormatNotValid')) return 'validation';
   return 'unknown';
 }
 

@@ -1,49 +1,74 @@
 import { ApiError } from '@/lib/apiError';
 import { env } from '@/lib/env';
-import type { z } from 'zod';
-
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-
-type QueryValue = string | number | boolean | null | undefined;
+import { z } from 'zod';
 
 type RequestOptions<TSchema extends z.ZodType> = {
-  // Yanıt bu şemayla doğrulanır; dönen veri şemadan türetilen tiptedir.
+  // Yanıtın `result` alanı bu şemayla doğrulanır; dönen veri şemadan türetilen tiptedir.
   schema: TSchema;
-  params?: Record<string, QueryValue>;
-  body?: unknown;
+  arguments?: Record<string, unknown>;
   // React Query'nin queryFn'e verdiği signal; ekran kapanınca istek iptal edilir.
   signal?: AbortSignal;
 };
 
+type Credentials = {
+  userName: string;
+  password: string;
+};
+
 type ApiClientConfig = {
-  getAuthToken?: () => string | null;
+  getCredentials?: () => Credentials;
   onUnauthorized?: () => void;
 };
 
-const REQUEST_TIMEOUT_MS = 15_000;
+const REQUEST_TIMEOUT_MS = 20_000;
+// Hızlı art arda istekler rate limit'e takılıyor; bu aralıkla atılanlar testte geçti.
+const MIN_REQUEST_GAP_MS = 1_250;
 
-// Oturum altyapısı kurulduğunda configureApiClient ile bağlanır.
-let getAuthToken: () => string | null = () => null;
+const envelopeSchema = z.object({
+  status: z.boolean(),
+  error: z.string().nullish(),
+  result: z.unknown(),
+});
+
+// GEÇİCİ: login gelene kadar test hesabı kullanılır; configureApiClient ile değiştirilir.
+let getCredentials: () => Credentials = () => ({
+  userName: env.devUsername,
+  password: env.devPassword,
+});
 let onUnauthorized: () => void = () => {};
 
+let queueTail: Promise<unknown> = Promise.resolve();
+let lastRequestAt = 0;
+
 export function configureApiClient(config: ApiClientConfig) {
-  if (config.getAuthToken) getAuthToken = config.getAuthToken;
+  if (config.getCredentials) getCredentials = config.getCredentials;
   if (config.onUnauthorized) onUnauthorized = config.onUnauthorized;
 }
 
-function buildUrl(path: string, params?: Record<string, QueryValue>) {
-  const url = `${env.apiUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+function buildUrl(path: string) {
+  return `${env.apiUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+}
 
-  if (!params) {
-    return url;
-  }
+// Tüm istekler tek sırada ve aralıklı atılır; ekranlar rate limit'i düşünmek zorunda kalmaz.
+function enqueue<T>(task: () => Promise<T>, signal?: AbortSignal): Promise<T> {
+  const run = async () => {
+    // Sırada beklerken iptal edilen istek, sıradakilerin süresini harcamaz.
+    if (signal?.aborted) {
+      throw new Error('aborted');
+    }
 
-  const query = Object.entries(params)
-    .filter(([, value]) => value !== undefined && value !== null)
-    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
-    .join('&');
+    const wait = lastRequestAt + MIN_REQUEST_GAP_MS - Date.now();
+    if (wait > 0) {
+      await new Promise((resolve) => setTimeout(resolve, wait));
+    }
 
-  return query ? `${url}?${query}` : url;
+    lastRequestAt = Date.now();
+    return task();
+  };
+
+  const result = queueTail.then(run, run);
+  queueTail = result.catch(() => undefined);
+  return result;
 }
 
 async function readBody(response: Response): Promise<unknown> {
@@ -63,25 +88,10 @@ async function readBody(response: Response): Promise<unknown> {
   }
 }
 
-async function request<TSchema extends z.ZodType>(
-  method: HttpMethod,
+async function send<TSchema extends z.ZodType>(
   path: string,
-  { schema, params, body, signal }: RequestOptions<TSchema>,
+  { schema, arguments: args, signal }: RequestOptions<TSchema>,
 ): Promise<z.infer<TSchema>> {
-  if (!env.apiUrl) {
-    throw new ApiError('config');
-  }
-
-  const headers: Record<string, string> = { Accept: 'application/json' };
-  const token = getAuthToken();
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-  if (body !== undefined) {
-    headers['Content-Type'] = 'application/json';
-  }
-
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   const abortFromCaller = () => controller.abort();
@@ -90,10 +100,10 @@ async function request<TSchema extends z.ZodType>(
   let response: Response;
 
   try {
-    response = await fetch(buildUrl(path, params), {
-      method,
-      headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
+    response = await fetch(buildUrl(path), {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ auth: getCredentials(), arguments: args ?? {} }),
       signal: controller.signal,
     });
   } catch (error) {
@@ -117,7 +127,21 @@ async function request<TSchema extends z.ZodType>(
     throw error;
   }
 
-  const result = schema.safeParse(data);
+  const envelope = envelopeSchema.safeParse(data);
+
+  if (!envelope.success) {
+    throw new ApiError('parse', { status: response.status, data: envelope.error });
+  }
+
+  if (!envelope.data.status) {
+    const error = ApiError.fromServiceCode(envelope.data.error);
+    if (error.kind === 'unauthorized') {
+      onUnauthorized();
+    }
+    throw error;
+  }
+
+  const result = schema.safeParse(envelope.data.result);
 
   if (!result.success) {
     throw new ApiError('parse', { status: response.status, data: result.error });
@@ -127,14 +151,11 @@ async function request<TSchema extends z.ZodType>(
 }
 
 export const apiClient = {
-  get: <TSchema extends z.ZodType>(path: string, options: RequestOptions<TSchema>) =>
-    request('GET', path, options),
-  post: <TSchema extends z.ZodType>(path: string, options: RequestOptions<TSchema>) =>
-    request('POST', path, options),
-  put: <TSchema extends z.ZodType>(path: string, options: RequestOptions<TSchema>) =>
-    request('PUT', path, options),
-  patch: <TSchema extends z.ZodType>(path: string, options: RequestOptions<TSchema>) =>
-    request('PATCH', path, options),
-  delete: <TSchema extends z.ZodType>(path: string, options: RequestOptions<TSchema>) =>
-    request('DELETE', path, options),
+  // ButikSistem'de tüm çağrılar POST'tur: `{auth, arguments}` gövdesi ile.
+  post: <TSchema extends z.ZodType>(path: string, options: RequestOptions<TSchema>) => {
+    if (!env.apiUrl) {
+      return Promise.reject(new ApiError('config'));
+    }
+    return enqueue(() => send(path, options), options.signal);
+  },
 };

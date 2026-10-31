@@ -2,28 +2,25 @@ import TopSellingCard from '@/components/cards/TopSellingCard';
 import RevenueLineChart from '@/components/charts/RevenueLineChart';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import PeriodFilter from '@/components/filters/PeriodFilter';
-import {
-  baseProducts,
-  getRangeMock,
-  periodMultipliers,
-  revenueTotals,
-} from '@/mocks/dashboard';
+import TopSellingCardSkeleton from '@/components/skeleton/TopSellingCardSkeleton';
+import StateMessage from '@/components/ui/StateMessage';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useDashboardData } from '@/hooks/useDashboardData';
 import { useLocale } from '@/hooks/useLocale';
-import { useDashboardFilterStore } from '@/stores/dashboardFilterStore';
+import { usePeriodLabel } from '@/hooks/usePeriodLabel';
+import { getErrorMessageKey } from '@/lib/apiError';
 import type { AppColors } from '@/theme/colors';
-import { ICON_SIZE, MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
+import { ICON_SIZE, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, FONT_SIZE, typography } from '@/theme/typography';
 import { useNavigation } from 'expo-router';
 import { DrawerActions } from 'expo-router/react-navigation';
 import Bell from 'lucide-react-native/icons/bell';
-import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import Menu from 'lucide-react-native/icons/menu';
-import Play from 'lucide-react-native/icons/play';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -31,42 +28,29 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+const SKELETON_CARD_KEYS = ['first', 'second', 'third'];
+
 export default function DashboardScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const { colors } = useAppTheme();
   const locale = useLocale();
-  // Tüm dashboard (ciro, grafik, çok satanlar) tek bir dönem filtresine bağlıdır
-  const selection = useDashboardFilterStore((state) => state.selection);
-  const [today] = useState(() => new Date());
+  const periodLabel = usePeriodLabel();
+  const {
+    window,
+    stats,
+    productsById,
+    isLoading,
+    isProductsLoading,
+    error,
+    isRefreshing,
+    refresh,
+  } = useDashboardData();
   const [notifications, setNotifications] = useState(3);
   const [showSold, setShowSold] = useState(false);
   const [showOrders, setShowOrders] = useState(false);
 
   const styles = useMemo(() => createStyles(colors), [colors]);
-
-  // Mock: tarih aralığında ciro ve grafik dönemi aralığın uzunluğundan türetilir
-  const rangeMock =
-    selection.kind === 'range' ? getRangeMock(selection.from, selection.to) : null;
-  const period = selection.kind === 'preset' ? selection.period : rangeMock?.chartPeriod ?? 'today';
-  const selectedDate = selection.kind === 'range' ? selection.from : today;
-
-  const multiplier = rangeMock?.multiplier ?? periodMultipliers[period];
-  const totalRevenue = rangeMock?.totalRevenue ?? revenueTotals[period];
-
-  const products = useMemo(() => {
-    return baseProducts
-      .map((product) => {
-        const sold = Math.round(product.sold * multiplier);
-
-        return {
-          ...product,
-          sold,
-          revenue: sold * product.price,
-        };
-      })
-      .sort((a, b) => b.sold - a.sold);
-  }, [multiplier]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -74,6 +58,13 @@ export default function DashboardScreen() {
         style={styles.screen}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={refresh}
+            tintColor={colors.orange}
+          />
+        }
       >
         {/* Appbar: menü, logo ve bildirimler */}
         <View style={styles.topBar}>
@@ -86,23 +77,17 @@ export default function DashboardScreen() {
             <Menu size={ICON_SIZE.lg} color={colors.text} />
           </Pressable>
 
-          <View style={styles.logo}>
-            <View style={styles.logoMark}>
-              <Play size={ICON_SIZE.sm} color={colors.surface} fill={colors.surface} />
-            </View>
-
-            <Text style={styles.logoText}>
-              stock<Text style={styles.logoAccent}>.</Text>
-            </Text>
-          </View>
+          {/* Marka adı çevrilmez; "<butik" ve "." her temada turuncu ve bir tık incedir */}
+          <Text accessibilityLabel="butiksistem" style={styles.logo}>
+            <Text style={styles.logoAccent}>{'<butik'}</Text>
+            sistem
+            <Text style={styles.logoAccent}>.</Text>
+          </Text>
 
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('dashboard.notifications')}
-            onPress={() => {
-              setNotifications(0);
-              console.log('Bildirimler açılacak');
-            }}
+            onPress={() => setNotifications(0)}
             style={styles.iconButton}
           >
             <Bell size={ICON_SIZE.lg} color={colors.text} />
@@ -117,8 +102,9 @@ export default function DashboardScreen() {
         <DashboardHeader
           periodFilter={<PeriodFilter />}
           colors={colors}
-          totalRevenue={totalRevenue}
-          multiplier={multiplier}
+          totals={stats?.totals ?? null}
+          isLoading={isLoading}
+          change={stats?.change ?? null}
           showSold={showSold}
           showOrders={showOrders}
           onToggleSold={() =>
@@ -130,48 +116,55 @@ export default function DashboardScreen() {
           locale={locale}
         />
 
-        {/* Ana ciro grafiği */}
-        <RevenueLineChart
-          period={period}
-          selectedDate={selectedDate}
-          showSold={showSold}
-          showOrders={showOrders}
-          colors={colors}
-          locale={locale}
-        />
-
-        {/* Çok satanlar başlığı */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            {t('dashboard.bestSellers')}
-          </Text>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('dashboard.all')}
-            onPress={() => console.log('Tüm ürünler açılacak')}
-            style={styles.seeAllButton}
-          >
-            <Text style={styles.seeAll}>{t('dashboard.all')}</Text>
-            <ChevronRight size={ICON_SIZE.sm} color={colors.orange} />
-          </Pressable>
-        </View>
-
-        {/* Ürün kartları */}
-        <View style={styles.productList}>
-          {products.map((product) => (
-            <TopSellingCard
-              key={product.sku}
-              product={product}
-              period={period}
+        {/* Hata varsa filtre açık kalır; kullanıcı dönemi değiştirebilir veya yeniden dener */}
+        {error && !stats ? (
+          <StateMessage message={t(getErrorMessageKey(error))} onRetry={refresh} />
+        ) : (
+          <>
+            {/* Ana ciro grafiği */}
+            <RevenueLineChart
+              points={stats?.chartPoints ?? []}
+              granularity={window.granularity}
+              canCompare={window.isPartial && window.granularity === 'hour'}
+              isLoading={isLoading}
+              showSold={showSold}
+              showOrders={showOrders}
               colors={colors}
               locale={locale}
-              onPress={() =>
-                console.log(`${product.name} detayları açılacak`)
-              }
             />
-          ))}
-        </View>
+
+            {/* Dönem başlıkta da yazar; kaydırınca filtre görünmez olur */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t('dashboard.bestSellers')}</Text>
+              <Text style={styles.sectionPeriod} numberOfLines={1}>
+                {periodLabel}
+              </Text>
+            </View>
+
+            {isLoading ? (
+              <View style={styles.productList}>
+                {SKELETON_CARD_KEYS.map((key) => (
+                  <TopSellingCardSkeleton key={key} />
+                ))}
+              </View>
+            ) : stats?.bestSellers.length === 0 ? (
+              <StateMessage message={t('dashboard.emptyPeriod')} />
+            ) : (
+              <View style={styles.productList}>
+                {stats?.bestSellers.map((item) => (
+                  <TopSellingCard
+                    key={item.productId}
+                    item={item}
+                    product={productsById.get(item.productId)}
+                    isProductLoading={isProductsLoading}
+                    colors={colors}
+                    locale={locale}
+                  />
+                ))}
+              </View>
+            )}
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -199,6 +192,17 @@ function createStyles(colors: AppColors) {
       marginBottom: SPACING.xs,
       marginHorizontal: 20,
     },
+    logo: {
+      ...typography.h2,
+      color: colors.text,
+      fontSize: FONT_SIZE.xl,
+      fontFamily: FONT_FAMILY.bold,
+      letterSpacing: -1.2,
+    },
+    logoAccent: {
+      color: colors.orange,
+      fontFamily: FONT_FAMILY.semiBold,
+    },
     iconButton: {
       width: 44,
       height: 44,
@@ -206,29 +210,6 @@ function createStyles(colors: AppColors) {
       alignItems: 'center',
       justifyContent: 'center',
       position: 'relative',
-    },
-    logo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 7,
-    },
-    logoMark: {
-      width: 29,
-      height: 29,
-      borderRadius: 10,
-      backgroundColor: colors.orange,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    logoText: {
-      ...typography.h2,
-      color: colors.text,
-      fontSize: FONT_SIZE.xl,
-      fontFamily: FONT_FAMILY.bold,
-      letterSpacing: -0.8,
-    },
-    logoAccent: {
-      color: colors.orange,
     },
     notificationDot: {
       position: 'absolute',
@@ -246,7 +227,8 @@ function createStyles(colors: AppColors) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: SPACING.xs,
+      gap: SPACING.md,
+      marginBottom: SPACING.sm,
       marginHorizontal: SPACING.md,
     },
     sectionTitle: {
@@ -254,16 +236,10 @@ function createStyles(colors: AppColors) {
       color: colors.text,
       fontFamily: FONT_FAMILY.bold,
     },
-    seeAllButton: {
-      minHeight: MIN_TOUCH_SIZE,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: SPACING.xxs,
-    },
-    seeAll: {
-      ...typography.label,
-      color: colors.orange,
-      fontFamily: FONT_FAMILY.semiBold,
+    sectionPeriod: {
+      ...typography.caption,
+      color: colors.textSecondary,
+      flexShrink: 1,
     },
     productList: {
       gap: SPACING.sm,

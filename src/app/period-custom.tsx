@@ -1,5 +1,5 @@
-import PeriodCustomDateScreen from '@/screens/DashboardTab/PeriodCustomDateScreen';
+import PeriodCustomDateModal from '@/components/modals/PeriodCustomDateModal';
 
 export default function PeriodCustom() {
-  return <PeriodCustomDateScreen />;
+  return <PeriodCustomDateModal />;
 }

@@ -13,6 +13,7 @@
         "forbidden": "Bu işlem için yetkiniz yok.",
         "notFound": "Aradığınız kayıt bulunamadı.",
         "validation": "Gönderilen bilgilerde hata var.",
+        "rateLimit": "Çok fazla istek gönderildi. Lütfen biraz bekleyip tekrar deneyin.",
         "server": "Sunucuda bir sorun oluştu. Lütfen daha sonra tekrar deneyin.",
         "parse": "Sunucudan beklenmeyen bir yanıt geldi.",
         "unknown": "Beklenmeyen bir hata oluştu."
@@ -28,24 +29,26 @@
     "filters": {
         "today": "Bugün",
         "yesterday": "Dün",
-        "weekly": "Haftalık",
-        "monthly": "Aylık",
-        "yearly": "Yıllık",
+        "weekly": "Son 7 gün",
+        "monthly": "Son 30 gün",
         "selectPeriod": "Dönem seç",
         "changePeriod": "Dönemi değiştir",
         "customDate": "Tarih aralığı",
         "apply": "Uygula",
-        "selectRangeHint": "Başlangıç ve bitiş gününü seçin"
+        "selectRangeHint": "Başlangıç ve bitiş gününü seçin",
+        "maxRangeError": "En fazla {{days}} gün seçebilirsiniz."
     },
     "dashboard": {
         "totalSales": "Toplam Satış",
         "soldProduct": "Satılan Ürün",
         "orders": "Sipariş",
-        "unit": "Adet",
         "unitCod": "ad.",
         "bestSellers": "Çok Satılanlar",
-        "all": "Tümü",
-        "size": "Beden",
+        "topSize": "Popüler: {{size}}",
+        "previousDay": "Dün",
+        "emptyPeriod": "Bu dönemde satış yok.",
+        "productFallback": "Ürün #{{id}}",
+        "changeFromPrevious": "Önceki döneme göre değişim",
         "notifications": "Bildirimler",
         "toggleSoldLine": "Satılan ürün çizgisini aç veya kapat",
         "toggleOrdersLine": "Sipariş çizgisini aç veya kapat"

@@ -1,189 +1,137 @@
-import ProductMiniChart from '@/components/charts/ProductMiniChart';
-import type { Period } from '@/constants/periods';
-import type { baseProducts } from '@/mocks/dashboard';
-import type { AppColors } from '@/theme/colors';
-import { FONT_FAMILY, FONT_SIZE, typography } from '@/theme/typography';
-import { formatMoney } from '@/utils/formatter';
-import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-
-type TopSellingProduct = (typeof baseProducts)[number] & {
-  sold: number;
-  revenue: number;
-};
+import ProductMiniChart from "@/components/charts/ProductMiniChart";
+import Skeleton from "@/components/skeleton/Skeleton";
+import ProductImage from "@/components/ui/ProductImage";
+import type { Product } from "@/schemas/products";
+import type { AppColors } from "@/theme/colors";
+import { ICON_SIZE, RADIUS, SPACING } from "@/theme/spacing";
+import { FONT_FAMILY, FONT_SIZE, typography } from "@/theme/typography";
+import { formatMoney, formatNumber } from "@/utils/formatter";
+import type { BestSeller } from "@/utils/orderStats";
+import { getProductColorHex } from "@/utils/productColor";
+import Tag from "lucide-react-native/icons/tag";
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { StyleSheet, Text, View } from "react-native";
 
 type TopSellingCardProps = {
-  product: TopSellingProduct;
-  period: Period;
+  item: BestSeller;
+  // Ürün bilgisi ayrı istekle gelir; hata olursa boş kalır.
+  product: Product | undefined;
+  isProductLoading: boolean;
   colors: AppColors;
   locale: string;
-  onPress: () => void;
 };
 
+const SMALL_ICON_SIZE = ICON_SIZE.sm - SPACING.xxs;
+const MAX_CHART_WIDTH = 110;
+
 export default function TopSellingCard({
+  item,
   product,
-  period,
+  isProductLoading,
   colors,
   locale,
-  onPress,
 }: TopSellingCardProps) {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const name =
+    product?.name ?? t("dashboard.productFallback", { id: item.productId });
+  const colorHex = getProductColorHex(product?.colorName);
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={styles.productCard}
-    >
-      <View style={styles.productTopRow}>
-        <View style={styles.productLeft}>
-          <View style={styles.productImagePlaceholder}>
-            <Text style={styles.productImagePlaceholderText}>
-              {product.name.slice(0, 1)}
+    <View style={styles.productCard}>
+      {isProductLoading ? (
+        <Skeleton width={100} height={100} radius={RADIUS.md} />
+      ) : (
+        <ProductImage uri={product?.image} accessibilityLabel={name} />
+      )}
+
+      {/* Sabit kart boyunda içerik ortalanır; ad tek satırsa boşluk kalmaz */}
+      <View style={styles.productContent}>
+        {isProductLoading ? (
+          <Skeleton width="90%" height={14} />
+        ) : (
+          <Text
+            style={styles.productName}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {name}
+          </Text>
+        )}
+
+        <View style={styles.productRow}>
+          {product?.modelCode && (
+            <Text style={styles.productSku} numberOfLines={1}>
+              {product.modelCode}
             </Text>
+          )}
+
+          {item.topSize && (
+            <View style={styles.productTopSize}>
+              <Text style={styles.productTopSizeName} numberOfLines={1}>
+                {t("dashboard.topSize", { size: item.topSize.name })}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Adet ve ciro ürünün toplamıdır; sağda alt alta tek blok gibi okunur */}
+        <View style={styles.productSpacedRow}>
+          <View style={styles.productColor}>
+            {colorHex && (
+              <View
+                style={[styles.productColorDot, { backgroundColor: colorHex }]}
+              />
+            )}
+            {product?.colorName && (
+              <Text style={styles.productColorText} numberOfLines={1}>
+                {product.colorName}
+              </Text>
+            )}
           </View>
 
-          <View style={styles.productInfo}>
-            <Text
-              style={styles.productName}
-              numberOfLines={2}
-              ellipsizeMode="tail"
-            >
-              {product.name}
+          <View style={styles.productSoldBadge}>
+            <Tag size={SMALL_ICON_SIZE} color={colors.purple} />
+            <Text style={styles.productSold} numberOfLines={1}>
+              {formatNumber(item.sold, locale)}
             </Text>
-
-            <Text style={styles.productSku}>
-              {product.sku}
-            </Text>
-
-            <View style={styles.productDetails}>
-              <View style={styles.productVariant}>
-                <Text style={styles.productVariantText}>
-                  {t('dashboard.size')} {product.size}
-                </Text>
-              </View>
-
-              <View style={styles.productColor}>
-                <View
-                  style={[
-                    styles.productColorDot,
-                    { backgroundColor: product.colorHex },
-                    product.colorHex.toUpperCase() === '#FFFFFF' &&
-                      styles.productColorDotLight,
-                  ]}
-                />
-
-                <Text
-                  style={styles.productColorText}
-                  numberOfLines={1}
-                >
-                  {product.color}
-                </Text>
-              </View>
-            </View>
           </View>
         </View>
 
-        <View style={styles.productDivider} />
-
-        <View style={styles.productStats}>
-          <Text
-            style={styles.productRevenue}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-          >
-            {formatMoney(product.revenue, locale)}
-          </Text>
-
-          <View style={styles.productMetaRow}>
-            <View style={styles.productMetaItem}>
-              <Text
-                style={styles.productUnitPrice}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-              >
-                {formatMoney(product.price, locale)}
-              </Text>
-
-              <Text style={styles.productUnitSuffix}>
-                / {t('dashboard.unitCod')}
-              </Text>
-            </View>
-
-            <View style={styles.productMetaItem}>
-              <Text
-                style={styles.productSold}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-              >
-                {product.sold.toLocaleString(locale)}
-              </Text>
-
-              <Text style={styles.productUnitSuffix}>
-                / {t('dashboard.unitCod')}
-              </Text>
-            </View>
+        {/* Ciro küçülmez; rakam uzarsa grafik daralır */}
+        <View style={styles.productSpacedRow}>
+          <View style={styles.productChart}>
+            <ProductMiniChart trend={item.trend} colors={colors} />
           </View>
 
-          <ProductMiniChart
-            period={period}
-            sold={product.sold}
-            colors={colors}
-          />
+          <Text style={styles.productRevenue} numberOfLines={1}>
+            {formatMoney(item.revenue, locale)}
+          </Text>
         </View>
       </View>
-    </Pressable>
+    </View>
   );
 }
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
     productCard: {
+      height: 134,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: SPACING.md,
       backgroundColor: colors.surface,
       borderRadius: 16,
       borderWidth: 1,
       borderColor: colors.border,
-      padding: 12,
+      padding: SPACING.md,
     },
-    productTopRow: {
-      flexDirection: 'row',
-      alignItems: 'stretch',
-      gap: 8,
-    },
-    productLeft: {
-      flex: 1.4,
-      minWidth: 0,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 9,
-    },
-    productImagePlaceholder: {
-      width: 86,
-      height: 88,
-      borderRadius: 10,
-      backgroundColor: colors.orangeLight,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-    },
-    productImagePlaceholderText: {
-      ...typography.h1,
-      color: colors.orange,
-      fontSize: FONT_SIZE['2xl'],
-      fontFamily: FONT_FAMILY.bold,
-    },
-    productInfo: {
+    productContent: {
       flex: 1,
       minWidth: 0,
-      justifyContent: 'center',
-      gap: 5,
+      justifyContent: "center",
+      gap: SPACING.xs,
     },
     productName: {
       ...typography.label,
@@ -192,103 +140,82 @@ function createStyles(colors: AppColors) {
       fontFamily: FONT_FAMILY.bold,
       lineHeight: 16,
     },
+    productRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: SPACING.sm,
+      minWidth: 0,
+    },
+    productSpacedRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: SPACING.md,
+      minWidth: 0,
+    },
     productSku: {
       ...typography.caption,
       color: colors.textSecondary,
-      fontSize: FONT_SIZE.xs,
-      fontStyle: 'italic',
+      fontStyle: "italic",
+      flexShrink: 1,
     },
-    productDetails: {
-      alignItems: 'flex-start',
-      gap: 5,
+    productTopSize: {
+      flexShrink: 0,
+      paddingHorizontal: SPACING.xs,
+      borderRadius: RADIUS.sm,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.background,
     },
-    productVariant: {
-      alignSelf: 'flex-start',
-      backgroundColor: colors.orangeLight,
-      paddingHorizontal: 6,
-      paddingVertical: 3,
-      borderRadius: 6,
-    },
-    productVariantText: {
+    productTopSizeName: {
       ...typography.caption,
-      color: colors.orange,
-      fontSize: FONT_SIZE.xs,
+      color: colors.textSecondary,
       fontFamily: FONT_FAMILY.semiBold,
     },
     productColor: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: SPACING.xs,
       minWidth: 0,
       flexShrink: 1,
     },
+    // Açık renkler koyu temada ve kart zemininde kaybolmasın diye her noktada kenarlık var
     productColorDot: {
       width: 8,
       height: 8,
       borderRadius: 4,
-      borderWidth: 0.5,
-      borderColor: colors.border,
-    },
-    productColorDotLight: {
-      borderColor: colors.textDisabled,
       borderWidth: 1,
+      borderColor: colors.textDisabled,
     },
     productColorText: {
       ...typography.caption,
       color: colors.textSecondary,
-      fontSize: FONT_SIZE.xs,
       flexShrink: 1,
     },
-    productDivider: {
-      width: 1,
-      alignSelf: 'stretch',
-      backgroundColor: colors.border,
+    productSoldBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: SPACING.xxs,
+      flexShrink: 0,
+      paddingHorizontal: SPACING.xs,
+      borderRadius: RADIUS.sm,
+      backgroundColor: colors.purpleLight,
     },
-    productStats: {
+    productSold: {
+      ...typography.caption,
+      color: colors.purple,
+      fontFamily: FONT_FAMILY.bold,
+    },
+    productChart: {
       flex: 1,
       minWidth: 0,
-      justifyContent: 'center',
-      gap: 7,
+      maxWidth: MAX_CHART_WIDTH,
     },
     productRevenue: {
       ...typography.h3,
       color: colors.orangeWhite,
-      fontSize: FONT_SIZE.md,
       fontFamily: FONT_FAMILY.bold,
       letterSpacing: -0.4,
-      textAlign: 'right',
-    },
-    productMetaRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 6,
-    },
-    productMetaItem: {
-      flexDirection: 'row',
-      alignItems: 'baseline',
-      gap: 3,
-      minWidth: 0,
-      flexShrink: 1,
-    },
-    productUnitPrice: {
-      ...typography.caption,
-      color: colors.textSecondary,
-      fontSize: FONT_SIZE.xs,
-      fontFamily: FONT_FAMILY.medium,
-      flexShrink: 1,
-    },
-    productSold: {
-      ...typography.caption,
-      color: colors.textSecondary,
-      fontSize: FONT_SIZE.xs,
-      fontFamily: FONT_FAMILY.medium,
-      flexShrink: 1,
-    },
-    productUnitSuffix: {
-      fontSize: FONT_SIZE.xs - 1,
-      fontStyle: 'italic',
-      color: colors.textDisabled,
       flexShrink: 0,
     },
   });

@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Native form sheet içinde açılır (bkz. src/app/_layout.tsx). Yüksekliği içeriğe
 // göre ayarlandığı için burada flex: 1 kullanılmaz.
-export default function PeriodSelectScreen() {
+export default function PeriodSelectModal() {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();

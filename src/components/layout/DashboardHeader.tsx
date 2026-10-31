@@ -1,7 +1,10 @@
+import Skeleton from '@/components/skeleton/Skeleton';
 import type { AppColors } from '@/theme/colors';
 import { FONT_FAMILY, FONT_SIZE, LINE_HEIGHT, typography } from '@/theme/typography';
-import { ICON_SIZE, SPACING } from '@/theme/spacing';
-import { formatMoney } from '@/utils/formatter';
+import { ICON_SIZE, RADIUS, SPACING } from '@/theme/spacing';
+import { formatMoney, formatNumber, formatPercent } from '@/utils/formatter';
+import type { OrderTotals, RevenueChange } from '@/utils/orderStats';
+import TrendingDown from 'lucide-react-native/icons/trending-down';
 import TrendingUp from 'lucide-react-native/icons/trending-up';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,8 +17,11 @@ import {
 
 type DashboardHeaderProps = {
   colors: AppColors;
-  totalRevenue: number;
-  multiplier: number;
+  totals: OrderTotals | null;
+  // Rakamların yerinde iskelet gösterilir
+  isLoading: boolean;
+  // İki dönem de 0 ise veya önceki dönem gelmediyse null; rozet gizlenir
+  change: RevenueChange | null;
   showSold: boolean;
   showOrders: boolean;
   onToggleSold: () => void;
@@ -25,10 +31,14 @@ type DashboardHeaderProps = {
   periodFilter: ReactNode;
 };
 
+const EMPTY_VALUE = '—';
+const REVENUE_SKELETON_HEIGHT = FONT_SIZE['5xl'] * LINE_HEIGHT.tight;
+
 export default function DashboardHeader({
   colors,
-  totalRevenue,
-  multiplier,
+  totals,
+  isLoading,
+  change,
   showSold,
   showOrders,
   onToggleSold,
@@ -38,13 +48,25 @@ export default function DashboardHeader({
 }: DashboardHeaderProps) {
   const { t } = useTranslation();
 
-  const changeLabel = new Intl.NumberFormat(locale, {
-    style: 'percent',
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  }).format(0.128);
-
   const styles = createStyles(colors);
+  const revenueLabel = totals ? formatMoney(totals.revenue, locale) : EMPTY_VALUE;
+  const isDown = change?.kind === 'percent' && change.ratio < 0;
+  const ChangeIcon = isDown ? TrendingDown : TrendingUp;
+  const changeLabel =
+    change?.kind === 'percent'
+      ? formatPercent(Math.abs(change.ratio), locale)
+      : change
+        ? `+${formatMoney(change.amount, locale)}`
+        : '';
+
+  const renderValue = (value: number | undefined) =>
+    isLoading ? (
+      <Skeleton width={36} height={FONT_SIZE.sm} />
+    ) : (
+      <Text style={styles.metricValue}>
+        {value === undefined ? EMPTY_VALUE : formatNumber(value, locale)}
+      </Text>
+    );
 
   return (
     <View style={styles.revenueSection}>
@@ -52,21 +74,34 @@ export default function DashboardHeader({
       <View style={styles.revenueHeader}>
         {periodFilter}
 
-        <View style={styles.changeBadge}>
-          <TrendingUp size={ICON_SIZE.sm} color={colors.success} />
-          <Text style={styles.changeText}>{changeLabel}</Text>
-        </View>
+        {change && (
+          <View
+            accessibilityLabel={`${t('dashboard.changeFromPrevious')}: ${changeLabel}`}
+            style={[styles.changeBadge, isDown && styles.changeBadgeDown]}
+          >
+            <ChangeIcon size={ICON_SIZE.sm} color={isDown ? colors.error : colors.success} />
+            <Text style={[styles.changeText, isDown && styles.changeTextDown]}>
+              {changeLabel}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* "Toplam satış" yazısı yok; ekran okuyucu için etiket olarak verilir */}
-      <Text
-        accessibilityLabel={`${t('dashboard.totalSales')}: ${formatMoney(totalRevenue, locale)}`}
-        style={styles.revenueAmount}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-      >
-        {formatMoney(totalRevenue, locale)}
-      </Text>
+      {isLoading ? (
+        <View style={styles.revenueSkeleton}>
+          <Skeleton width={200} height={REVENUE_SKELETON_HEIGHT} radius={RADIUS.md} />
+        </View>
+      ) : (
+        <Text
+          accessibilityLabel={`${t('dashboard.totalSales')}: ${revenueLabel}`}
+          style={styles.revenueAmount}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
+          {revenueLabel}
+        </Text>
+      )}
 
       <View style={styles.metricsRow}>
         <Pressable
@@ -98,9 +133,7 @@ export default function DashboardHeader({
             </Text>
           </View>
 
-          <Text style={styles.metricValue}>
-            {Math.round(342 * multiplier).toLocaleString(locale)}
-          </Text>
+          {renderValue(totals?.soldCount)}
         </Pressable>
 
         <View style={styles.metricDivider} />
@@ -134,9 +167,7 @@ export default function DashboardHeader({
             </Text>
           </View>
 
-          <Text style={styles.metricValue}>
-            {Math.round(186 * multiplier).toLocaleString(locale)}
-          </Text>
+          {renderValue(totals?.orderCount)}
         </Pressable>
       </View>
     </View>
@@ -167,6 +198,9 @@ function createStyles(colors: AppColors) {
       letterSpacing: -1.4,
       marginTop: SPACING.md,
     },
+    revenueSkeleton: {
+      marginTop: SPACING.md,
+    },
     changeBadge: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -176,11 +210,17 @@ function createStyles(colors: AppColors) {
       paddingVertical: 4,
       borderRadius: 7,
     },
+    changeBadgeDown: {
+      backgroundColor: colors.errorBackground,
+    },
     changeText: {
       ...typography.caption,
       color: colors.success,
       fontSize: FONT_SIZE.xs,
       fontFamily: FONT_FAMILY.bold,
+    },
+    changeTextDown: {
+      color: colors.error,
     },
     metricsRow: {
       width: '100%',
