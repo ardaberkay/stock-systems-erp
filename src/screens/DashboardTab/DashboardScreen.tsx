@@ -26,7 +26,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SKELETON_CARD_KEYS = ['first', 'second', 'third'];
 
@@ -34,6 +34,7 @@ export default function DashboardScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const locale = useLocale();
   const periodLabel = usePeriodLabel();
   const {
@@ -53,7 +54,9 @@ export default function DashboardScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    // SafeAreaView boşluğu sonradan uygular ve iOS sekmelerinin otomatik boşluğuyla çakışır;
+    // üst boşluk ilk karede verilir ki açılışta appbar ve sayfa aşağı kaymasın.
+    <View style={[styles.safeArea, { paddingTop: insets.top }]}>
       <ScrollView
         style={styles.screen}
         contentContainerStyle={styles.content}
@@ -141,7 +144,7 @@ export default function DashboardScreen() {
               </Text>
             </View>
 
-            {isLoading ? (
+            {isLoading || isProductsLoading ? (
               <View style={styles.productList}>
                 {SKELETON_CARD_KEYS.map((key) => (
                   <TopSellingCardSkeleton key={key} />
@@ -156,7 +159,6 @@ export default function DashboardScreen() {
                     key={item.productId}
                     item={item}
                     product={productsById.get(item.productId)}
-                    isProductLoading={isProductsLoading}
                     colors={colors}
                     locale={locale}
                   />
@@ -166,7 +168,7 @@ export default function DashboardScreen() {
           </>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -181,7 +183,6 @@ function createStyles(colors: AppColors) {
       backgroundColor: colors.background,
     },
     content: {
-      paddingTop: 8,
       paddingBottom: 36,
     },
     topBar: {

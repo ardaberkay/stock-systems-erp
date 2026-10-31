@@ -1,9 +1,9 @@
 import ProductCardDetails from '@/components/cards/ProductCardDetails';
 import AnimatedChevron from '@/components/ui/AnimatedChevron';
 import Collapsible from '@/components/ui/Collapsible';
-import ProductColor from '@/components/ui/ProductColor';
-import ProductImage from '@/components/ui/ProductImage';
-import SizeRow, { type SizeCell } from '@/components/ui/SizeRow';
+import ProductColor from '@/components/ui/product/ProductColor';
+import ProductImage from '@/components/ui/product/ProductImage';
+import SizeRow, { type SizeCell } from '@/components/ui/product/SizeRow';
 import { PRODUCT_STATUS, SIZES_PER_ROW } from '@/constants/products';
 import type { Product } from '@/schemas/products';
 import type { AppColors } from '@/theme/colors';

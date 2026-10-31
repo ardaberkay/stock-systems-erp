@@ -2,7 +2,7 @@ import { useProducts } from '@/api/products';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useProductFilterStore } from '@/stores/productFilterStore';
 import { getVisibleProducts, hasActiveFilters } from '@/utils/productList';
-import { useCallback, useDeferredValue, useMemo } from 'react';
+import { useDeferredValue, useMemo } from 'react';
 
 // Ürünler sekmesinin verisi: katalog tek istekle gelir, arama ve filtre telefonda uygulanır.
 export function useProductList(searchText: string) {
@@ -18,9 +18,9 @@ export function useProductList(searchText: string) {
   );
   const isFilterActive = hasActiveFilters(filters);
 
-  const refresh = useCallback(async () => {
+  const refresh = async () => {
     await refetch();
-  }, [refetch]);
+  };
 
   return {
     products,

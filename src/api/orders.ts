@@ -4,7 +4,6 @@ import { addDays } from '@/utils/dateKey';
 import { dedupeOrders } from '@/utils/orderStats';
 import type { DayRange } from '@/utils/periodWindow';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
 
 // Rate limit ve veri yükü için seyrek yenilenir; güncel rakam aşağı çekerek alınır.
 const ORDERS_STALE_MS = 5 * 60_000;
@@ -38,8 +37,5 @@ export function useOrders(range: DayRange, options?: { enabled?: boolean }) {
 export function useRefreshOrders() {
   const queryClient = useQueryClient();
 
-  return useCallback(
-    () => queryClient.invalidateQueries({ queryKey: orderKeys.all }),
-    [queryClient],
-  );
+  return () => queryClient.invalidateQueries({ queryKey: orderKeys.all });
 }

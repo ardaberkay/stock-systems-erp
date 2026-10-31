@@ -1,5 +1,5 @@
-import ChartReadout, { type ChartReadoutItem } from '@/components/ui/ChartReadout';
-import ChartTimeAxis from '@/components/ui/ChartTimeAxis';
+import ChartReadout, { type ChartReadoutItem } from '@/components/ui/charts/ChartReadout';
+import ChartTimeAxis from '@/components/ui/charts/ChartTimeAxis';
 import type { AppColors } from '@/theme/colors';
 import { SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';

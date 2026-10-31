@@ -58,6 +58,7 @@
   "stock": {
     "searchPlaceholder": "Search by product name or code",
     "resultCount": "{{value}} results",
+    "productCount": "{{value}} products",
     "empty": "No products yet.",
     "noResults": "No products match your search.",
     "addProduct": "Add new product",

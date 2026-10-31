@@ -1,7 +1,6 @@
 import ProductMiniChart from "@/components/charts/ProductMiniChart";
-import Skeleton from "@/components/skeleton/Skeleton";
-import ProductColor from "@/components/ui/ProductColor";
-import ProductImage from "@/components/ui/ProductImage";
+import ProductColor from "@/components/ui/product/ProductColor";
+import ProductImage from "@/components/ui/product/ProductImage";
 import type { Product } from "@/schemas/products";
 import type { AppColors } from "@/theme/colors";
 import { ICON_SIZE, RADIUS, SPACING } from "@/theme/spacing";
@@ -9,7 +8,7 @@ import { FONT_FAMILY, FONT_SIZE, typography } from "@/theme/typography";
 import { formatMoney, formatNumber } from "@/utils/formatter";
 import type { BestSeller } from "@/utils/orderStats";
 import Tag from "lucide-react-native/icons/tag";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -17,7 +16,6 @@ type TopSellingCardProps = {
   item: BestSeller;
   // Ürün bilgisi ayrı istekle gelir; hata olursa boş kalır.
   product: Product | undefined;
-  isProductLoading: boolean;
   colors: AppColors;
   locale: string;
 };
@@ -25,10 +23,10 @@ type TopSellingCardProps = {
 const SMALL_ICON_SIZE = ICON_SIZE.sm - SPACING.xxs;
 const MAX_CHART_WIDTH = 110;
 
-export default function TopSellingCard({
+// Grafik çizgisi açıp kapatmak ekranı yeniler; 10 kartın küçük grafikleri boşuna çizilmesin.
+function TopSellingCard({
   item,
   product,
-  isProductLoading,
   colors,
   locale,
 }: TopSellingCardProps) {
@@ -39,25 +37,17 @@ export default function TopSellingCard({
 
   return (
     <View style={styles.productCard}>
-      {isProductLoading ? (
-        <Skeleton width={100} height={100} radius={RADIUS.md} />
-      ) : (
-        <ProductImage uri={product?.image} accessibilityLabel={name} />
-      )}
+      <ProductImage uri={product?.image} accessibilityLabel={name} />
 
       {/* Sabit kart boyunda içerik ortalanır; ad tek satırsa boşluk kalmaz */}
       <View style={styles.productContent}>
-        {isProductLoading ? (
-          <Skeleton width="90%" height={14} />
-        ) : (
-          <Text
-            style={styles.productName}
-            numberOfLines={2}
-            ellipsizeMode="tail"
-          >
-            {name}
-          </Text>
-        )}
+        <Text
+          style={styles.productName}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          {name}
+        </Text>
 
         <View style={styles.productRow}>
           {product?.modelCode && (
@@ -101,6 +91,8 @@ export default function TopSellingCard({
     </View>
   );
 }
+
+export default memo(TopSellingCard);
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({

@@ -58,6 +58,7 @@
     "stock": {
         "searchPlaceholder": "Ürün adı veya kodu ara",
         "resultCount": "{{value}} sonuç",
+        "productCount": "{{value}} ürün",
         "empty": "Henüz ürün yok.",
         "noResults": "Aramanla eşleşen ürün yok.",
         "addProduct": "Yeni ürün ekle",

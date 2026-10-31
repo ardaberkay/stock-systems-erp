@@ -1,4 +1,4 @@
-import SizeRow from '@/components/ui/SizeRow';
+import SizeRow from '@/components/ui/product/SizeRow';
 import { PRODUCT_STATUS, SIZES_PER_ROW } from '@/constants/products';
 import type { Product } from '@/schemas/products';
 import type { AppColors } from '@/theme/colors';

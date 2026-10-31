@@ -6,7 +6,7 @@ import { formatMoney, formatNumber, formatPercent } from '@/utils/formatter';
 import type { OrderTotals, RevenueChange } from '@/utils/orderStats';
 import TrendingDown from 'lucide-react-native/icons/trending-down';
 import TrendingUp from 'lucide-react-native/icons/trending-up';
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Pressable,
@@ -48,7 +48,7 @@ export default function DashboardHeader({
 }: DashboardHeaderProps) {
   const { t } = useTranslation();
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const revenueLabel = totals ? formatMoney(totals.revenue, locale) : EMPTY_VALUE;
   const isDown = change?.kind === 'percent' && change.ratio < 0;
   const ChangeIcon = isDown ? TrendingDown : TrendingUp;
@@ -61,7 +61,8 @@ export default function DashboardHeader({
 
   const renderValue = (value: number | undefined) =>
     isLoading ? (
-      <Skeleton width={36} height={FONT_SIZE.sm} />
+      // Yükseklik metnin satır yüksekliğiyle aynı; rakam gelince alttaki içerik kaymaz
+      <Skeleton width={36} height={typography.label.lineHeight} />
     ) : (
       <Text style={styles.metricValue}>
         {value === undefined ? EMPTY_VALUE : formatNumber(value, locale)}

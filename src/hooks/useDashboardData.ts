@@ -11,11 +11,12 @@ import {
   getRevenueOrders,
 } from '@/utils/orderStats';
 import { resolvePeriodWindow } from '@/utils/periodWindow';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 const BEST_SELLER_LIMIT = 10;
 
-// Yalnızca seçili dönem istenir, önceki dönem ve ürün bilgileri ardından gelir.
+// İstekler rate limit yüzünden sırayla gider: seçili dönem, ürün bilgileri, önceki dönem.
+// Ürünler öne alındı; ekranda kart, rozetten çok daha fazla yer kaplıyor.
 // Daha önce açılan dönemler cache'ten anında gösterilir.
 export function useDashboardData() {
   const selection = useDashboardFilterStore((state) => state.selection);
@@ -23,14 +24,28 @@ export function useDashboardData() {
   const window = useMemo(() => resolvePeriodWindow(selection, now), [selection, now]);
 
   const currentQuery = useOrders(window.range);
-  const previousQuery = useOrders(window.previousRange, { enabled: currentQuery.isSuccess });
+
+  const revenueOrders = useMemo(
+    () => (currentQuery.data ? getRevenueOrders(currentQuery.data) : null),
+    [currentQuery.data],
+  );
+  const bestSellers = useMemo(
+    () => (revenueOrders ? getBestSellers(revenueOrders, window, BEST_SELLER_LIMIT) : []),
+    [revenueOrders, window],
+  );
+  const productIds = bestSellers.map((item) => item.productId);
+  const productsQuery = useProductsByIds(productIds);
+
+  const previousQuery = useOrders(window.previousRange, {
+    // Çok satan yoksa ürün isteği hiç gitmez; önceki dönem onu beklememeli
+    enabled: currentQuery.isSuccess && (productIds.length === 0 || productsQuery.isFetched),
+  });
 
   const stats = useMemo(() => {
-    if (!currentQuery.data) {
+    if (!revenueOrders) {
       return null;
     }
 
-    const revenueOrders = getRevenueOrders(currentQuery.data);
     // Çizgi önceki dönemin tamamını gösterir, rozet ise yalnızca aynı saate kadar kıyaslar.
     const previousRevenueOrders = previousQuery.data ? getRevenueOrders(previousQuery.data) : null;
     const totals = getOrderTotals(revenueOrders);
@@ -44,37 +59,28 @@ export function useDashboardData() {
           )
         : null,
       chartPoints: getChartPoints(revenueOrders, previousRevenueOrders, window),
-      bestSellers: getBestSellers(revenueOrders, window, BEST_SELLER_LIMIT),
+      bestSellers,
     };
-  }, [currentQuery.data, previousQuery.data, window]);
+  }, [revenueOrders, bestSellers, previousQuery.data, window]);
 
-  const productIds = useMemo(
-    () => stats?.bestSellers.map((item) => item.productId) ?? [],
-    [stats],
-  );
-  const productsQuery = useProductsByIds(productIds, { enabled: previousQuery.isFetched });
-
-  const productsById = useMemo(
-    () => new Map(productsQuery.data?.map((product) => [product.id, product])),
-    [productsQuery.data],
-  );
+  const productsById = new Map(productsQuery.data?.map((product) => [product.id, product]));
 
   const refreshOrders = useRefreshOrders();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const refresh = useCallback(async () => {
+  const refresh = async () => {
     setIsRefreshing(true);
     refreshNow();
     await refreshOrders();
     setIsRefreshing(false);
-  }, [refreshNow, refreshOrders]);
+  };
 
   return {
     window,
     stats,
     productsById,
     isLoading: currentQuery.isPending,
-    // Ürün isteği sırada beklerken de kartlarda ürün iskeleti görünür
+    // Kartlar ürün bilgisi gelene kadar tümüyle iskelet kalır, yarım dolu görünmez
     isProductsLoading: productsQuery.isPending && productIds.length > 0,
     error: currentQuery.error,
     isRefreshing,

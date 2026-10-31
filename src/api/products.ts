@@ -43,7 +43,7 @@ export function useProducts() {
   });
 }
 
-export function useProductsByIds(ids: number[], options?: { enabled?: boolean }) {
+export function useProductsByIds(ids: number[]) {
   // Aynı ürünler farklı sırada gelince ikinci istek atılmasın
   const sortedIds = [...ids].sort((a, b) => a - b);
 
@@ -51,6 +51,6 @@ export function useProductsByIds(ids: number[], options?: { enabled?: boolean })
     queryKey: productKeys.byIds(sortedIds),
     queryFn: ({ signal }) => getProductsByIds(sortedIds, signal),
     staleTime: PRODUCTS_STALE_MS,
-    enabled: sortedIds.length > 0 && options?.enabled !== false,
+    enabled: sortedIds.length > 0,
   });
 }

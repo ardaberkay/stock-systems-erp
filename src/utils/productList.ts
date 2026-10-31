@@ -1,4 +1,4 @@
-import type { SizeCell } from '@/components/ui/SizeRow';
+import type { SizeCell } from '@/components/ui/product/SizeRow';
 import {
   DEFAULT_PRODUCT_FILTERS,
   LOW_STOCK_LIMIT,

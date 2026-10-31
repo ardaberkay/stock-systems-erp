@@ -2,10 +2,14 @@ import Skeleton from '@/components/skeleton/Skeleton';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/theme/colors';
 import { RADIUS, SPACING } from '@/theme/spacing';
+import { typography } from '@/theme/typography';
 import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-// TopSellingCard ile aynı ölçülerde durur; veri gelince liste zıplamaz.
+const NAME_LINE_HEIGHT = 14;
+const CHART_LINE_HEIGHT = 2;
+
+// TopSellingCard'ın satırlarını birebir izler; veri gelince içerik yerinden oynamaz.
 export default function TopSellingCardSkeleton() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -15,13 +19,27 @@ export default function TopSellingCardSkeleton() {
       <Skeleton width={100} height={100} radius={RADIUS.md} />
 
       <View style={styles.content}>
-        <Skeleton width="90%" height={14} />
-        <Skeleton width="55%" height={12} />
-        <Skeleton width="40%" height={12} />
+        <View style={styles.name}>
+          <Skeleton width="90%" height={NAME_LINE_HEIGHT} />
+          <Skeleton width="60%" height={NAME_LINE_HEIGHT} />
+        </View>
 
-        <View style={styles.bottomRow}>
-          <Skeleton width="45%" height={18} />
-          <Skeleton width="35%" height={18} />
+        {/* Model kodu ve en çok satan beden */}
+        <View style={styles.row}>
+          <Skeleton width="35%" height={typography.caption.lineHeight} />
+          <Skeleton width="25%" height={typography.caption.lineHeight} />
+        </View>
+
+        {/* Renk ve adet rozeti */}
+        <View style={styles.spacedRow}>
+          <Skeleton width="30%" height={typography.caption.lineHeight} />
+          <Skeleton width="20%" height={typography.caption.lineHeight} />
+        </View>
+
+        {/* Küçük grafik, ana grafikteki gibi düz çizgiyle başlar; yanında ciro durur */}
+        <View style={styles.spacedRow}>
+          <Skeleton width="40%" height={CHART_LINE_HEIGHT} />
+          <Skeleton width="40%" height={typography.h3.lineHeight} />
         </View>
       </View>
     </View>
@@ -43,11 +61,23 @@ function createStyles(colors: AppColors) {
     },
     content: {
       flex: 1,
+      minWidth: 0,
+      justifyContent: 'center',
+      gap: SPACING.xs,
+    },
+    name: {
+      gap: SPACING.xxs,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: SPACING.sm,
     },
-    bottomRow: {
+    spacedRow: {
       flexDirection: 'row',
+      alignItems: 'center',
       justifyContent: 'space-between',
+      gap: SPACING.md,
     },
   });
 }

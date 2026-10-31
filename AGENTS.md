@@ -51,6 +51,8 @@ src/
 ├── screens/<Modül>Tab/  Ekranlar: <Ad>Screen.tsx
 ├── components/
 │   ├── ui/              Genel, modülden bağımsız yapı taşları (chip, buton, picker…)
+│   │   ├── charts/      Grafiklerin görsel parçaları (eksen, değer göstergesi)
+│   │   └── product/     Ürünün görsel parçaları (görsel, renk, beden satırı)
 │   ├── cards/ charts/ layout/ settings/ …   Kategoriye göre bileşenler
 ├── api/                 Kaynak başına bir dosya: istek fonksiyonları + query key'ler + query/mutation hook'ları
 ├── schemas/             zod şemaları ve onlardan türetilen tipler (kaynak başına bir dosya)
@@ -180,6 +182,10 @@ State'in nerede tutulacağı şu sırayla belirlenir:
 - Hook'lar `use` ile başlar, camelCase dosya adı (`useDebounce.ts`).
 - Butonlar `Pressable` ile yazılır, `accessibilityRole` ve çevrilmiş `accessibilityLabel` içerir. Dokunma alanı en az 44×44.
 - Uzun listeler `ScrollView` + `map` ile değil `FlatList` (veya panelui liste bileşeni) ile render edilir.
+- `useMemo`, `useCallback` ve `React.memo` yalnızca gerçek bir kazanç varsa kullanılır; yeri varsa eklenir, kazanç yoksa kaldırılır. Her yere otomatik eklenmez:
+  - **Kullanılır:** liste/kart bileşenleri (`memo`), bu bileşenlere giden fonksiyonlar ve `renderItem` (`useCallback`), büyük veri üzerindeki hesaplar ve grafik verisi (`useMemo`).
+  - **Kullanılmaz:** `memo`'suz bileşene giden fonksiyonlar, birkaç elemanlık küçük hesaplar.
+  - Bölüm 4'teki `useMemo(() => createStyles(colors), [colors])` kalıbı bu kuralın dışındadır, aynen uygulanır.
 - `console.log` yalnızca geçici olarak kullanılır, commit'lenmez.
 - Kod yorumları Türkçe, kısa ve "neden"i açıklayan şekilde yazılır.
 
