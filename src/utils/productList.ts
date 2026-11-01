@@ -12,7 +12,7 @@ import { formatNumber } from '@/utils/formatter';
 const SEARCH_LETTERS: Record<string, string> = { ı: 'i', ş: 's', ç: 'c', ğ: 'g', ö: 'o', ü: 'u' };
 
 // "NIKE" Türkçede "nıke" olur; harfler sadeleştirilir ki yazım biçimi aramayı etkilemesin.
-function normalizeText(text: string): string {
+export function normalizeText(text: string): string {
   return text
     .trim()
     .toLocaleLowerCase('tr')

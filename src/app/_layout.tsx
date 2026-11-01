@@ -53,57 +53,54 @@ export default function RootLayout() {
     return null;
   }
 
+  // Drawer'ın üstüne itilen sayfalar: sekme çubuğu gizlenir, native geri butonu gelir
+  const pushedScreenOptions = {
+    headerShown: true,
+    headerBackButtonDisplayMode: 'minimal',
+    headerShadowVisible: false,
+    headerStyle: { backgroundColor: colors.background },
+    headerTintColor: colors.text,
+    headerTitleStyle: { fontFamily: FONT_FAMILY.semiBold },
+  } as const;
+
+  // Yüksekliği içeriğe göre ayarlanan alttan açılan sheet'ler
+  const fitToContentSheetOptions = {
+    presentation: 'formSheet',
+    sheetAllowedDetents: 'fitToContents',
+    sheetGrabberVisible: true,
+    sheetCornerRadius: RADIUS.xxl,
+    contentStyle: { backgroundColor: colors.surface },
+  } as const;
+
   return (
     <QueryClientProvider client={queryClient}>
       <PanelUIProvider>
         <StatusBar style={isDark ? 'light' : 'dark'} />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(drawer)" />
-          {/* Drawer'ın üstüne itilir: sekme çubuğu gizlenir, native geri butonu gelir */}
           <Stack.Screen
             name="settings"
-            options={{
-              headerShown: true,
-              title: t('settings.title'),
-              headerBackButtonDisplayMode: 'minimal',
-              headerShadowVisible: false,
-              headerStyle: { backgroundColor: colors.background },
-              headerTintColor: colors.text,
-              headerTitleStyle: { fontFamily: FONT_FAMILY.semiBold },
-            }}
+            options={{ ...pushedScreenOptions, title: t('settings.title') }}
+          />
+          <Stack.Screen
+            name="order-detail/[id]"
+            options={{ ...pushedScreenOptions, title: t('orders.detailTitle') }}
+          />
+          <Stack.Screen
+            name="order-edit/[id]"
+            options={{ ...pushedScreenOptions, title: t('orders.editTitle') }}
+          />
+          <Stack.Screen
+            name="order-new"
+            options={{ ...pushedScreenOptions, title: t('orders.newTitle') }}
           />
           {/* Native alttan açılan sheet'ler: iOS'ta UISheetPresentationController,
               Android'de Material bottom sheet. Yükseklik içeriğe göre ayarlanır. */}
-          <Stack.Screen
-            name="period-select"
-            options={{
-              presentation: 'formSheet',
-              sheetAllowedDetents: 'fitToContents',
-              sheetGrabberVisible: true,
-              sheetCornerRadius: RADIUS.xxl,
-              contentStyle: { backgroundColor: colors.surface },
-            }}
-          />
-          <Stack.Screen
-            name="period-custom"
-            options={{
-              presentation: 'formSheet',
-              sheetAllowedDetents: 'fitToContents',
-              sheetGrabberVisible: true,
-              sheetCornerRadius: RADIUS.xxl,
-              contentStyle: { backgroundColor: colors.surface },
-            }}
-          />
-          <Stack.Screen
-            name="product-catalog"
-            options={{
-              presentation: 'formSheet',
-              sheetAllowedDetents: 'fitToContents',
-              sheetGrabberVisible: true,
-              sheetCornerRadius: RADIUS.xxl,
-              contentStyle: { backgroundColor: colors.surface },
-            }}
-          />
+          <Stack.Screen name="period-select" options={fitToContentSheetOptions} />
+          <Stack.Screen name="period-custom" options={fitToContentSheetOptions} />
+          <Stack.Screen name="order-period" options={fitToContentSheetOptions} />
+          <Stack.Screen name="order-period-custom" options={fitToContentSheetOptions} />
+          <Stack.Screen name="product-catalog" options={fitToContentSheetOptions} />
           <Stack.Screen
             name="product-images"
             options={{ presentation: 'fullScreenModal', animation: 'fade' }}
@@ -111,13 +108,11 @@ export default function RootLayout() {
           {/* Marka ve tip listesi uzun olabildiği için içeriğe göre değil, sabit yükseklikte açılır */}
           <Stack.Screen
             name="product-filters"
-            options={{
-              presentation: 'formSheet',
-              sheetAllowedDetents: [0.8],
-              sheetGrabberVisible: true,
-              sheetCornerRadius: RADIUS.xxl,
-              contentStyle: { backgroundColor: colors.surface },
-            }}
+            options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.8] }}
+          />
+          <Stack.Screen
+            name="order-filters"
+            options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.8] }}
           />
         </Stack>
       </PanelUIProvider>
