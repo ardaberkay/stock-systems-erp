@@ -1,5 +1,6 @@
 import { MAX_RANGE_DAYS } from '@/constants/periods';
-import { ORDER_PAGE_DAYS, type OrderPeriodSelection } from '@/constants/orderFilters';
+import { ORDER_BASE_DAYS, type OrderPeriodSelection } from '@/constants/orderFilters';
+import type { Order } from '@/schemas/orders';
 import { addDays, toDayKey, toTurkeyDateTime } from '@/utils/dateKey';
 import type { DayRange } from '@/utils/periodWindow';
 
@@ -17,7 +18,7 @@ export function getOrderRange(selection: OrderPeriodSelection, now: Date): DayRa
     case 'yesterday':
       return { startDay: addDays(today, -1), endDay: addDays(today, -1) };
     case 'weekly':
-      return { startDay: addDays(today, -(ORDER_PAGE_DAYS - 1)), endDay: today };
+      return { startDay: addDays(today, -(ORDER_BASE_DAYS - 1)), endDay: today };
     case 'monthly':
       return { startDay: addDays(today, -(MAX_RANGE_DAYS - 1)), endDay: today };
     case 'thisMonth':
@@ -30,9 +31,21 @@ export function getOrderRange(selection: OrderPeriodSelection, now: Date): DayRa
   }
 }
 
-// Yüklü verinin hemen öncesindeki 7 gün
-export function getPreviousOrderPage(range: DayRange): DayRange {
-  const endDay = addDays(range.startDay, -1);
+export function getBaseOrderRange(now: Date): DayRange {
+  const today = toTurkeyDateTime(now).slice(0, 10);
 
-  return { startDay: addDays(endDay, -(ORDER_PAGE_DAYS - 1)), endDay };
+  return { startDay: addDays(today, -(ORDER_BASE_DAYS - 1)), endDay: today };
+}
+
+export function isRangeWithin(range: DayRange, outer: DayRange): boolean {
+  return range.startDay >= outer.startDay && range.endDay <= outer.endDay;
+}
+
+// API de oluşturma tarihine göre filtreler; sonuç aynı dönemi sormakla aynıdır.
+export function filterOrdersByRange(orders: Order[], range: DayRange): Order[] {
+  return orders.filter((order) => {
+    const day = order.orderDateTime.slice(0, 10);
+
+    return day >= range.startDay && day <= range.endDay;
+  });
 }

@@ -159,6 +159,10 @@ function getTrendKeys(window: PeriodWindow): string[] {
   return Array.from({ length: Math.max(window.lastHour, 1) + 1 }, (_, hour) => getHourKey(hour));
 }
 
+export function getOrderProductIds(orders: Order[]): number[] {
+  return [...new Set(orders.flatMap((order) => order.items.map((item) => item.productId)))];
+}
+
 export function getBestSellers(
   revenueOrders: Order[],
   window: PeriodWindow,

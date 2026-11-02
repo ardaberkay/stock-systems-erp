@@ -105,7 +105,7 @@ State'in nerede tutulacağı şu sırayla belirlenir:
 - Mutation sonrası ilgili query'ler `queryClient.invalidateQueries({ queryKey: xKeys.all })` ile yenilenir.
 - Backend hazır olmadan önce hook'lar mock veri döndürebilir; ekranlar yine hook üzerinden çalışır, böylece geçişte sadece hook'un içi değişir.
 - Her veri kullanan ekran **loading**, **error** ve **boş liste** durumlarını gösterir.
-- **Liste kalıbı:** Sunucudan gelen listeler `FlatList` + `useInfiniteQuery` (sayfalama / sonsuz kaydırma) ile yazılır; aşağı çekip yenileme (`refreshing` / `onRefresh`), arama varsa debounce'lu arama ve loading / error / boş durumları her listede bulunur.
+- **Liste kalıbı:** Sunucudan gelen listeler `FlatList` + `useInfiniteQuery` (sayfalama / sonsuz kaydırma) ile yazılır; aşağı çekip yenileme (`refreshing` / `onRefresh`), arama varsa debounce'lu arama ve loading / error / boş durumları her listede bulunur. **İstisna:** Siparişler API'si sayfalama yapmadığı için `useInfiniteQuery` kullanmaz; liste tam olarak seçili dönemi gösterir.
 - Uygulama **çevrimdışı çalışmaz**. Offline cache / senkronizasyon yazılmaz; bağlantı yoksa çevrilmiş bir "bağlantı yok" mesajı ve tekrar dene seçeneği gösterilir.
 - Sunucu adresi koda yazılmaz; `.env` içindeki `EXPO_PUBLIC_API_URL` ile verilir.
 

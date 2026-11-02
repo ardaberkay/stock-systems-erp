@@ -2,7 +2,6 @@ import OrderCard from '@/components/cards/OrderCard';
 import OrderCardSkeleton from '@/components/skeleton/OrderCardSkeleton';
 import Skeleton from '@/components/skeleton/Skeleton';
 import FloatingActionButton from '@/components/ui/FloatingActionButton';
-import OrderListFooter from '@/components/ui/order/OrderListFooter';
 import PeriodPill from '@/components/ui/PeriodPill';
 import SearchFilterBar from '@/components/ui/SearchFilterBar';
 import StateMessage from '@/components/ui/StateMessage';
@@ -10,28 +9,34 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { useLocale } from '@/hooks/useLocale';
 import { useOrderList } from '@/hooks/useOrderList';
 import { useOrderLookups } from '@/hooks/useOrderLookups';
-import { useOrderPeriodLabel } from '@/hooks/useOrderPeriodLabel';
+import { useOrderSelection } from '@/hooks/useOrderSelection';
+import { usePeriodLabel } from '@/hooks/usePeriodLabel';
+import { useTabBarInset } from '@/hooks/useTabBarInset';
 import { getErrorMessageKey } from '@/lib/apiError';
 import type { Order } from '@/schemas/orders';
+import { useOrderFilterStore } from '@/stores/orderFilterStore';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
-import { formatNumber, formatOrderDay } from '@/utils/formatter';
+import { formatNumber } from '@/utils/formatter';
 import { getWhatsAppUrl } from '@/utils/whatsapp';
-import { router, useNavigation } from 'expo-router';
+import { router, useFocusEffect, useNavigation } from 'expo-router';
 import {
   DrawerActions,
   type NavigationProp,
   type NavigationState,
   type ParamListBase,
 } from 'expo-router/react-navigation';
+import ListChecks from 'lucide-react-native/icons/list-checks';
 import Menu from 'lucide-react-native/icons/menu';
 import Plus from 'lucide-react-native/icons/plus';
 import ShoppingCart from 'lucide-react-native/icons/shopping-cart';
+import X from 'lucide-react-native/icons/x';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
+  BackHandler,
   FlatList,
   Linking,
   Platform,
@@ -78,16 +83,14 @@ export default function OrderScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<TabsNavigation>();
   const listRef = useRef<FlatList<Order>>(null);
-  // Kısa listede onEndReached kaydırmadan da tetiklenir; "Bugün"e önceki hafta karışmasın
-  const hasUserScrolled = useRef(false);
   const { colors } = useAppTheme();
   const locale = useLocale();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  // iOS'ta sekme çubuğu ekranın üstüne biner ve bu değere dahildir; Android'de ekran çubuğun üstünde biter
-  const fabOffset = Platform.OS === 'ios' ? insets.bottom : 0;
+  const fabOffset = useTabBarInset();
   const [searchText, setSearchText] = useState('');
-  const periodLabel = useOrderPeriodLabel();
+  const periodSelection = useOrderFilterStore((state) => state.selection);
+  const periodLabel = usePeriodLabel(periodSelection);
   const {
     orders,
     lookupOrders,
@@ -100,12 +103,31 @@ export default function OrderScreen() {
     error,
     isRefreshing,
     refresh,
-    oldestDay,
-    canLoadMore,
-    isLoadingMore,
-    loadMore,
   } = useOrderList(searchText);
   const { cargos, paymentNames, customStatusNames, partners } = useOrderLookups(lookupOrders);
+  const { selectedIds, isSelecting, toggle, selectAll, clear } = useOrderSelection(searchText);
+  const isAllSelected = orders.length > 0 && orders.every((order) => selectedIds.has(order.id));
+
+  // Liste artık dönem değişince yeniden kurulmuyor; yeni dönem baştan görünsün
+  useEffect(() => {
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [periodSelection]);
+
+  // Android geri tuşu önce seçim modundan çıkarır; sheet açıkken ekran odakta olmadığı için devreye girmez
+  useFocusEffect(
+    useCallback(() => {
+      if (!isSelecting) {
+        return undefined;
+      }
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+        clear();
+        return true;
+      });
+
+      return () => subscription.remove();
+    }, [isSelecting, clear]),
+  );
 
   // iOS'ta sekmenin kendi başa dönme davranışı kaydırma alanını bulamıyor: ilk görünüm sabit panel.
   // Başka sekmeden gelince konum korunur, yalnızca açık sekmeye tekrar basınca başa döner.
@@ -146,21 +168,27 @@ export default function OrderScreen() {
         partner={item.affiliateAccountId === null ? undefined : partners.get(item.affiliateAccountId)}
         colors={colors}
         locale={locale}
+        isSelecting={isSelecting}
+        isSelected={selectedIds.has(item.id)}
         onOpen={openOrder}
         onEdit={editOrder}
+        onToggleSelect={toggle}
         onWhatsApp={openWhatsApp}
       />
     ),
-    [paymentNames, cargos, customStatusNames, partners, colors, locale, openWhatsApp],
+    [
+      paymentNames,
+      cargos,
+      customStatusNames,
+      partners,
+      colors,
+      locale,
+      isSelecting,
+      selectedIds,
+      toggle,
+      openWhatsApp,
+    ],
   );
-
-  // Filtre veya aramada liste kısa kalır, otomatik yükleme art arda istek atardı; orada düğme var
-  const loadMoreOnScroll = () => {
-    if (hasUserScrolled.current && canLoadMore && !isFiltering) {
-      hasUserScrolled.current = false;
-      loadMore();
-    }
-  };
 
   const getCountText = () => {
     const value = formatNumber(orders.length, locale);
@@ -193,20 +221,50 @@ export default function OrderScreen() {
     <View style={styles.screen}>
       {/* Sabit üst panel: durum çubuğundan başlar, liste alt köşelerinin arkasından akar */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
-        <View style={styles.topBar}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('drawer.open')}
-            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-            style={styles.iconButton}
-          >
-            <Menu size={ICON_SIZE.lg} color={colors.text} />
-          </Pressable>
+        {isSelecting ? (
+          <View style={styles.topBar}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('orders.closeSelection')}
+              onPress={clear}
+              style={styles.iconButton}
+            >
+              <X size={ICON_SIZE.lg} color={colors.text} />
+            </Pressable>
 
-          <Text style={styles.title}>{t('tabs.order')}</Text>
+            <Text style={styles.selectionTitle} numberOfLines={1}>
+              {t('orders.selectedCount', { value: formatNumber(selectedIds.size, locale) })}
+            </Text>
 
-          <View style={styles.iconButton} />
-        </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t(isAllSelected ? 'orders.clearSelection' : 'orders.selectAll')}
+              onPress={() =>
+                isAllSelected ? clear() : selectAll(orders.map((order) => order.id))
+              }
+              style={styles.selectAllButton}
+            >
+              <Text style={styles.selectAllText}>
+                {t(isAllSelected ? 'orders.clearSelection' : 'orders.selectAll')}
+              </Text>
+            </Pressable>
+          </View>
+        ) : (
+          <View style={styles.topBar}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('drawer.open')}
+              onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+              style={styles.iconButton}
+            >
+              <Menu size={ICON_SIZE.lg} color={colors.text} />
+            </Pressable>
+
+            <Text style={styles.title}>{t('tabs.order')}</Text>
+
+            <View style={styles.iconButton} />
+          </View>
+        )}
 
         <View style={styles.searchRow}>
           <SearchFilterBar
@@ -237,6 +295,7 @@ export default function OrderScreen() {
         <FlatList
           ref={listRef}
           data={orders}
+          extraData={selectedIds}
           keyExtractor={getOrderKey}
           renderItem={renderOrder}
           contentContainerStyle={styles.list}
@@ -247,16 +306,13 @@ export default function OrderScreen() {
           maxToRenderPerBatch={6}
           windowSize={7}
           removeClippedSubviews={Platform.OS === 'android'}
-          onScrollBeginDrag={() => {
-            hasUserScrolled.current = true;
-          }}
-          onEndReached={loadMoreOnScroll}
-          onEndReachedThreshold={0.5}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={refresh}
-              tintColor={colors.orange}
+              tintColor={colors.orangeWhite}
+              colors={[colors.orangeWhite]}
+              progressBackgroundColor={colors.surface}
               progressViewOffset={HEADER_OVERLAP}
             />
           }
@@ -264,24 +320,33 @@ export default function OrderScreen() {
           ListEmptyComponent={
             <StateMessage message={t(isSearching ? 'orders.searching' : emptyMessageKey)} />
           }
-          ListFooterComponent={
-            canLoadMore ? (
-              <OrderListFooter
-                loadedUntil={formatOrderDay(oldestDay)}
-                isLoading={isLoadingMore}
-                onLoadMore={loadMore}
-              />
-            ) : undefined
-          }
         />
       )}
 
-      <FloatingActionButton
-        icon={Plus}
-        accessibilityLabel={t('orders.addOrder')}
-        onPress={() => router.push('/order-new')}
-        bottomOffset={fabOffset}
-      />
+      {isSelecting ? (
+        <FloatingActionButton
+          icon={ListChecks}
+          accessibilityLabel={t('orders.actionsTitle')}
+          onPress={() =>
+            router.push({
+              pathname: '/order-actions',
+              params: { count: String(selectedIds.size) },
+            })
+          }
+          bottomOffset={fabOffset}
+          backgroundColor={colors.blue}
+          iconColor={colors.surface}
+          pulseKey={isSelecting}
+        />
+      ) : (
+        <FloatingActionButton
+          icon={Plus}
+          accessibilityLabel={t('orders.addOrder')}
+          onPress={() => router.push('/order-new')}
+          bottomOffset={fabOffset}
+          pulseKey={isSelecting}
+        />
+      )}
     </View>
   );
 }
@@ -317,6 +382,21 @@ function createStyles(colors: AppColors) {
       ...typography.h3,
       color: colors.text,
       fontFamily: FONT_FAMILY.bold,
+    },
+    selectionTitle: {
+      ...typography.h3,
+      flex: 1,
+      color: colors.text,
+      fontFamily: FONT_FAMILY.bold,
+    },
+    selectAllButton: {
+      minHeight: MIN_TOUCH_SIZE,
+      justifyContent: 'center',
+    },
+    selectAllText: {
+      ...typography.label,
+      color: colors.orange,
+      fontFamily: FONT_FAMILY.semiBold,
     },
     searchRow: {
       marginHorizontal: SPACING.xl,

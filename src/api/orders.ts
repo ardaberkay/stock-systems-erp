@@ -1,15 +1,18 @@
 import { apiClient } from '@/lib/apiClient';
+import { useCurrentTime } from '@/hooks/useCurrentTime';
 import {
   orderCustomStatusListSchema,
   orderListSchema,
   orderPaymentTypeListSchema,
+  type Order,
 } from '@/schemas/orders';
 import { addDays } from '@/utils/dateKey';
 import type { OrderSearch } from '@/utils/orderList';
-import { getPreviousOrderPage } from '@/utils/orderPeriod';
+import { filterOrdersByRange, getBaseOrderRange, isRangeWithin } from '@/utils/orderPeriod';
 import { dedupeOrders } from '@/utils/orderStats';
 import type { DayRange } from '@/utils/periodWindow';
-import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect } from 'react';
 
 // Rate limit ve veri yükü için seyrek yenilenir; güncel rakam aşağı çekerek alınır.
 const ORDERS_STALE_MS = 5 * 60_000;
@@ -19,7 +22,6 @@ const ORDER_OPTIONS_CACHE_MS = 60 * 60_000;
 export const orderKeys = {
   all: ['orders'] as const,
   list: (range: DayRange) => [...orderKeys.all, 'list', range] as const,
-  pages: (range: DayRange) => [...orderKeys.all, 'pages', range] as const,
   search: (search: OrderSearch) => [...orderKeys.all, 'search', search] as const,
   paymentTypes: () => [...orderKeys.all, 'paymentTypes'] as const,
   customStatuses: () => [...orderKeys.all, 'customStatuses'] as const,
@@ -65,24 +67,46 @@ export async function getOrderCustomStatuses(signal?: AbortSignal) {
   return data;
 }
 
+// Son 7 güne giren dönemler aynı veriden süzülür: istek ve iskelet olmadan anında görünür.
+// Daha geniş veya eski dönemler kendi isteğini atar.
 export function useOrders(range: DayRange, options?: { enabled?: boolean }) {
-  return useQuery({
-    queryKey: orderKeys.list(range),
-    queryFn: ({ signal }) => getOrders(range, signal),
+  const { now } = useCurrentTime();
+  const queryClient = useQueryClient();
+  const { startDay, endDay } = range;
+  const baseRange = getBaseOrderRange(now);
+  const isInBase = isRangeWithin(range, baseRange);
+  const sourceStartDay = isInBase ? baseRange.startDay : startDay;
+  const sourceEndDay = isInBase ? baseRange.endDay : endDay;
+  const sourceRange = { startDay: sourceStartDay, endDay: sourceEndDay };
+
+  const selectPeriod = useCallback(
+    (orders: Order[]) => filterOrdersByRange(orders, { startDay, endDay }),
+    [startDay, endDay],
+  );
+
+  const query = useQuery({
+    queryKey: orderKeys.list(sourceRange),
+    queryFn: ({ signal }) => getOrders(sourceRange, signal),
     staleTime: ORDERS_STALE_MS,
     enabled: options?.enabled,
+    select: isInBase ? selectPeriod : undefined,
   });
-}
 
-// API sayfalama yapmaz; ilk sayfa seçili dönem, sonrakiler onun öncesindeki 7 günlük dilimlerdir.
-export function useOrderPages(range: DayRange) {
-  return useInfiniteQuery({
-    queryKey: orderKeys.pages(range),
-    queryFn: ({ pageParam, signal }) => getOrders(pageParam, signal),
-    initialPageParam: range,
-    getNextPageParam: (_lastPage, _pages, lastPageParam) => getPreviousOrderPage(lastPageParam),
-    staleTime: ORDERS_STALE_MS,
-  });
+  // Dönem değişince eskimiş veri arkada sessizce yenilenir; süren istek kesilmez
+  useEffect(() => {
+    void queryClient.refetchQueries(
+      {
+        queryKey: orderKeys.list({ startDay: sourceStartDay, endDay: sourceEndDay }),
+        exact: true,
+        stale: true,
+        type: 'active',
+        fetchStatus: 'idle',
+      },
+      { cancelRefetch: false },
+    );
+  }, [queryClient, startDay, endDay, sourceStartDay, sourceEndDay]);
+
+  return query;
 }
 
 export function useOrderSearch(search: OrderSearch | null) {

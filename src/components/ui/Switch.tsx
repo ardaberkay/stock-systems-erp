@@ -1,5 +1,5 @@
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { Switch as NativeSwitch } from 'react-native';
+import { StyleSheet, Switch as NativeSwitch } from 'react-native';
 
 type SwitchProps = {
   value: boolean;
@@ -16,9 +16,17 @@ export default function Switch({ value, onValueChange, accessibilityLabel }: Swi
       value={value}
       onValueChange={onValueChange}
       accessibilityLabel={accessibilityLabel}
+      style={styles.control}
       trackColor={{ false: colors.border, true: colors.orange }}
       thumbColor={colors.buttonPrimaryText}
       ios_backgroundColor={colors.border}
     />
   );
 }
+
+const styles = StyleSheet.create({
+  // React Native varsayılan olarak flex-start verir, satır ortalaması geçersiz kalır
+  control: {
+    alignSelf: 'center',
+  },
+});

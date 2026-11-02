@@ -62,6 +62,8 @@ export const lightColors = {
     orangeWhite: '#F97316',
     // Modal ve alttan açılan panellerin arkasındaki karartma
     overlay: 'rgba(0, 0, 0, 0.4)',
+    // Açık drawer'ın yanında kararan ekranın tonu: arka planın %50 karartılmış hali
+    drawerBackdrop: '#7D7D7B',
 } as const;
 
 // Açık temadaki renk yapısından otomatik türetilir.
@@ -134,4 +136,5 @@ export const darkColors = {
     // Yardımcı renkler
     orangeWhite: '#FFFFFF',
     overlay: 'rgba(0, 0, 0, 0.6)',
+    drawerBackdrop: '#0E0E0E',
 } satisfies AppColors;  

@@ -8,15 +8,22 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useLocale } from '@/hooks/useLocale';
 import { usePeriodLabel } from '@/hooks/usePeriodLabel';
+import { useTabBarInset } from '@/hooks/useTabBarInset';
 import { getErrorMessageKey } from '@/lib/apiError';
+import { useDashboardFilterStore } from '@/stores/dashboardFilterStore';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, FONT_SIZE, typography } from '@/theme/typography';
 import { useNavigation } from 'expo-router';
-import { DrawerActions } from 'expo-router/react-navigation';
+import {
+  DrawerActions,
+  type NavigationProp,
+  type NavigationState,
+  type ParamListBase,
+} from 'expo-router/react-navigation';
 import Bell from 'lucide-react-native/icons/bell';
 import Menu from 'lucide-react-native/icons/menu';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Pressable,
@@ -28,21 +35,32 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+// expo-router sekme olayının tipini dışa açmıyor; yalnızca dinlenen olay tanımlanır
+type TabsNavigation = NavigationProp<
+  ParamListBase,
+  string,
+  undefined,
+  NavigationState,
+  object,
+  { tabPress: { data: undefined } }
+>;
+
 const SKELETON_CARD_KEYS = ['first', 'second', 'third'];
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
-  const navigation = useNavigation();
+  const navigation = useNavigation<TabsNavigation>();
+  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const locale = useLocale();
-  const periodLabel = usePeriodLabel();
+  const selection = useDashboardFilterStore((state) => state.selection);
+  const periodLabel = usePeriodLabel(selection);
   const {
     window,
     stats,
     productsById,
     isLoading,
-    isProductsLoading,
     error,
     isRefreshing,
     refresh,
@@ -52,55 +70,71 @@ export default function DashboardScreen() {
   const [showOrders, setShowOrders] = useState(false);
 
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const bottomSpace = useTabBarInset() + SPACING.xl;
+
+  // Appbar sabit olunca iOS'ta sekmenin kendi başa dönme davranışı kaydırma alanını bulamaz.
+  // Başka sekmeden gelince konum korunur, yalnızca açık sekmeye tekrar basınca başa döner.
+  useEffect(
+    () =>
+      navigation.addListener('tabPress', () => {
+        if (navigation.isFocused()) {
+          scrollRef.current?.scrollTo({ y: 0, animated: true });
+        }
+      }),
+    [navigation],
+  );
 
   return (
     // SafeAreaView boşluğu sonradan uygular ve iOS sekmelerinin otomatik boşluğuyla çakışır;
     // üst boşluk ilk karede verilir ki açılışta appbar ve sayfa aşağı kaymasın.
     <View style={[styles.safeArea, { paddingTop: insets.top }]}>
+      {/* Appbar: menü, logo ve bildirimler */}
+      <View style={styles.topBar}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('drawer.open')}
+          onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+          style={styles.iconButton}
+        >
+          <Menu size={ICON_SIZE.lg} color={colors.text} />
+        </Pressable>
+
+        {/* Marka adı çevrilmez; "<butik" ve "." her temada turuncu ve bir tık incedir */}
+        <Text accessibilityLabel="butiksistem" style={styles.logo}>
+          <Text style={styles.logoAccent}>{'<butik'}</Text>
+          sistem
+          <Text style={styles.logoAccent}>.</Text>
+        </Text>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('dashboard.notifications')}
+          onPress={() => setNotifications(0)}
+          style={styles.iconButton}
+        >
+          <Bell size={ICON_SIZE.lg} color={colors.text} />
+
+          {notifications > 0 && (
+            <View style={styles.notificationDot} />
+          )}
+        </Pressable>
+      </View>
+
       <ScrollView
+        ref={scrollRef}
         style={styles.screen}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={{ paddingBottom: bottomSpace }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={refresh}
-            tintColor={colors.orange}
+            tintColor={colors.orangeWhite}
+            colors={[colors.orangeWhite]}
+            progressBackgroundColor={colors.surface}
           />
         }
       >
-        {/* Appbar: menü, logo ve bildirimler */}
-        <View style={styles.topBar}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('drawer.open')}
-            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-            style={styles.iconButton}
-          >
-            <Menu size={ICON_SIZE.lg} color={colors.text} />
-          </Pressable>
-
-          {/* Marka adı çevrilmez; "<butik" ve "." her temada turuncu ve bir tık incedir */}
-          <Text accessibilityLabel="butiksistem" style={styles.logo}>
-            <Text style={styles.logoAccent}>{'<butik'}</Text>
-            sistem
-            <Text style={styles.logoAccent}>.</Text>
-          </Text>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('dashboard.notifications')}
-            onPress={() => setNotifications(0)}
-            style={styles.iconButton}
-          >
-            <Bell size={ICON_SIZE.lg} color={colors.text} />
-
-            {notifications > 0 && (
-              <View style={styles.notificationDot} />
-            )}
-          </Pressable>
-        </View>
-
         {/* Toplam ciro, tüm dashboard'u etkileyen dönem filtresi ve metrikler */}
         <DashboardHeader
           periodFilter={<PeriodFilter />}
@@ -144,7 +178,7 @@ export default function DashboardScreen() {
               </Text>
             </View>
 
-            {isLoading || isProductsLoading ? (
+            {isLoading ? (
               <View style={styles.productList}>
                 {SKELETON_CARD_KEYS.map((key) => (
                   <TopSellingCardSkeleton key={key} />
@@ -181,9 +215,6 @@ function createStyles(colors: AppColors) {
     screen: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    content: {
-      paddingBottom: 36,
     },
     topBar: {
       height: 54,

@@ -1,7 +1,6 @@
 import { useAffiliates } from '@/api/affiliates';
 import { useCargoCompanies } from '@/api/cargo';
 import { useOrderCustomStatuses, useOrderPaymentTypes } from '@/api/orders';
-import FilterChip from '@/components/ui/FilterChip';
 import SelectField, { type SelectOption } from '@/components/ui/SelectField';
 import {
   DEFAULT_ORDER_FILTERS,
@@ -20,7 +19,12 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type SelectKey = 'customStatusId' | 'paymentTypeId' | 'cargoCompanyId' | 'affiliateAccountId';
+type SelectKey =
+  | 'status'
+  | 'customStatusId'
+  | 'paymentTypeId'
+  | 'cargoCompanyId'
+  | 'affiliateAccountId';
 
 // "Tümü" seçeneği; filtre değerinde null olarak tutulur
 const ALL_VALUE = '';
@@ -110,21 +114,21 @@ export default function OrderFilterModal() {
           </Pressable>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('orders.statusTitle')}</Text>
-          <View style={styles.chips}>
-            {ORDER_STATUS_FILTERS.map((statusId) => (
-              <FilterChip
-                key={statusId}
-                label={t(`orders.status.${getOrderStatusDisplay(statusId).key}`)}
-                active={draft.statusIds.includes(statusId)}
-                onPress={() => toggleStatus(statusId)}
-              />
-            ))}
-          </View>
-        </View>
-
         <View>
+          {/* Çoklu seçim: seçenek işaretlenince alan açık kalır */}
+          <SelectField
+            label={t('orders.statusTitle')}
+            value={draft.statusIds.map(String)}
+            options={ORDER_STATUS_FILTERS.map((statusId) => ({
+              value: String(statusId),
+              label: t(`orders.status.${getOrderStatusDisplay(statusId).key}`),
+            }))}
+            isOpen={openSelect === 'status'}
+            onToggle={() => setOpenSelect((current) => (current === 'status' ? null : 'status'))}
+            onSelect={(value) => toggleStatus(Number(value))}
+            emptyLabel={t('orders.allOption')}
+          />
+
           {selects.map((select) =>
             select.items.length > 0 ? (
               <SelectField
@@ -192,18 +196,6 @@ function createStyles(colors: AppColors) {
       ...typography.label,
       color: colors.orange,
       fontFamily: FONT_FAMILY.semiBold,
-    },
-    section: {
-      gap: SPACING.sm,
-    },
-    sectionTitle: {
-      ...typography.label,
-      color: colors.textSecondary,
-    },
-    chips: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: SPACING.xs,
     },
     applyButton: {
       minHeight: MIN_TOUCH_SIZE + SPACING.xs,

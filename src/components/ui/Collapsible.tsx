@@ -21,9 +21,10 @@ export default function Collapsible({ expanded, children }: CollapsibleProps) {
   }
 
   useEffect(() => {
-    // İlk açılışta yükseklik henüz bilinmez; animasyon ölçümden sonra başlar
-    if (!expanded || contentHeight.value > 0) {
-      progress.value = withTiming(expanded ? 1 : 0, { duration: DURATION_MS });
+    // İlk açılışta yükseklik henüz bilinmez; animasyon ölçümden sonra başlar.
+    // .value yerine .get(): React Compiler .value'yu bağımlılık sayıp render'da okuyor.
+    if (!expanded || contentHeight.get() > 0) {
+      progress.set(withTiming(expanded ? 1 : 0, { duration: DURATION_MS }));
     }
   }, [expanded, contentHeight, progress]);
 

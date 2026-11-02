@@ -1,4 +1,5 @@
 import { ORDER_STATUS } from '@/constants/orderStatus';
+import type { PeriodSelection } from '@/constants/periods';
 
 // Sipariş dönemleri; görünen ad `filters.<anahtar>` çevirisinden gelir.
 // Bu ay ayın 1'inden bugüne, geçen ay önceki ayın tamamını kapsar.
@@ -13,14 +14,12 @@ export const ORDER_PERIODS = [
 
 export type OrderPeriod = (typeof ORDER_PERIODS)[number];
 
-export type OrderPeriodSelection =
-  | { kind: 'preset'; period: OrderPeriod }
-  | { kind: 'range'; from: Date; to: Date };
+export type OrderPeriodSelection = PeriodSelection<OrderPeriod>;
 
 export const DEFAULT_ORDER_PERIOD: OrderPeriodSelection = { kind: 'preset', period: 'weekly' };
 
-// Dönem sonuna gelince her seferinde bu kadar gün geriye gidilir
-export const ORDER_PAGE_DAYS = 7;
+// Ana sayfa ve siparişlerin ortak kullandığı veri; bu aralıktaki dönemler anında gösterilir.
+export const ORDER_BASE_DAYS = 7;
 
 export type OrderFilters = {
   statusIds: number[];

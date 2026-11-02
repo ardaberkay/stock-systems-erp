@@ -1,7 +1,7 @@
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
+import { FONT_FAMILY, typography } from '@/theme/typography';
 import { router } from 'expo-router';
 import { DrawerContentScrollView, type DrawerContentComponentProps } from 'expo-router/drawer';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
@@ -35,36 +35,46 @@ export default function AppDrawerContent(props: DrawerContentComponentProps) {
   };
 
   return (
-    <DrawerContentScrollView {...props} contentContainerStyle={styles.content}>
-      <View style={styles.menu}>
+    <View style={styles.panel}>
+      <DrawerContentScrollView {...props} contentContainerStyle={styles.content}>
+        <View style={styles.menu}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('drawer.settings')}
+            onPress={openSettings}
+            style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+          >
+            <Settings size={ICON_SIZE.md} color={colors.icon} />
+            <Text style={styles.itemLabel}>{t('drawer.settings')}</Text>
+            <ChevronRight size={ICON_SIZE.md} color={colors.icon} />
+          </Pressable>
+        </View>
+
+        {/* Çıkış butonu menünün en altında durur */}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={t('drawer.settings')}
-          onPress={openSettings}
-          style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+          accessibilityLabel={t('auth.logout')}
+          onPress={confirmLogout}
+          style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutButtonPressed]}
         >
-          <Settings size={ICON_SIZE.md} color={colors.icon} />
-          <Text style={styles.itemLabel}>{t('drawer.settings')}</Text>
-          <ChevronRight size={ICON_SIZE.md} color={colors.icon} />
+          <LogOut size={ICON_SIZE.md} color={colors.error} />
+          <Text style={styles.logoutLabel}>{t('auth.logout')}</Text>
         </Pressable>
-      </View>
-
-      {/* Çıkış butonu menünün en altında durur */}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('auth.logout')}
-        onPress={confirmLogout}
-        style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
-      >
-        <LogOut size={ICON_SIZE.md} color={colors.error} />
-        <Text style={[styles.itemLabel, styles.logoutLabel]}>{t('auth.logout')}</Text>
-      </Pressable>
-    </DrawerContentScrollView>
+      </DrawerContentScrollView>
+    </View>
   );
 }
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
+    // Köşelerin arkasını drawer'ın zemini doldurur (bkz. src/app/(drawer)/_layout.tsx)
+    panel: {
+      flex: 1,
+      overflow: 'hidden',
+      borderTopRightRadius: RADIUS.xl,
+      borderBottomRightRadius: RADIUS.xl,
+      backgroundColor: colors.background,
+    },
     content: {
       flexGrow: 1,
       justifyContent: 'space-between',
@@ -90,7 +100,22 @@ function createStyles(colors: AppColors) {
       flex: 1,
       color: colors.text,
     },
+    logoutButton: {
+      minHeight: MIN_TOUCH_SIZE + SPACING.xs,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: SPACING.sm,
+      paddingHorizontal: SPACING.md,
+      borderRadius: RADIUS.md,
+      backgroundColor: colors.errorBackground,
+    },
+    logoutButtonPressed: {
+      opacity: 0.7,
+    },
     logoutLabel: {
+      ...typography.body,
+      fontFamily: FONT_FAMILY.semiBold,
       color: colors.error,
     },
   });

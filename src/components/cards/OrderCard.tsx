@@ -1,5 +1,6 @@
 import OrderStatusBadge from '@/components/ui/order/OrderStatusBadge';
 import WhatsAppIcon from '@/components/ui/order/WhatsAppIcon';
+import Checkbox from '@/components/ui/Checkbox';
 import { getOrderPaymentDisplay } from '@/constants/orderPaymentDisplay';
 import type { OrderCargo, OrderPartner } from '@/hooks/useOrderLookups';
 import type { Order } from '@/schemas/orders';
@@ -23,16 +24,25 @@ type OrderCardProps = {
   partner: OrderPartner | undefined;
   colors: AppColors;
   locale: string;
+  isSelecting: boolean;
+  isSelected: boolean;
   onOpen: (orderId: number) => void;
   onEdit: (orderId: number) => void;
+  onToggleSelect: (orderId: number) => void;
   onWhatsApp: (phone: string, message: string) => void;
 };
 
 const SMALL_ICON_SIZE = ICON_SIZE.sm - SPACING.xxs;
 const ITEM_ICON_SIZE = ICON_SIZE.sm - SPACING.xs;
 // Görünen satır metin yüksekliğinde kalır, dokunma alanı 44 olur
-const PHONE_HIT_SLOP = (MIN_TOUCH_SIZE - typography.label.lineHeight) / 2;
-const PARTNER_HIT_SLOP = (MIN_TOUCH_SIZE - typography.caption.lineHeight) / 2;
+const ICON_HIT_SLOP = (MIN_TOUCH_SIZE - ICON_SIZE.sm) / 2;
+// Müşteri ve ortak ikonları alt alta durur; dokunma alanları satırların tam ortasında ayrılır
+const STACKED_ICON_HIT_SLOP =
+  (typography.label.lineHeight / 2 +
+    SPACING.sm +
+    typography.caption.lineHeight / 2 -
+    ICON_SIZE.sm) /
+  2;
 const EDIT_HIT_SLOP = (MIN_TOUCH_SIZE - ICON_SIZE.sm) / 2;
 // Uzun firma adı desiyi ve ileride eklenecek kargo adımlarını satırdan itmesin
 const MAX_CARGO_NAME_WIDTH = '55%';
@@ -60,8 +70,11 @@ function OrderCard({
   partner,
   colors,
   locale,
+  isSelecting,
+  isSelected,
   onOpen,
   onEdit,
+  onToggleSelect,
   onWhatsApp,
 }: OrderCardProps) {
   const { t } = useTranslation();
@@ -77,12 +90,22 @@ function OrderCard({
 
   return (
     <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t('orders.openDetail', { id: order.id })}
-      onPress={() => onOpen(order.id)}
-      style={styles.card}
+      accessibilityRole={isSelecting ? 'checkbox' : 'button'}
+      accessibilityLabel={t(isSelecting ? 'orders.selectOrder' : 'orders.openDetail', {
+        id: order.id,
+      })}
+      accessibilityState={isSelecting ? { checked: isSelected } : undefined}
+      onPress={() => (isSelecting ? onToggleSelect(order.id) : onOpen(order.id))}
+      // Modda da tanımlı kalmalı: kalkarsa parmak çekilince dokunuş sayılır ve seçim geri alınır
+      onLongPress={() => {
+        if (!isSelecting) {
+          onToggleSelect(order.id);
+        }
+      }}
+      style={[styles.card, isSelected && styles.cardSelected]}
     >
       <View style={styles.row}>
+        {isSelecting ? <Checkbox checked={isSelected} colors={colors} /> : null}
         <Text style={styles.meta} numberOfLines={1}>
           <Text style={styles.orderNumber}>#{order.id}</Text>
           {` · ${formatOrderDateTime(order.orderDateTime)}`}
@@ -113,23 +136,31 @@ function OrderCard({
 
       <View style={styles.row}>
         {phone ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('orders.whatsappCustomer')}
-            hitSlop={PHONE_HIT_SLOP}
-            onPress={() =>
-              onWhatsApp(
-                phone,
-                t('orders.whatsappCustomerMessage', { name: customerName, id: order.id }),
-              )
-            }
-            style={styles.contact}
-          >
-            <WhatsAppIcon />
+          <View style={styles.contact}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('orders.whatsappCustomer')}
+              accessibilityState={{ disabled: isSelecting }}
+              disabled={isSelecting}
+              hitSlop={{
+                top: ICON_HIT_SLOP,
+                bottom: partnerPhone ? STACKED_ICON_HIT_SLOP : ICON_HIT_SLOP,
+                left: ICON_HIT_SLOP,
+                right: ICON_HIT_SLOP,
+              }}
+              onPress={() =>
+                onWhatsApp(
+                  phone,
+                  t('orders.whatsappCustomerMessage', { name: customerName, id: order.id }),
+                )
+              }
+            >
+              <WhatsAppIcon />
+            </Pressable>
             <Text style={styles.phone} numberOfLines={1}>
               {formatPhone(phone)}
             </Text>
-          </Pressable>
+          </View>
         ) : (
           <View />
         )}
@@ -148,23 +179,30 @@ function OrderCard({
       {partner || customStatusName ? (
         <View style={styles.row}>
           {partner ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('orders.whatsappPartner', { name: partner.name })}
-              accessibilityState={{ disabled: !partnerPhone }}
-              disabled={!partnerPhone}
-              hitSlop={PARTNER_HIT_SLOP}
-              onPress={() =>
-                partnerPhone &&
-                onWhatsApp(partnerPhone, t('orders.whatsappPartnerMessage', { id: order.id }))
-              }
-              style={styles.contact}
-            >
-              {partnerPhone ? <WhatsAppIcon /> : null}
+            <View style={styles.contact}>
+              {partnerPhone ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('orders.whatsappPartner', { name: partner.name })}
+                  accessibilityState={{ disabled: isSelecting }}
+                  disabled={isSelecting}
+                  hitSlop={{
+                    top: STACKED_ICON_HIT_SLOP,
+                    bottom: ICON_HIT_SLOP,
+                    left: ICON_HIT_SLOP,
+                    right: ICON_HIT_SLOP,
+                  }}
+                  onPress={() =>
+                    onWhatsApp(partnerPhone, t('orders.whatsappPartnerMessage', { id: order.id }))
+                  }
+                >
+                  <WhatsAppIcon />
+                </Pressable>
+              ) : null}
               <Text style={styles.partnerName} numberOfLines={1}>
                 {partner.name}
               </Text>
-            </Pressable>
+            </View>
           ) : (
             <View />
           )}
@@ -192,14 +230,16 @@ function OrderCard({
           ) : null}
         </View>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('orders.edit', { id: order.id })}
-          hitSlop={EDIT_HIT_SLOP}
-          onPress={() => onEdit(order.id)}
-        >
-          <Pencil size={ICON_SIZE.sm} color={colors.icon} />
-        </Pressable>
+        {isSelecting ? null : (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('orders.edit', { id: order.id })}
+            hitSlop={EDIT_HIT_SLOP}
+            onPress={() => onEdit(order.id)}
+          >
+            <Pencil size={ICON_SIZE.sm} color={colors.icon} />
+          </Pressable>
+        )}
       </View>
     </Pressable>
   );
@@ -218,6 +258,9 @@ function createStyles(colors: AppColors) {
       borderColor: colors.border,
       backgroundColor: colors.surface,
     },
+    cardSelected: {
+      borderColor: colors.orange,
+    },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -227,7 +270,7 @@ function createStyles(colors: AppColors) {
     },
     meta: {
       ...typography.caption,
-      flexShrink: 1,
+      flex: 1,
       color: colors.textSecondary,
     },
     orderNumber: {

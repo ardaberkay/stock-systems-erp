@@ -7,6 +7,7 @@ import StateMessage from "@/components/ui/StateMessage";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useLocale } from "@/hooks/useLocale";
 import { useProductList } from "@/hooks/useProductList";
+import { useTabBarInset } from "@/hooks/useTabBarInset";
 import { getErrorMessageKey } from "@/lib/apiError";
 import type { Product } from "@/schemas/products";
 import type { AppColors } from "@/theme/colors";
@@ -28,7 +29,6 @@ import { useTranslation } from "react-i18next";
 import {
   Alert,
   FlatList,
-  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -61,8 +61,7 @@ export default function StockScreen() {
   const locale = useLocale();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  // iOS'ta sekme çubuğu ekranın üstüne biner ve bu değere dahildir; Android'de ekran çubuğun üstünde biter
-  const fabOffset = Platform.OS === "ios" ? insets.bottom : 0;
+  const fabOffset = useTabBarInset();
   const [searchText, setSearchText] = useState("");
   // Aynı anda tek kart açık kalır; liste uzayıp karışmaz
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -177,7 +176,9 @@ export default function StockScreen() {
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={refresh}
-              tintColor={colors.orange}
+              tintColor={colors.orangeWhite}
+              colors={[colors.orangeWhite]}
+              progressBackgroundColor={colors.surface}
               progressViewOffset={HEADER_OVERLAP}
             />
           }

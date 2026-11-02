@@ -1,6 +1,6 @@
 import { apiClient } from '@/lib/apiClient';
 import { productListSchema } from '@/schemas/products';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 // Ürün adı ve görseli sık değişmez
 const PRODUCTS_STALE_MS = 5 * 60_000;
@@ -52,5 +52,7 @@ export function useProductsByIds(ids: number[]) {
     queryFn: ({ signal }) => getProductsByIds(sortedIds, signal),
     staleTime: PRODUCTS_STALE_MS,
     enabled: sortedIds.length > 0,
+    // Listeye yeni ürün eklenince elde olanlar ekrandan kalkmasın
+    placeholderData: keepPreviousData,
   });
 }

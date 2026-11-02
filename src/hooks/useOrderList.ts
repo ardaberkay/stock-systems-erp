@@ -1,9 +1,7 @@
-import { useOrderPages, useOrderSearch } from '@/api/orders';
-import { ORDER_PAGE_DAYS } from '@/constants/orderFilters';
+import { useOrders, useOrderSearch } from '@/api/orders';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useOrderFilterStore } from '@/stores/orderFilterStore';
-import { addDays } from '@/utils/dateKey';
 import {
   getVisibleOrders,
   hasActiveOrderFilters,
@@ -11,7 +9,7 @@ import {
   parseOrderSearch,
 } from '@/utils/orderList';
 import { getOrderRange } from '@/utils/orderPeriod';
-import { useDeferredValue, useMemo } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 
 // Rakam yazılırken her haneye sunucu isteği gitmesin; rate limit paylaşılıyor.
 const SERVER_SEARCH_DELAY_MS = 700;
@@ -27,10 +25,11 @@ export function useOrderList(searchText: string) {
   const serverQuery = useDebounce(searchText, SERVER_SEARCH_DELAY_MS).trim();
   const { now } = useCurrentTime();
   const range = useMemo(() => getOrderRange(selection, now), [selection, now]);
-  const pagesQuery = useOrderPages(range);
-  const { data, isPending, hasNextPage, isFetchingNextPage, fetchNextPage } = pagesQuery;
+  const ordersQuery = useOrders(range);
+  const { data, isPending } = ordersQuery;
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const loadedOrders = useMemo(() => mergeOrders(data?.pages.flat() ?? []), [data]);
+  const loadedOrders = useMemo(() => mergeOrders(data ?? []), [data]);
   const localOrders = useMemo(
     () => getVisibleOrders(loadedOrders, query, deferredFilters),
     [loadedOrders, query, deferredFilters],
@@ -58,14 +57,11 @@ export function useOrderList(searchText: string) {
     return isFilterActive ? 'orders.noFilterResults' : 'orders.emptyPeriod';
   };
 
+  // Sessiz yenilemede gösterge dönmesin; yalnızca kullanıcı aşağı çekince görünür
   const refresh = async () => {
-    await Promise.all([pagesQuery.refetch(), serverSearch ? searchQuery.refetch() : undefined]);
-  };
-
-  const loadMore = () => {
-    if (hasNextPage && !isFetchingNextPage) {
-      void fetchNextPage();
-    }
+    setIsRefreshing(true);
+    await Promise.all([ordersQuery.refetch(), serverSearch ? searchQuery.refetch() : undefined]);
+    setIsRefreshing(false);
   };
 
   return {
@@ -78,13 +74,8 @@ export function useOrderList(searchText: string) {
     isSearching: needsServer && (query !== serverQuery || searchQuery.isFetching),
     emptyMessageKey: getEmptyMessageKey(),
     isLoading: isPending,
-    error: pagesQuery.error ?? searchQuery.error,
-    isRefreshing: pagesQuery.isRefetching && !isFetchingNextPage,
+    error: ordersQuery.error ?? searchQuery.error,
+    isRefreshing,
     refresh,
-    // İlk sayfa seçili dönemdir, sonraki her sayfa 7 gün geriye gider
-    oldestDay: addDays(range.startDay, -ORDER_PAGE_DAYS * ((data?.pages.length ?? 1) - 1)),
-    canLoadMore: !isServerResult && !isPending,
-    isLoadingMore: isFetchingNextPage,
-    loadMore,
   };
 }
