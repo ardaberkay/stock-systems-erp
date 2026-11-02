@@ -186,6 +186,94 @@
     "order": "Orders",
     "report": "Reports"
   },
+  "reports": {
+    "title": "Reports",
+    "empty": "No data for this period.",
+    "unknown": "Not specified",
+    "orders": "{{value}} orders",
+    "units": "{{value}} pcs",
+    "thousands": "{{value}}K",
+    "products": "{{value}} products",
+    "soldLine": "{{sold}} pcs · {{revenue}}",
+    "sortSold": "Quantity",
+    "sortRevenue": "Revenue",
+    "categories": {
+      "all": "All",
+      "sales": "Sales",
+      "orders": "Orders",
+      "products": "Products",
+      "customers": "Customers"
+    },
+    "customers": {
+      "title": "Top Customers",
+      "subtitle": "{{total}} customers · {{repeat}} repeat",
+      "history": "Customer Orders"
+    },
+    "productFallback": "Product #{{id}}",
+    "paymentFallback": "Payment #{{id}}",
+    "dayNames": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "profit": {
+      "title": "Estimated Profit",
+      "subtitle": "{{revenue}} revenue · {{shipping}} shipping",
+      "center": "Estimated profit",
+      "revenue": "Total revenue",
+      "cost": "Product cost",
+      "shipping": "Shipping collected",
+      "profit": "Profit",
+      "missingCost": "No cost data for {{value}} sold items, so profit looks higher than it is."
+    },
+    "orderStatus": {
+      "title": "Order Statuses"
+    },
+    "returns": {
+      "title": "Returns and Cancellations",
+      "rate": "Return + cancel rate",
+      "returned": "Returned",
+      "cancelled": "Cancelled"
+    },
+    "topProducts": {
+      "title": "Best Sellers"
+    },
+    "payment": {
+      "title": "Payment Types",
+      "center": "Orders"
+    },
+    "cities": {
+      "title": "Cities"
+    },
+    "weekdays": {
+      "title": "Days of the Week"
+    },
+    "busyHours": {
+      "title": "Busy Hours",
+      "subtitle": "Busiest: {{slot}}",
+      "slotLabel": "{{day}} {{start}}–{{end}}",
+      "slot": "{{day}} {{start}}–{{end}}: {{value}} orders"
+    },
+    "stock": {
+      "title": "Stock",
+      "units": "Total units",
+      "value": "Stock value",
+      "outOfStock": "Out of stock",
+      "lowStock": "Low stock"
+    },
+    "unsold": {
+      "title": "Unsold Products",
+      "subtitle": "In stock, not sold in this period",
+      "products": "Products",
+      "units": "Units in stock",
+      "stockValue": "Stock value: {{value}}",
+      "topWaiting": "Most stock waiting: {{name}} · {{units}}"
+    }
+  },
   "settings": {
     "title": "Settings",
     "appearance": "Appearance",

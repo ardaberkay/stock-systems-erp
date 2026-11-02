@@ -19,7 +19,7 @@ Her ihtiyaç için **yalnızca** aşağıdaki araç kullanılır. Listede olmaya
 | Doğrulama ve API tipleri | `zod` | Yup, elle yazılmış doğrulama |
 | HTTP | `src/lib/apiClient.ts` (fetch sarmalayıcı) | axios, ekranlarda doğrudan `fetch` |
 | Çoklu dil | `i18next` + `react-i18next`, cihaz dili için `expo-localization` | Koda gömülü metin |
-| UI bileşenleri | Kendi bileşenlerimiz: `src/components/ui` | panelui-native bileşenleri (grafik ve takvim hariç), başka UI kütüphanesi |
+| UI bileşenleri | Kendi bileşenlerimiz: `src/components/ui` | panelui-native bileşenleri (grafik, takvim, raporlardaki `Kpi` ve `Leaderboard` hariç), başka UI kütüphanesi |
 | Tarih (aralığı) seçici | `panelui-native` `Calendar` (yalnızca `src/components/ui/DateRangePicker.tsx` sarmalayıcısı üzerinden; gün bazında seçilir, saat seçtirilmez) | Başka picker kütüphanesi |
 | Stil | `StyleSheet.create` + `src/theme` token'ları | `className` / Tailwind sınıfları, styled-components |
 | Grafik | `panelui-native` grafikleri (`LineChart` vb.) | Başka chart kütüphanesi |

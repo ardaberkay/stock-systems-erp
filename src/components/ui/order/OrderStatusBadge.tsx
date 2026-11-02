@@ -1,7 +1,8 @@
-import { getOrderStatusDisplay, type OrderStatusTone } from '@/constants/orderStatusDisplay';
+import { getOrderStatusDisplay } from '@/constants/orderStatusDisplay';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
+import { getOrderStatusToneColors } from '@/utils/orderStatusColor';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -12,30 +13,11 @@ type OrderStatusBadgeProps = {
 
 const BADGE_ICON_SIZE = ICON_SIZE.sm - SPACING.xxs;
 
-function getToneColors(tone: OrderStatusTone, colors: AppColors) {
-  switch (tone) {
-    case 'orange':
-      return { text: colors.orange, background: colors.orangeLight };
-    case 'blue':
-      return { text: colors.blue, background: colors.blueLight };
-    case 'green':
-      return { text: colors.green, background: colors.greenLight };
-    case 'purple':
-      return { text: colors.purple, background: colors.purpleLight };
-    case 'success':
-      return { text: colors.success, background: colors.successBackground };
-    case 'error':
-      return { text: colors.error, background: colors.errorBackground };
-    case 'neutral':
-      return { text: colors.textSecondary, background: colors.background };
-  }
-}
-
 // Durum adı hep tam okunsun diye rozet küçülmez; yer darsa satırın diğer tarafı kısalır.
 export default function OrderStatusBadge({ statusId, colors }: OrderStatusBadgeProps) {
   const { t } = useTranslation();
   const { key, icon: Icon, tone } = getOrderStatusDisplay(statusId);
-  const toneColors = getToneColors(tone, colors);
+  const toneColors = getOrderStatusToneColors(tone, colors);
 
   return (
     <View style={[styles.badge, { backgroundColor: toneColors.background }]}>

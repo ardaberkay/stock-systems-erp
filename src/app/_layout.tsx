@@ -96,12 +96,22 @@ export default function RootLayout() {
               name="order-new"
               options={{ ...pushedScreenOptions, title: t('orders.newTitle') }}
             />
+            <Stack.Screen
+              name="report-detail/[id]"
+              options={{ ...pushedScreenOptions, title: t('reports.title') }}
+            />
+            <Stack.Screen
+              name="report-customer/[phone]"
+              options={{ ...pushedScreenOptions, title: t('reports.customers.history') }}
+            />
             {/* Native alttan açılan sheet'ler: iOS'ta UISheetPresentationController,
                 Android'de Material bottom sheet. Yükseklik içeriğe göre ayarlanır. */}
             <Stack.Screen name="period-select" options={fitToContentSheetOptions} />
             <Stack.Screen name="period-custom" options={fitToContentSheetOptions} />
             <Stack.Screen name="order-period" options={fitToContentSheetOptions} />
             <Stack.Screen name="order-period-custom" options={fitToContentSheetOptions} />
+            <Stack.Screen name="report-period" options={fitToContentSheetOptions} />
+            <Stack.Screen name="report-period-custom" options={fitToContentSheetOptions} />
             <Stack.Screen name="product-catalog" options={fitToContentSheetOptions} />
             <Stack.Screen
               name="product-images"

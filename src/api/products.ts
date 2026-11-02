@@ -34,12 +34,13 @@ export async function getProductsByIds(ids: number[], signal?: AbortSignal) {
   return data;
 }
 
-export function useProducts() {
+export function useProducts(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: productKeys.list(),
     queryFn: ({ signal }) => getProducts(signal),
     staleTime: PRODUCT_LIST_CACHE_MS,
     gcTime: PRODUCT_LIST_CACHE_MS,
+    enabled: options?.enabled,
   });
 }
 

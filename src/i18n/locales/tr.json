@@ -186,6 +186,94 @@
         "order": "Siparişler",
         "report": "Raporlar"
     },
+    "reports": {
+        "title": "Raporlar",
+        "empty": "Bu dönemde veri yok.",
+        "unknown": "Belirtilmemiş",
+        "orders": "{{value}} sipariş",
+        "units": "{{value}} adet",
+        "thousands": "{{value}}B",
+        "products": "{{value}} ürün",
+        "soldLine": "{{sold}} adet · {{revenue}}",
+        "sortSold": "Adet",
+        "sortRevenue": "Ciro",
+        "categories": {
+            "all": "Tümü",
+            "sales": "Satış",
+            "orders": "Sipariş",
+            "products": "Ürün",
+            "customers": "Müşteri"
+        },
+        "customers": {
+            "title": "En Çok Alışveriş Yapanlar",
+            "subtitle": "{{total}} müşteri · {{repeat}} tekrar eden",
+            "history": "Müşteri Siparişleri"
+        },
+        "productFallback": "Ürün #{{id}}",
+        "paymentFallback": "Ödeme #{{id}}",
+        "dayNames": {
+            "mon": "Pzt",
+            "tue": "Sal",
+            "wed": "Çar",
+            "thu": "Per",
+            "fri": "Cum",
+            "sat": "Cmt",
+            "sun": "Paz"
+        },
+        "profit": {
+            "title": "Tahmini Kâr",
+            "subtitle": "{{revenue}} ciro · {{shipping}} kargo",
+            "center": "Tahmini kâr",
+            "revenue": "Toplam ciro",
+            "cost": "Ürün maliyeti",
+            "shipping": "Alınan kargo",
+            "profit": "Kâr",
+            "missingCost": "{{value}} adet satışta maliyet bilgisi yok, kâr olduğundan yüksek görünür."
+        },
+        "orderStatus": {
+            "title": "Sipariş Durumları"
+        },
+        "returns": {
+            "title": "İade ve İptal",
+            "rate": "İade + iptal oranı",
+            "returned": "İade",
+            "cancelled": "İptal"
+        },
+        "topProducts": {
+            "title": "En Çok Satanlar"
+        },
+        "payment": {
+            "title": "Ödeme Dağılımı",
+            "center": "Sipariş"
+        },
+        "cities": {
+            "title": "Şehirler"
+        },
+        "weekdays": {
+            "title": "Haftanın Günleri"
+        },
+        "busyHours": {
+            "title": "Yoğun Saatler",
+            "subtitle": "En yoğun: {{slot}}",
+            "slotLabel": "{{day}} {{start}}–{{end}}",
+            "slot": "{{day}} {{start}}–{{end}}: {{value}} sipariş"
+        },
+        "stock": {
+            "title": "Stok",
+            "units": "Toplam adet",
+            "value": "Stok değeri",
+            "outOfStock": "Tükenen",
+            "lowStock": "Az kalan"
+        },
+        "unsold": {
+            "title": "Satılmayan Ürünler",
+            "subtitle": "Stokta var, bu dönemde satılmadı",
+            "products": "Ürün",
+            "units": "Stoktaki adet",
+            "stockValue": "Stok değeri: {{value}}",
+            "topWaiting": "En çok stok bekleyen: {{name}} · {{units}}"
+        }
+    },
     "settings": {
         "title": "Ayarlar",
         "appearance": "Görünüm",

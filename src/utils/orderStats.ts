@@ -160,13 +160,16 @@ function getTrendKeys(window: PeriodWindow): string[] {
 }
 
 export function getOrderProductIds(orders: Order[]): number[] {
-  return [...new Set(orders.flatMap((order) => order.items.map((item) => item.productId)))];
+  const ids = orders.flatMap((order) => order.items.map((item) => item.productId));
+
+  return [...new Set(ids.filter((id) => id !== null))];
 }
 
 export function getBestSellers(
   revenueOrders: Order[],
   window: PeriodWindow,
   limit: number,
+  sortBy: 'sold' | 'revenue' = 'sold',
 ): BestSeller[] {
   const trendKeys = getTrendKeys(window);
   const trendIndex = new Map(trendKeys.map((key, index) => [key, index]));
@@ -179,7 +182,8 @@ export function getBestSellers(
     const bucket = trendIndex.get(getBucketKey(order.orderDateTime, window.granularity));
 
     for (const item of order.items) {
-      if (NOT_SOLD_ITEM_STATUSES.includes(item.statusId)) {
+      // Erişimi kalkan ürünün numarası boş gelir; ayrı ürünler tek satırda birleşmesin
+      if (item.productId === null || NOT_SOLD_ITEM_STATUSES.includes(item.statusId)) {
         continue;
       }
 
@@ -216,6 +220,10 @@ export function getBestSellers(
         trend,
       };
     })
-    .sort((a, b) => b.sold - a.sold || b.revenue - a.revenue)
+    .sort((a, b) =>
+      sortBy === 'sold'
+        ? b.sold - a.sold || b.revenue - a.revenue
+        : b.revenue - a.revenue || b.sold - a.sold,
+    )
     .slice(0, limit);
 }

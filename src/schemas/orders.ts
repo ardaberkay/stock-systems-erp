@@ -8,7 +8,7 @@ const nullableNumber = z
 
 // API sayıları bazen string döndürür; coerce ile tek tipe çekilir.
 export const orderItemSchema = z.object({
-  productId: z.coerce.number(),
+  productId: nullableNumber,
   variantName: z.string().nullish(),
   qty: z.coerce.number(),
   price: z.coerce.number(),
@@ -19,12 +19,15 @@ export const orderSchema = z.object({
   id: z.coerce.number(),
   orderDateTime: z.string(),
   orderAmount: z.coerce.number(),
+  // Müşteriden alınan kargo; mağazanın kargo firmasına ödediği tutar API'de yok
+  orderShippingValue: nullableNumber.transform((value) => value ?? 0),
   orderStatusId: z.coerce.number(),
   orderCustomStatusId: nullableNumber,
   orderPaymentTypeId: nullableNumber,
   deliveryFirstName: z.string().nullish(),
   deliveryLastName: z.string().nullish(),
   deliveryPhone: z.string().nullish(),
+  deliveryCity: z.string().nullish(),
   shippingCargoCompanyId: nullableNumber,
   shippingPackageDeciValue: nullableNumber,
   // Panelde entegrasyon kodu ve barkod olarak görünür

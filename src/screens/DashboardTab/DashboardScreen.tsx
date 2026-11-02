@@ -9,21 +9,17 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { useLocale } from '@/hooks/useLocale';
 import { usePeriodLabel } from '@/hooks/usePeriodLabel';
 import { useTabBarInset } from '@/hooks/useTabBarInset';
+import { useTabPressScrollToTop } from '@/hooks/useTabPressScrollToTop';
 import { getErrorMessageKey } from '@/lib/apiError';
 import { useDashboardFilterStore } from '@/stores/dashboardFilterStore';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, FONT_SIZE, typography } from '@/theme/typography';
 import { useNavigation } from 'expo-router';
-import {
-  DrawerActions,
-  type NavigationProp,
-  type NavigationState,
-  type ParamListBase,
-} from 'expo-router/react-navigation';
+import { DrawerActions } from 'expo-router/react-navigation';
 import Bell from 'lucide-react-native/icons/bell';
 import Menu from 'lucide-react-native/icons/menu';
-import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
+import { useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Pressable,
@@ -35,21 +31,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// expo-router sekme olayının tipini dışa açmıyor; yalnızca dinlenen olay tanımlanır
-type TabsNavigation = NavigationProp<
-  ParamListBase,
-  string,
-  undefined,
-  NavigationState,
-  object,
-  { tabPress: { data: undefined } }
->;
-
 const SKELETON_CARD_KEYS = ['first', 'second', 'third'];
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
-  const navigation = useNavigation<TabsNavigation>();
+  const navigation = useNavigation();
   const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
@@ -72,17 +58,7 @@ export default function DashboardScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const bottomSpace = useTabBarInset() + SPACING.xl;
 
-  // Appbar sabit olunca iOS'ta sekmenin kendi başa dönme davranışı kaydırma alanını bulamaz.
-  // Başka sekmeden gelince konum korunur, yalnızca açık sekmeye tekrar basınca başa döner.
-  useEffect(
-    () =>
-      navigation.addListener('tabPress', () => {
-        if (navigation.isFocused()) {
-          scrollRef.current?.scrollTo({ y: 0, animated: true });
-        }
-      }),
-    [navigation],
-  );
+  useTabPressScrollToTop(scrollRef);
 
   return (
     // SafeAreaView boşluğu sonradan uygular ve iOS sekmelerinin otomatik boşluğuyla çakışır;
