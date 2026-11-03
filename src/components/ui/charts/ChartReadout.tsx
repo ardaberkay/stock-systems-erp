@@ -17,15 +17,26 @@ export type ChartReadoutItem = {
 type ChartReadoutProps = {
   label: string;
   items: ChartReadoutItem[];
+  // Görünmez kopya: grafik, kutunun en geniş halinin yüksekliği kadar üstte yer ayırsın diye
+  hidden?: boolean;
+  onHeightChange?: (height: number) => void;
 };
 
 // Grafikte parmağın altındaki noktanın bilgisi; her değer kendi serisinin rengiyle görünür.
-export default function ChartReadout({ label, items }: ChartReadoutProps) {
+export default function ChartReadout({ label, items, hidden, onHeightChange }: ChartReadoutProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
-    <View pointerEvents="none" style={styles.container}>
+    <View
+      pointerEvents="none"
+      style={[styles.container, hidden && styles.hidden]}
+      onLayout={
+        onHeightChange
+          ? (event) => onHeightChange(event.nativeEvent.layout.height)
+          : undefined
+      }
+    >
       <Text style={styles.label}>{label}</Text>
 
       {items.map(({ key, icon: Icon, value, color, background }) => (
@@ -54,6 +65,9 @@ function createStyles(colors: AppColors) {
       justifyContent: 'center',
       gap: SPACING.xs,
       paddingHorizontal: SPACING.xl,
+    },
+    hidden: {
+      opacity: 0,
     },
     label: {
       ...typography.caption,

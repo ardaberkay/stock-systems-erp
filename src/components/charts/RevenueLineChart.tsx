@@ -1,7 +1,7 @@
 import ChartReadout, { type ChartReadoutItem } from '@/components/ui/charts/ChartReadout';
-import ChartTimeAxis from '@/components/ui/charts/ChartTimeAxis';
+import ChartTimeAxis, { type ChartTimeAxisLabel } from '@/components/ui/charts/ChartTimeAxis';
 import type { AppColors } from '@/theme/colors';
-import { SPACING } from '@/theme/spacing';
+import { MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import { formatDayKey, formatMoney, formatNumber } from '@/utils/formatter';
 import type { ChartPoint } from '@/utils/orderStats';
@@ -32,13 +32,33 @@ type RevenueLineChartProps = {
   locale: string;
 };
 
+type ChartRow = {
+  time: string;
+  revenue: number | null;
+  previousRevenue: number | null;
+  sold: number | null;
+  orders: number | null;
+};
+
+type ReadoutValues = Omit<ChartRow, 'time'>;
+
+const SERIES_KEYS = ['revenue', 'previousRevenue', 'sold', 'orders'] as const;
+
 // Yükleme iskeleti için boş seri
 const LOADING_POINTS = [{ time: '' }, { time: ' ' }];
 
-// En yüksek değer grafiğin tepesine yapışmasın
+const CHART_ASPECT_RATIO = 1.5;
+// panelui `compact` modunda çizim alanının üstünde ve altında bıraktığı toplam pay
+const CHART_VERTICAL_INSET = 4;
+const CHART_ANIMATION_MS = 650;
+// Okuma kutusu henüz ölçülmeden de en yüksek değer grafiğin tepesine yapışmasın
 const Y_DOMAIN_HEADROOM = 1.1;
-const HOUR_AXIS_TICKS = 5;
+// 24 nokta eşit bölünmez; 18 yerine 17 düşmesin diye saatler elle verilir
+const HOUR_AXIS_INDICES = [0, 6, 12, 18, 23];
 const DAY_AXIS_TICKS = 4;
+const EDGE_START_TIME = 'edge-start';
+const EDGE_END_TIME = 'edge-end';
+const MAX_EDGE_STEPS = 10;
 
 // Çizgileri kendi en yüksek değerine göre ölçekler: sipariş ciroya göre küçük olsa da hareketi
 // görünür. Yüksekliği yalnızca o çizgi içinde anlamlıdır, gerçek değerler dokununca okunur.
@@ -50,15 +70,141 @@ function getMax(values: (number | null)[]) {
   return Math.max(0, ...values.map((value) => value ?? 0));
 }
 
-// Eksene eşit aralıklı noktalar seçilir; saatlikte 00, 06, 12, 18, 24'e denk gelir.
-function getAxisTimes(points: ChartPoint[], tickCount: number) {
-  if (points.length === 0) {
+// Günlükte eksene eşit aralıklı günler seçilir
+function getAxisIndices(pointCount: number, granularity: ChartGranularity) {
+  if (pointCount === 0) {
     return [];
   }
 
-  return Array.from({ length: tickCount }, (_, index) =>
-    points[Math.round((index * (points.length - 1)) / (tickCount - 1))].time,
-  );
+  if (granularity === 'hour') {
+    return HOUR_AXIS_INDICES.filter((index) => index < pointCount);
+  }
+
+  const tickCount = Math.min(DAY_AXIS_TICKS, pointCount);
+
+  return tickCount === 1
+    ? [0]
+    : Array.from({ length: tickCount }, (_, index) =>
+        Math.round((index * (pointCount - 1)) / (tickCount - 1)),
+      );
+}
+
+// İlk ve son nokta kenara yapışırsa ne parmakla seçilir ne de altındaki tarih ortalanır.
+// İki uca uzantı eklenir; uzantıya basmak en yakın gerçek noktayı gösterir. Adım sayısı,
+// uçtaki yazı ortalanana ve dokunma alanı yetene kadar artar.
+function getEdgeSteps(pointCount: number, chartWidth: number, edgeLabelWidth: number) {
+  if (pointCount < 2 || chartWidth <= 0) {
+    return 0;
+  }
+
+  const labelInset = edgeLabelWidth / 2 + SPACING.sm;
+
+  for (let steps = 0; steps < MAX_EDGE_STEPS; steps += 1) {
+    const step = chartWidth / (pointCount - 1 + steps * 2);
+    const inset = step * steps;
+
+    if (inset >= labelInset && inset + step / 2 >= MIN_TOUCH_SIZE / 2) {
+      return steps;
+    }
+  }
+
+  return MAX_EDGE_STEPS;
+}
+
+// Uzantı düz değil, uçtaki aralığın eğimiyle sürer; çizgi kenarda kırılmadan biter.
+// Gerçek veri değildir: eğim yarıya indirilir ki son günün değişimini abartıp
+// "yükseliş sürüyor" izlenimi vermesin; sıfırın altına inmez, en yüksek değeri aşmaz.
+const EDGE_SLOPE_FACTOR = 0.5;
+
+function extrapolate(edge: number | null, inner: number | null, distance: number, top: number) {
+  if (edge === null) {
+    return null;
+  }
+
+  if (inner === null) {
+    return edge;
+  }
+
+  const slope = (edge - inner) * EDGE_SLOPE_FACTOR;
+
+  return Math.min(Math.max(edge + slope * distance, 0), top);
+}
+
+function getEdgeRows(edge: ChartRow, inner: ChartRow, steps: number, top: number, prefix: string) {
+  return Array.from({ length: steps }, (_, index) => {
+    const row: ChartRow = { ...edge, time: `${prefix}-${index}` };
+
+    for (const key of SERIES_KEYS) {
+      row[key] = extrapolate(edge[key], inner[key], index + 1, top);
+    }
+
+    return row;
+  });
+}
+
+function extendRows(rows: ChartRow[], steps: number, top: number) {
+  const first = rows[0];
+  const second = rows[1];
+  const last = rows[rows.length - 1];
+  const beforeLast = rows[rows.length - 2];
+
+  if (steps === 0 || !first || !second || !last || !beforeLast) {
+    return rows;
+  }
+
+  return [
+    // Soldaki uzantı kenardan içeri doğru sıralanır
+    ...getEdgeRows(first, second, steps, top, EDGE_START_TIME).reverse(),
+    ...rows,
+    ...getEdgeRows(last, beforeLast, steps, top, EDGE_END_TIME),
+  ];
+}
+
+function getReadoutItems(
+  values: ReadoutValues,
+  showPrevious: boolean,
+  colors: AppColors,
+  locale: string,
+): ChartReadoutItem[] {
+  const items: ChartReadoutItem[] = [];
+
+  if (values.revenue !== null) {
+    items.push(
+      {
+        key: 'revenue',
+        icon: HandCoins,
+        value: formatMoney(values.revenue, locale),
+        color: colors.orange,
+        background: colors.orangeLight,
+      },
+      {
+        key: 'sold',
+        icon: Tag,
+        value: formatNumber(values.sold ?? 0, locale),
+        color: colors.purple,
+        background: colors.purpleLight,
+      },
+      {
+        key: 'orders',
+        icon: ShoppingBag,
+        value: formatNumber(values.orders ?? 0, locale),
+        color: colors.green,
+        background: colors.greenLight,
+      },
+    );
+  }
+
+  if (showPrevious && values.previousRevenue !== null) {
+    items.push({
+      key: 'previous',
+      icon: CalendarClock,
+      value: formatMoney(values.previousRevenue, locale),
+      color: colors.textSecondary,
+      background: colors.background,
+    });
+  }
+
+  return items;
 }
 
 export default function RevenueLineChart({
@@ -74,6 +220,9 @@ export default function RevenueLineChart({
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const [activeIndex, setActiveIndex] = useState(-1);
+  // Uçtaki yazı ve okuma kutusu ölçülene kadar 0; ölçülünce grafik onlara göre yerleşir
+  const [edgeLabelWidth, setEdgeLabelWidth] = useState(0);
+  const [readoutHeight, setReadoutHeight] = useState(0);
 
   // Yardımcı çizgiler açıkken gri çizgi gizlenir; aynı alanda dört çizgi okunmaz
   const showPrevious =
@@ -81,6 +230,29 @@ export default function RevenueLineChart({
     !showSold &&
     !showOrders &&
     points.some((point) => point.previousRevenue !== null);
+
+  const edgeOffset = getEdgeSteps(points.length, width, edgeLabelWidth);
+  const chartPointCount = points.length + edgeOffset * 2;
+
+  const formatLabel = (time: string) =>
+    granularity === 'day' ? formatDayKey(time, locale) : time;
+
+  // Okuma kutusunun en geniş hali: her değerin dönemdeki en büyüğü
+  const widestReadout = useMemo(
+    () =>
+      getReadoutItems(
+        {
+          revenue: getMax(points.map((point) => point.revenue)),
+          previousRevenue: getMax(points.map((point) => point.previousRevenue)),
+          sold: getMax(points.map((point) => point.sold)),
+          orders: getMax(points.map((point) => point.orders)),
+        },
+        showPrevious,
+        colors,
+        locale,
+      ),
+    [points, showPrevious, colors, locale],
+  );
 
   const { data, yDomain } = useMemo(() => {
     const revenueTop = Math.max(
@@ -90,65 +262,48 @@ export default function RevenueLineChart({
     );
     const maxSold = getMax(points.map((point) => point.sold));
     const maxOrders = getMax(points.map((point) => point.orders));
+    const rows: ChartRow[] = points.map((point) => ({
+      time: point.time,
+      revenue: point.revenue,
+      previousRevenue: point.previousRevenue,
+      sold: scaleToRevenue(point.sold, maxSold, revenueTop),
+      orders: scaleToRevenue(point.orders, maxOrders, revenueTop),
+    }));
+
+    // En yüksek nokta, basılı tutunca açılan kutunun altında kalsın: üstte kutu kadar yer ayrılır
+    const plotHeight = width / CHART_ASPECT_RATIO - CHART_VERTICAL_INSET;
+    const reserved = readoutHeight > 0 ? readoutHeight + SPACING.xs * 2 : 0;
+    const headroom =
+      plotHeight > reserved
+        ? Math.max(Y_DOMAIN_HEADROOM, plotHeight / (plotHeight - reserved))
+        : Y_DOMAIN_HEADROOM;
 
     return {
-      yDomain: [0, revenueTop * Y_DOMAIN_HEADROOM] as [number, number],
-      data: points.map((point) => ({
-        time: point.time,
-        revenue: point.revenue,
-        previousRevenue: point.previousRevenue,
-        sold: scaleToRevenue(point.sold, maxSold, revenueTop),
-        orders: scaleToRevenue(point.orders, maxOrders, revenueTop),
-      })),
+      yDomain: [0, revenueTop * headroom] as [number, number],
+      data: extendRows(rows, edgeOffset, revenueTop),
     };
-  }, [points, showPrevious]);
+  }, [points, showPrevious, edgeOffset, width, readoutHeight]);
 
-  const axisLabels = useMemo(
+  const axisLabels = useMemo<ChartTimeAxisLabel[]>(
     () =>
-      getAxisTimes(points, granularity === 'day' ? DAY_AXIS_TICKS : HOUR_AXIS_TICKS).map((time) =>
-        granularity === 'day' ? formatDayKey(time, locale) : time.slice(0, 2),
-      ),
-    [points, granularity, locale],
+      getAxisIndices(points.length, granularity).map((index) => ({
+        text:
+          granularity === 'day'
+            ? formatDayKey(points[index].time, locale)
+            : points[index].time.slice(0, 2),
+        ratio: chartPointCount > 1 ? (index + edgeOffset) / (chartPointCount - 1) : 0,
+      })),
+    [points, granularity, locale, edgeOffset, chartPointCount],
   );
 
-  const activePoint = points[activeIndex];
-  const readoutItems: ChartReadoutItem[] = [];
-
-  if (activePoint?.revenue !== null && activePoint?.revenue !== undefined) {
-    readoutItems.push(
-      {
-        key: 'revenue',
-        icon: HandCoins,
-        value: formatMoney(activePoint.revenue, locale),
-        color: colors.orange,
-        background: colors.orangeLight,
-      },
-      {
-        key: 'sold',
-        icon: Tag,
-        value: formatNumber(activePoint.sold ?? 0, locale),
-        color: colors.purple,
-        background: colors.purpleLight,
-      },
-      {
-        key: 'orders',
-        icon: ShoppingBag,
-        value: formatNumber(activePoint.orders ?? 0, locale),
-        color: colors.green,
-        background: colors.greenLight,
-      },
+  // Uzantıya basılınca grafiğin verdiği sıra gerçek noktaya çevrilir
+  const handleActiveIndexChange = (index: number) =>
+    setActiveIndex(
+      index < 0 ? -1 : Math.min(Math.max(index - edgeOffset, 0), points.length - 1),
     );
-  }
 
-  if (showPrevious && activePoint && activePoint.previousRevenue !== null) {
-    readoutItems.push({
-      key: 'previous',
-      icon: CalendarClock,
-      value: formatMoney(activePoint.previousRevenue, locale),
-      color: colors.textSecondary,
-      background: colors.background,
-    });
-  }
+  const activePoint = points[activeIndex];
+  const lastPoint = points[points.length - 1];
 
   return (
     <View style={[styles.chartBleed, { width }]}>
@@ -157,11 +312,11 @@ export default function RevenueLineChart({
         status={isLoading ? 'loading' : 'ready'}
         xDataKey="time"
         yDomain={yDomain}
-        aspectRatio={1.5}
+        aspectRatio={CHART_ASPECT_RATIO}
         compact
-        animationDuration={650}
-        domainDuration={650}
-        onActiveIndexChange={setActiveIndex}
+        animationDuration={CHART_ANIMATION_MS}
+        domainDuration={CHART_ANIMATION_MS}
+        onActiveIndexChange={handleActiveIndexChange}
       >
         <LineChart.Skeleton color={colors.chartGrid} />
 
@@ -204,14 +359,29 @@ export default function RevenueLineChart({
         <LineChart.Tooltip showLabel={false} />
       </LineChart>
 
-      {activePoint && (
+      {lastPoint && (
         <ChartReadout
-          label={granularity === 'day' ? formatDayKey(activePoint.time, locale) : activePoint.time}
-          items={readoutItems}
+          label={formatLabel(lastPoint.time)}
+          items={widestReadout}
+          hidden
+          onHeightChange={setReadoutHeight}
         />
       )}
 
-      <ChartTimeAxis labels={axisLabels} colors={colors} />
+      {activePoint && (
+        <ChartReadout
+          label={formatLabel(activePoint.time)}
+          items={getReadoutItems(activePoint, showPrevious, colors, locale)}
+        />
+      )}
+
+      <ChartTimeAxis
+        labels={axisLabels}
+        colors={colors}
+        visible={!isLoading}
+        fadeDuration={CHART_ANIMATION_MS}
+        onEdgeWidthChange={setEdgeLabelWidth}
+      />
 
       {/* Yer her zaman ayrılır; filtre değişince alttaki içerik yukarı kaymaz */}
       <View style={styles.legend}>

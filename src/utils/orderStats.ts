@@ -33,8 +33,8 @@ export type RevenueChange =
   | { kind: 'percent'; ratio: number }
   | { kind: 'amount'; amount: number };
 
-// Eksen 24:00'a kadar uzanır; böylece etiketler 00, 06, 12, 18, 24'e tam oturur.
-const HOURS_ON_AXIS = 25;
+// Her nokta o saatin toplamıdır (23 = 23:00–23:59); 24:00'ın verisi olmadığı için eksende yoktur.
+const HOURS_ON_AXIS = 24;
 
 // Kuruş altı kayan nokta artıkları ekrana yansımasın
 function roundMoney(value: number): number {
@@ -120,7 +120,6 @@ export function getChartPoints(
   const points = new Map<string, ChartPoint>(
     keys.map((time, index) => {
       const isComingHour = window.granularity === 'hour' && index > window.lastHour;
-      const isAxisEnd = window.granularity === 'hour' && index === HOURS_ON_AXIS - 1;
       const value = isComingHour ? null : 0;
 
       return [
@@ -130,8 +129,9 @@ export function getChartPoints(
           revenue: value,
           sold: value,
           orders: value,
-          previousRevenue:
-            previousRevenues && !isAxisEnd ? (previousRevenues.get(previousKeys[index]) ?? 0) : null,
+          previousRevenue: previousRevenues
+            ? (previousRevenues.get(previousKeys[index]) ?? 0)
+            : null,
         },
       ];
     }),
