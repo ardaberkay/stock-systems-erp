@@ -207,6 +207,7 @@
         "customers": {
             "title": "En Çok Alışveriş Yapanlar",
             "subtitle": "{{total}} müşteri · {{repeat}} tekrar eden",
+            "sortHint": "Sipariş adedine göre sıralı",
             "history": "Müşteri Siparişleri"
         },
         "productFallback": "Ürün #{{id}}",
@@ -220,6 +221,15 @@
             "sat": "Cmt",
             "sun": "Paz"
         },
+        "dayFullNames": {
+            "mon": "Pazartesi",
+            "tue": "Salı",
+            "wed": "Çarşamba",
+            "thu": "Perşembe",
+            "fri": "Cuma",
+            "sat": "Cumartesi",
+            "sun": "Pazar"
+        },
         "profit": {
             "title": "Tahmini Kâr",
             "subtitle": "{{revenue}} ciro · {{shipping}} kargo",
@@ -228,7 +238,7 @@
             "cost": "Ürün maliyeti",
             "shipping": "Alınan kargo",
             "profit": "Kâr",
-            "missingCost": "{{value}} adet satışta maliyet bilgisi yok, kâr olduğundan yüksek görünür."
+            "missingCost": "{{value}} adet üründe maliyet bilgisi yok."
         },
         "orderStatus": {
             "title": "Sipariş Durumları"
@@ -244,7 +254,7 @@
         },
         "payment": {
             "title": "Ödeme Dağılımı",
-            "center": "Sipariş"
+            "center": "Toplam"
         },
         "cities": {
             "title": "Şehirler"
@@ -260,14 +270,31 @@
         },
         "stock": {
             "title": "Stok",
+            "subtitle": "{{products}} · güncel stok",
             "units": "Toplam adet",
             "value": "Stok değeri",
             "outOfStock": "Tükenen",
-            "lowStock": "Az kalan"
+            "lowStock": "Az kalan",
+            "healthy": "Yeterli",
+            "emptyGroup": "Bu grupta ürün yok."
         },
+        "brands": {
+            "title": "Marka Payı",
+            "noBrand": "Markasız"
+        },
+        "partners": {
+            "title": "Satış Ortakları",
+            "subtitle": "{{value}} satış ortağı",
+            "fallback": "Ortak #{{id}}",
+            "orders": "Ortaklı sipariş",
+            "revenue": "Ortak cirosu",
+            "share": "Toplam cirodaki payı: {{value}}",
+            "top": "En çok satan: {{name}} · {{amount}}"
+        },
+        "other": "Diğer",
         "unsold": {
             "title": "Satılmayan Ürünler",
-            "subtitle": "Stokta var, bu dönemde satılmadı",
+            "subtitle": "Bugün stokta, seçili dönemde hiç satılmadı",
             "products": "Ürün",
             "units": "Stoktaki adet",
             "stockValue": "Stok değeri: {{value}}",

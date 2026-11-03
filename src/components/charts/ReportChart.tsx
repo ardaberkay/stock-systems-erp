@@ -4,9 +4,14 @@ import ReportHeatChart from '@/components/charts/ReportHeatChart';
 import ReportKpiGrid from '@/components/charts/ReportKpiGrid';
 import ReportPieChart from '@/components/charts/ReportPieChart';
 import ReportPolarChart from '@/components/charts/ReportPolarChart';
+import ReportTreemapChart from '@/components/charts/ReportTreemapChart';
 import ReportTrendChart from '@/components/charts/ReportTrendChart';
 import {
+  REPORT_BRAND_TILE_LIMIT,
   REPORT_COLUMN_HEIGHT,
+  REPORT_DETAIL_BRAND_TILE_LIMIT,
+  REPORT_DETAIL_TREEMAP_HEIGHT,
+  REPORT_TREEMAP_HEIGHT,
   REPORT_DETAIL_COLUMN_HEIGHT,
   REPORT_DETAIL_DIAL_SIZE,
   REPORT_DETAIL_PODIUM_HEIGHT,
@@ -28,6 +33,8 @@ type ReportChartProps = {
   colors: AppColors;
   // Kartta grafik yalnızca görseldir: kaydırırken yanlışlıkla seçim olmaz. Detayda büyür.
   interactive: boolean;
+  // Dokunulabilir çubuk grafikte satır seçimi; yalnızca detay verir
+  onSelectRow?: (key: string) => void;
 };
 
 function openCustomer(entry: LeaderboardEntry) {
@@ -37,11 +44,19 @@ function openCustomer(entry: LeaderboardEntry) {
   });
 }
 
-export default function ReportChart({ content, grid, colors, interactive }: ReportChartProps) {
+export default function ReportChart({
+  content,
+  grid,
+  colors,
+  interactive,
+  onSelectRow,
+}: ReportChartProps) {
   const {
     kind,
     chartRows,
     cardRowLimit,
+    selectedKey,
+    animateChart,
     center,
     kpis,
     footers,
@@ -56,7 +71,15 @@ export default function ReportChart({ content, grid, colors, interactive }: Repo
 
   return (
     <View pointerEvents={interactive ? 'auto' : 'none'} style={styles.container}>
-      {kind === 'bar' && <ReportBarChart rows={rows} colors={colors} />}
+      {kind === 'bar' && (
+        <ReportBarChart
+          rows={rows}
+          colors={colors}
+          animated={animateChart}
+          selectedKey={selectedKey}
+          onSelectRow={onSelectRow}
+        />
+      )}
       {kind === 'column' && (
         <ReportColumnChart
           rows={rows}
@@ -70,6 +93,15 @@ export default function ReportChart({ content, grid, colors, interactive }: Repo
       {kind === 'polar' && (
         <ReportPolarChart rows={rows} size={dialSize} showValues={interactive} />
       )}
+      {kind === 'treemap' && (
+        <ReportTreemapChart
+          rows={rows}
+          height={interactive ? REPORT_DETAIL_TREEMAP_HEIGHT : REPORT_TREEMAP_HEIGHT}
+          maxTiles={interactive ? REPORT_DETAIL_BRAND_TILE_LIMIT : REPORT_BRAND_TILE_LIMIT}
+          colors={colors}
+          interactive={interactive}
+        />
+      )}
       {kind === 'heat' && (
         <ReportHeatChart
           grid={grid}
@@ -78,7 +110,7 @@ export default function ReportChart({ content, grid, colors, interactive }: Repo
           interactive={interactive}
         />
       )}
-      {kind === 'kpi' && <ReportKpiGrid items={kpis} footers={footers} />}
+      {kpis.length > 0 && <ReportKpiGrid items={kpis} footers={footers} />}
       {kind === 'leaderboard' && (
         <Leaderboard
           data={leaders}

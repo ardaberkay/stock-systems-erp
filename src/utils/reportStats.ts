@@ -31,13 +31,21 @@ export type ReturnStats = {
   rate: number;
   // Siparişin oluşturulduğu güne göre; API iadenin yapıldığı tarihi vermez
   days: string[];
-  dailyCounts: number[];
+  // O gün açılan siparişlerin iade veya iptal olan payı; siparişsiz gün 0'dır
+  dailyRate: number[];
+  // Basılı tutunca oranın altında gösterilir
+  dailyReturned: number[];
+  dailyCancelled: number[];
   orders: Order[];
 };
 
 export type PaymentShare = { paymentTypeId: number | null; count: number; amount: number };
 
 export type CityCount = { city: string | null; count: number };
+
+export type BrandShare = { brand: string | null; units: number };
+
+export type PartnerSales = { affiliateAccountId: number; count: number; amount: number };
 
 export type CustomerRank = {
   phone: string;
@@ -54,7 +62,7 @@ export type ProfitStats = {
   shipping: number;
   cost: number;
   profit: number;
-  // Maliyeti olmayan veya ürünü bilinmeyen satış adedi; kâr bunlar kadar yüksek görünür
+  // Katalogdaki ürünlerden maliyeti girilmemiş satış adedi; kâr bunlar kadar yüksek görünür
   missingCostCount: number;
 };
 
@@ -64,6 +72,7 @@ export type StockStats = {
   stockValue: number;
   outOfStock: Product[];
   lowStock: Product[];
+  healthy: Product[];
 };
 
 function roundMoney(value: number): number {
@@ -94,7 +103,9 @@ export function getStatusCounts(orders: Order[]): StatusCount[] {
 export function getReturnStats(orders: Order[], range: DayRange): ReturnStats {
   const days = listDays(range.startDay, range.endDay);
   const dayIndex = new Map(days.map((day, index) => [day, index]));
-  const dailyCounts = days.map(() => 0);
+  const dailyOrders = days.map(() => 0);
+  const dailyReturned = days.map(() => 0);
+  const dailyCancelled = days.map(() => 0);
   const returnOrders: Order[] = [];
   let returned = 0;
   let cancelled = 0;
@@ -102,6 +113,11 @@ export function getReturnStats(orders: Order[], range: DayRange): ReturnStats {
   for (const order of orders) {
     const isReturned = RETURNED_STATUSES.includes(order.orderStatusId);
     const isCancelled = CANCELLED_STATUSES.includes(order.orderStatusId);
+    const index = dayIndex.get(order.orderDateTime.slice(0, 10));
+
+    if (index !== undefined) {
+      dailyOrders[index] += 1;
+    }
 
     if (!isReturned && !isCancelled) {
       continue;
@@ -111,9 +127,9 @@ export function getReturnStats(orders: Order[], range: DayRange): ReturnStats {
     cancelled += isCancelled ? 1 : 0;
     returnOrders.push(order);
 
-    const index = dayIndex.get(order.orderDateTime.slice(0, 10));
-
     if (index !== undefined) {
+      const dailyCounts = isReturned ? dailyReturned : dailyCancelled;
+
       dailyCounts[index] += 1;
     }
   }
@@ -123,7 +139,13 @@ export function getReturnStats(orders: Order[], range: DayRange): ReturnStats {
     cancelled,
     rate: orders.length > 0 ? (returned + cancelled) / orders.length : 0,
     days,
-    dailyCounts,
+    dailyRate: days.map((_, index) =>
+      dailyOrders[index] > 0
+        ? (dailyReturned[index] + dailyCancelled[index]) / dailyOrders[index]
+        : 0,
+    ),
+    dailyReturned,
+    dailyCancelled,
     orders: returnOrders.sort((a, b) => b.orderDateTime.localeCompare(a.orderDateTime)),
   };
 }
@@ -155,6 +177,47 @@ export function getCityCounts(revenueOrders: Order[]): CityCount[] {
   return [...counts.entries()]
     .map(([city, count]) => ({ city, count }))
     .sort((a, b) => b.count - a.count);
+}
+
+// Marka siparişte yazmaz, ürün kataloğundan bulunur; numarası boş (silinmiş) ürün sayılmaz.
+export function getBrandShares(revenueOrders: Order[], products: Product[]): BrandShare[] {
+  const brands = new Map(products.map((product) => [product.id, product.brandName?.trim() || null]));
+  const units = new Map<string | null, number>();
+
+  for (const item of getSoldItems(revenueOrders)) {
+    if (item.productId === null || !brands.has(item.productId)) {
+      continue;
+    }
+
+    const brand = brands.get(item.productId) ?? null;
+
+    units.set(brand, (units.get(brand) ?? 0) + item.qty);
+  }
+
+  return [...units.entries()]
+    .map(([brand, count]) => ({ brand, units: count }))
+    .sort((a, b) => b.units - a.units);
+}
+
+// Ciro siparişin tutarıdır; komisyon tutarı test verisinde hep 0 geldiği için henüz hesaplanmaz.
+export function getPartnerSales(revenueOrders: Order[]): PartnerSales[] {
+  const partners = new Map<number, PartnerSales>();
+
+  for (const order of revenueOrders) {
+    const affiliateAccountId = order.affiliateAccountId;
+
+    if (affiliateAccountId === null) {
+      continue;
+    }
+
+    const partner = partners.get(affiliateAccountId) ?? { affiliateAccountId, count: 0, amount: 0 };
+
+    partner.count += 1;
+    partner.amount = roundMoney(partner.amount + order.orderAmount);
+    partners.set(affiliateAccountId, partner);
+  }
+
+  return [...partners.values()].sort((a, b) => b.amount - a.amount);
 }
 
 // API'de müşteri servisi yok; müşteri telefon numarasından çıkarılır, sıralama dönemle sınırlıdır.
@@ -250,7 +313,12 @@ export function getProfitStats(revenueOrders: Order[], products: Product[]): Pro
   let missingCostCount = 0;
 
   for (const item of getSoldItems(revenueOrders)) {
-    const unitCost = item.productId === null ? 0 : (costs.get(item.productId) ?? 0);
+    // Numarası boş kalem silinmiş üründür; maliyeti hiçbir zaman girilemez, uyarıya sayılmaz
+    if (item.productId === null) {
+      continue;
+    }
+
+    const unitCost = costs.get(item.productId) ?? 0;
 
     if (unitCost > 0) {
       cost += unitCost * item.qty;
@@ -271,7 +339,8 @@ export function getProfitStats(revenueOrders: Order[], products: Product[]): Pro
 
 export function getStockStats(products: Product[]): StockStats {
   return {
-    totalUnits: products.reduce((sum, product) => sum + product.stock, 0),
+    // Eksi stok toplamı düşürmesin; tükenen ürün zaten ayrı sayılır
+    totalUnits: products.reduce((sum, product) => sum + Math.max(product.stock, 0), 0),
     stockValue: roundMoney(
       products.reduce((sum, product) => sum + Math.max(product.stock, 0) * product.price, 0),
     ),
@@ -279,10 +348,13 @@ export function getStockStats(products: Product[]): StockStats {
     lowStock: products
       .filter((product) => product.stock > 0 && product.stock <= LOW_STOCK_LIMIT)
       .sort((a, b) => a.stock - b.stock),
+    healthy: products
+      .filter((product) => product.stock > LOW_STOCK_LIMIT)
+      .sort((a, b) => a.stock - b.stock),
   };
 }
 
-// Numarası boş kalemler hangi üründen olduğunu söylemez; o ürünler satılmamış görünebilir.
+// Numarası boş kalem silinmiş üründür; silinen ürün katalogda olmadığı için listeyi etkilemez.
 export function getUnsoldProducts(revenueOrders: Order[], products: Product[]): Product[] {
   const soldIds = new Set(getSoldItems(revenueOrders).map((item) => item.productId));
 

@@ -46,7 +46,7 @@ export default function ReportHeatChart({
       gap={SPACING.xxs}
       cornerRadius={RADIUS.sm}
       color={colors.orange}
-      emptyColor={colors.background}
+      emptyColor={colors.chartGrid}
     >
       <HeatmapChart.XAxis labels={hourLabels} />
       <HeatmapChart.YAxis labels={dayLabels} tickFilter="all" width={DAY_AXIS_WIDTH} />

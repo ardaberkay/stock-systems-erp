@@ -1,4 +1,5 @@
 import ProductCard from '@/components/cards/ProductCard';
+import ReportCustomerCard from '@/components/cards/ReportCustomerCard';
 import ReportListRow from '@/components/cards/ReportListRow';
 import ReportOrderCard from '@/components/cards/ReportOrderCard';
 import TopSellingCard from '@/components/cards/TopSellingCard';
@@ -7,7 +8,13 @@ import Skeleton from '@/components/skeleton/Skeleton';
 import FilterChip from '@/components/ui/FilterChip';
 import PeriodPill from '@/components/ui/PeriodPill';
 import StateMessage from '@/components/ui/StateMessage';
-import { isReportId, type ReportId } from '@/constants/reports';
+import {
+  isReportId,
+  REPORT_SNAPSHOT_IDS,
+  REPORT_STOCK_GROUPS,
+  type ReportId,
+  type ReportStockGroup,
+} from '@/constants/reports';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useLocale } from '@/hooks/useLocale';
 import { useOrderLookups } from '@/hooks/useOrderLookups';
@@ -60,6 +67,7 @@ function ReportDetail({ id }: { id: ReportId }) {
     productsById,
     paymentNames,
     isPaymentNamesLoading,
+    partnerNames,
     isLoading,
     error,
     isRefreshing,
@@ -67,6 +75,7 @@ function ReportDetail({ id }: { id: ReportId }) {
   } = useReportData(selection);
   const locale = useLocale();
   const [productSort, setProductSort] = useState<ReportProductSort>('sold');
+  const [stockGroup, setStockGroup] = useState<ReportStockGroup>('out');
   const [expandedId, setExpandedId] = useState<number | null>(null);
   // Kargo ve ödeme adları yalnızca sipariş kartı çizilen raporda istenir
   const reportOrders = useMemo(
@@ -76,9 +85,19 @@ function ReportDetail({ id }: { id: ReportId }) {
   const lookups = useOrderLookups(reportOrders);
   const content = useReportContent(
     id,
-    stats ? { stats, productsById, paymentNames, isPaymentNamesLoading } : null,
-    productSort,
+    stats
+      ? { stats, productsById, paymentNames, isPaymentNamesLoading, partnerNames }
+      : null,
+    { productSort, stockGroup: id === 'stock' ? stockGroup : undefined },
   );
+
+  const selectStockGroup = (key: string) => {
+    const group = REPORT_STOCK_GROUPS.find((item) => item === key);
+
+    if (group) {
+      setStockGroup(group);
+    }
+  };
 
   const toggleProduct = useCallback((productId: number) => {
     setExpandedId((current) => (current === productId ? null : productId));
@@ -126,12 +145,18 @@ function ReportDetail({ id }: { id: ReportId }) {
         );
       }
 
+      if (item.customer) {
+        return (
+          <View style={styles.listCard}>
+            <ReportCustomerCard row={item} colors={colors} onPress={openCustomer} />
+          </View>
+        );
+      }
+
       return (
-        <ReportListRow
-          row={item}
-          colors={colors}
-          onPress={item.customer ? openCustomer : undefined}
-        />
+        <View style={item.gapAfter && styles.rowGap}>
+          <ReportListRow row={item} colors={colors} />
+        </View>
       );
     },
     [colors, locale, productsById, styles, expandedId, toggleProduct, lookups],
@@ -144,7 +169,8 @@ function ReportDetail({ id }: { id: ReportId }) {
         style={styles.screen}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
         data={content && !content.isEmpty ? content.rows : []}
-        keyExtractor={(row) => row.key}
+        // Sıralama değişince kartlar yer değiştirmek yerine yeniden çizilir; yer değiştirirken zıplıyordu
+        keyExtractor={(row) => `${productSort}-${row.key}`}
         renderItem={renderRow}
         extraData={expandedId}
         refreshControl={
@@ -158,9 +184,11 @@ function ReportDetail({ id }: { id: ReportId }) {
         }
         ListHeaderComponent={
           <View style={styles.header}>
-            <View style={styles.period}>
-              <PeriodPill label={periodLabel} onPress={() => router.push('/report-period')} />
-            </View>
+            {!REPORT_SNAPSHOT_IDS.includes(id) && (
+              <View style={styles.period}>
+                <PeriodPill label={periodLabel} onPress={() => router.push('/report-period')} />
+              </View>
+            )}
 
             {id === 'topProducts' && (
               <View accessibilityRole="radiogroup" style={styles.sortChips}>
@@ -187,14 +215,23 @@ function ReportDetail({ id }: { id: ReportId }) {
 
             {content && stats && !content.isEmpty && (
               <>
-                {content.subtitle && <Text style={styles.subtitle}>{content.subtitle}</Text>}
+                {content.subtitle && (
+                  <View>
+                    <Text style={styles.subtitle}>{content.subtitle}</Text>
+                    {content.hint && <Text style={styles.hint}>{content.hint}</Text>}
+                  </View>
+                )}
                 <ReportChart
                   content={content}
                   grid={stats.busyGrid}
                   colors={colors}
                   interactive
+                  onSelectRow={id === 'stock' ? selectStockGroup : undefined}
                 />
                 {content.note && <Text style={styles.note}>{content.note}</Text>}
+                {id === 'stock' && content.rows.length === 0 && (
+                  <StateMessage message={t('reports.stock.emptyGroup')} />
+                )}
               </>
             )}
           </View>
@@ -216,6 +253,9 @@ function createStyles(colors: AppColors) {
     listCard: {
       paddingBottom: SPACING.sm,
     },
+    rowGap: {
+      marginBottom: SPACING.md,
+    },
     sortChips: {
       flexDirection: 'row',
       gap: SPACING.sm,
@@ -229,6 +269,10 @@ function createStyles(colors: AppColors) {
     },
     subtitle: {
       ...typography.bodySmall,
+      color: colors.textSecondary,
+    },
+    hint: {
+      ...typography.caption,
       color: colors.textSecondary,
     },
     note: {

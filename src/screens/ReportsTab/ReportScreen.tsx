@@ -38,6 +38,7 @@ export default function ReportScreen() {
     productsById,
     paymentNames,
     isPaymentNamesLoading,
+    partnerNames,
     error,
     isRefreshing,
     refresh,
@@ -112,6 +113,7 @@ export default function ReportScreen() {
               productsById={productsById}
               paymentNames={paymentNames}
               isPaymentNamesLoading={isPaymentNamesLoading}
+              partnerNames={partnerNames}
             />
           ))
         )}

@@ -1,3 +1,4 @@
+import { useAffiliates } from '@/api/affiliates';
 import { useOrderPaymentTypes, useOrders, useRefreshOrders } from '@/api/orders';
 import { useProducts } from '@/api/products';
 import type { PeriodSelection } from '@/constants/periods';
@@ -6,10 +7,12 @@ import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { getBestSellers, getRevenueOrders } from '@/utils/orderStats';
 import { resolvePeriodWindow } from '@/utils/periodWindow';
 import {
+  getBrandShares,
   getBusyGrid,
   getBusySlots,
   getCityCounts,
   getCustomerRanks,
+  getPartnerSales,
   getPaymentShares,
   getProfitStats,
   getReturnStats,
@@ -34,6 +37,13 @@ export function useReportData(selection: PeriodSelection) {
 
   const orders = ordersQuery.data;
   const products = productsQuery.data;
+  // Ortak adları yalnızca dönemde ortaklı sipariş varsa ve sıradaki istekler bitince istenir
+  const affiliatesQuery = useAffiliates({
+    enabled:
+      paymentTypesQuery.isSuccess &&
+      (orders ?? []).some((order) => order.affiliateAccountId !== null),
+  });
+  const affiliates = affiliatesQuery.data;
 
   const stats = useMemo(() => {
     if (!orders || !products) {
@@ -64,6 +74,8 @@ export function useReportData(selection: PeriodSelection) {
       profit: getProfitStats(revenueOrders, products),
       stock: getStockStats(products),
       unsold: getUnsoldProducts(revenueOrders, products),
+      brandShares: getBrandShares(revenueOrders, products),
+      partnerSales: getPartnerSales(revenueOrders),
     };
   }, [orders, products, window]);
 
@@ -74,6 +86,18 @@ export function useReportData(selection: PeriodSelection) {
   const paymentNames = useMemo(
     () => new Map(paymentTypes?.map((type) => [type.id, type.name])),
     [paymentTypes],
+  );
+  // Eski siparişte pasif ortak olabilir; adı yine gösterilir
+  const partnerNames = useMemo(
+    () =>
+      new Map(
+        affiliates?.map((affiliate) => [
+          affiliate.id,
+          affiliate.officeName ||
+            `${affiliate.firstName ?? ''} ${affiliate.lastName ?? ''}`.trim(),
+        ]),
+      ),
+    [affiliates],
   );
 
   const refreshOrders = useRefreshOrders();
@@ -92,6 +116,7 @@ export function useReportData(selection: PeriodSelection) {
     productsById,
     paymentNames,
     isPaymentNamesLoading: paymentTypesQuery.isPending,
+    partnerNames,
     isLoading: ordersQuery.isPending || (ordersQuery.isSuccess && productsQuery.isPending),
     error: ordersQuery.error ?? productsQuery.error,
     isRefreshing,

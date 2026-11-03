@@ -15,6 +15,14 @@ export function getOrderStatusToneColors(tone: OrderStatusTone, colors: AppColor
       return { text: colors.success, background: colors.successBackground };
     case 'error':
       return { text: colors.error, background: colors.errorBackground };
+    case 'yellow':
+      return { text: colors.yellow, background: colors.yellowLight };
+    case 'cyan':
+      return { text: colors.cyan, background: colors.cyanLight };
+    case 'pink':
+      return { text: colors.pink, background: colors.pinkLight };
+    case 'brown':
+      return { text: colors.brown, background: colors.brownLight };
     case 'neutral':
       return { text: colors.textSecondary, background: colors.background };
   }

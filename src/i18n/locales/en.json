@@ -207,6 +207,7 @@
     "customers": {
       "title": "Top Customers",
       "subtitle": "{{total}} customers · {{repeat}} repeat",
+      "sortHint": "Sorted by order count",
       "history": "Customer Orders"
     },
     "productFallback": "Product #{{id}}",
@@ -220,6 +221,15 @@
       "sat": "Sat",
       "sun": "Sun"
     },
+    "dayFullNames": {
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
+    },
     "profit": {
       "title": "Estimated Profit",
       "subtitle": "{{revenue}} revenue · {{shipping}} shipping",
@@ -228,7 +238,7 @@
       "cost": "Product cost",
       "shipping": "Shipping collected",
       "profit": "Profit",
-      "missingCost": "No cost data for {{value}} sold items, so profit looks higher than it is."
+      "missingCost": "No cost data for {{value}} items."
     },
     "orderStatus": {
       "title": "Order Statuses"
@@ -244,7 +254,7 @@
     },
     "payment": {
       "title": "Payment Types",
-      "center": "Orders"
+      "center": "Total"
     },
     "cities": {
       "title": "Cities"
@@ -260,14 +270,31 @@
     },
     "stock": {
       "title": "Stock",
+      "subtitle": "{{products}} · current stock",
       "units": "Total units",
       "value": "Stock value",
       "outOfStock": "Out of stock",
-      "lowStock": "Low stock"
+      "lowStock": "Low stock",
+      "healthy": "In stock",
+      "emptyGroup": "No products in this group."
     },
+    "brands": {
+      "title": "Brand Share",
+      "noBrand": "No brand"
+    },
+    "partners": {
+      "title": "Sales Partners",
+      "subtitle": "{{value}} sales partners",
+      "fallback": "Partner #{{id}}",
+      "orders": "Partner orders",
+      "revenue": "Partner revenue",
+      "share": "Share of total revenue: {{value}}",
+      "top": "Top partner: {{name}} · {{amount}}"
+    },
+    "other": "Other",
     "unsold": {
       "title": "Unsold Products",
-      "subtitle": "In stock, not sold in this period",
+      "subtitle": "In stock today, no sales in the selected period",
       "products": "Products",
       "units": "Units in stock",
       "stockValue": "Stock value: {{value}}",

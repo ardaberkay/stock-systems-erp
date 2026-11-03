@@ -38,6 +38,7 @@ export default function ReportPieChart({ rows, center, size, colors }: ReportPie
         <PieChart.Center>
           {(slice) => {
             const selected = slice ? rows.find((row) => row.label === slice.label) : undefined;
+            const secondaryValue = selected ? selected.secondaryValue : center.secondaryValue;
 
             return (
               <View style={[styles.center, { maxWidth: size * INNER_RADIUS }]}>
@@ -51,6 +52,11 @@ export default function ReportPieChart({ rows, center, size, colors }: ReportPie
                 >
                   {selected?.valueLabel ?? center.value}
                 </Text>
+                {secondaryValue && (
+                  <Text style={styles.centerLabel} numberOfLines={1} adjustsFontSizeToFit>
+                    {secondaryValue}
+                  </Text>
+                )}
               </View>
             );
           }}

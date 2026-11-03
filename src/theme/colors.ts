@@ -22,6 +22,14 @@ export const lightColors = {
     purpleLight: '#F0EAF9',
     greenLight: '#E8F5EF',
     blueLight: '#E8F1FD',
+    yellow: '#CA8A04',
+    yellowLight: '#FEF7E0',
+    cyan: '#0891B2',
+    cyanLight: '#E3F6FA',
+    pink: '#DB2777',
+    pinkLight: '#FCE9F2',
+    brown: '#92400E',
+    brownLight: '#F6ECE3',
 
     // Kartlar
     card: {
@@ -97,6 +105,14 @@ export const darkColors = {
     purpleLight: '#30263F',
     greenLight: '#20372F',
     blueLight: '#202F45',
+    yellow: '#FACC15',
+    yellowLight: '#3A3115',
+    cyan: '#22D3EE',
+    cyanLight: '#163339',
+    pink: '#F472B6',
+    pinkLight: '#3D2130',
+    brown: '#C08457',
+    brownLight: '#33261C',
 
     // Kartlar
     card: {
@@ -137,4 +153,4 @@ export const darkColors = {
     orangeWhite: '#FFFFFF',
     overlay: 'rgba(0, 0, 0, 0.6)',
     drawerBackdrop: '#0E0E0E',
-} satisfies AppColors;  
+} satisfies AppColors;

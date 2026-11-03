@@ -3,9 +3,11 @@ import {
   REPORT_CARD_ROW_LIMIT,
   REPORT_CITY_LIMIT,
   REPORT_CUSTOMER_LIMIT,
+  REPORT_DETAIL_BRAND_TILE_LIMIT,
   REPORT_HEAT_HOURS_PER_COLUMN,
   REPORT_PODIUM_SIZE,
   type ReportId,
+  type ReportStockGroup,
 } from '@/constants/reports';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useLocale } from '@/hooks/useLocale';
@@ -26,6 +28,8 @@ import { useTranslation } from 'react-i18next';
 
 const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
 const THOUSAND = 1000;
+// Dört haneli sayı en dar telefonda bile sütuna sığar
+const SHORTEN_FROM = 10000;
 
 function toOneDecimal(count: number): number {
   return Math.round((count / THOUSAND) * 10) / 10;
@@ -38,9 +42,14 @@ export type ReportRow = {
   label: string;
   value: number;
   valueLabel: string;
+  // Değerin altına yazılan ikinci satır
+  secondaryValue?: string;
   // Dar çubuk grafikte tam metin yerine yazılır
   chartValue?: string;
   color: string;
+  hideDot?: boolean;
+  // Satırdan sonra farklı türde bir liste başlar
+  gapAfter?: boolean;
   // Biri verilirse detay listesi satır yerine bildiğimiz kartı çizer
   bestSeller?: BestSeller;
   product?: Product;
@@ -51,15 +60,27 @@ export type ReportRow = {
   customer?: { phone: string; name: string };
 };
 
-export type ReportTrendPoint = { label: string; value: number };
+export type ReportTrendPoint = {
+  label: string;
+  rate: number;
+  returned: number;
+  cancelled: number;
+};
 
 export type ReportKpi = { key: string; label: string; value: string };
 
-export type ReportCenter = { label: string; value: string; isNegative: boolean };
+export type ReportCenter = {
+  label: string;
+  value: string;
+  secondaryValue?: string;
+  isNegative: boolean;
+};
 
 export type ReportContent = {
-  kind: 'bar' | 'column' | 'pie' | 'polar' | 'heat' | 'kpi' | 'leaderboard';
+  kind: 'bar' | 'column' | 'pie' | 'polar' | 'heat' | 'kpi' | 'leaderboard' | 'treemap';
   subtitle: string | null;
+  // Yalnızca detayda, alt başlığın altında küçük yazılır
+  hint: string | null;
   // Rakamı yorumlarken bilinmesi gereken uyarı
   note: string | null;
   isEmpty: boolean;
@@ -67,6 +88,10 @@ export type ReportContent = {
   chartRows: ReportRow[];
   // Kartta çizilecek en fazla satır; null ise hepsi çizilir
   cardRowLimit: number | null;
+  // Dokunulabilir grafikte seçili satır; diğerleri soluk çizilir
+  selectedKey: string | null;
+  // Sıralama değişince grafik baştan büyümesin; liste ile birlikte zıplıyor
+  animateChart: boolean;
   rows: ReportRow[];
   leaders: LeaderboardEntry[];
   formatLeaderValue: (value: number) => string;
@@ -82,13 +107,21 @@ type ReportSources = {
   productsById: Map<number, Product>;
   paymentNames: Map<number, string>;
   isPaymentNamesLoading: boolean;
+  partnerNames: Map<number, string>;
+};
+
+// Yalnızca detayda verilir; kart varsayılanları kullanır
+type ReportContentOptions = {
+  productSort?: ReportProductSort;
+  // Verilmezse stok çubukları seçimsiz çizilir ve liste süzülmez
+  stockGroup?: ReportStockGroup;
 };
 
 // Her raporun metnini, satırlarını ve renklerini tek yerde kurar; kart ve detay aynısını çizer.
 export function useReportContent(
   id: ReportId,
   sources: ReportSources | null,
-  productSort: ReportProductSort = 'sold',
+  { productSort = 'sold', stockGroup }: ReportContentOptions = {},
 ): ReportContent | null {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -99,7 +132,7 @@ export function useReportContent(
     return null;
   }
 
-  const { stats, productsById, paymentNames } = sources;
+  const { stats, productsById, paymentNames, partnerNames } = sources;
   const palette = [
     colors.orange,
     colors.blue,
@@ -118,10 +151,13 @@ export function useReportContent(
   const base: ReportContent = {
     kind: 'bar',
     subtitle: null,
+    hint: null,
     note: null,
     isEmpty: false,
     chartRows: [],
     cardRowLimit: null,
+    selectedKey: null,
+    animateChart: true,
     rows: [],
     leaders: [],
     formatLeaderValue: String,
@@ -197,7 +233,8 @@ export function useReportContent(
     }
 
     case 'returns': {
-      const { returned, cancelled, rate, days, dailyCounts, orders } = stats.returns;
+      const { returned, cancelled, rate, days, dailyRate, dailyReturned, dailyCancelled, orders } =
+        stats.returns;
 
       return {
         ...base,
@@ -216,7 +253,9 @@ export function useReportContent(
           days.length > 1
             ? days.map((day, index) => ({
                 label: formatDayKey(day, locale),
-                value: dailyCounts[index],
+                rate: dailyRate[index],
+                returned: dailyReturned[index],
+                cancelled: dailyCancelled[index],
               }))
             : null,
         rows: [
@@ -233,6 +272,7 @@ export function useReportContent(
             value: cancelled,
             valueLabel: orderText(cancelled),
             color: colors.error,
+            gapAfter: orders.length > 0,
           },
           ...orders.map((order) => ({
             key: `order${order.id}`,
@@ -271,6 +311,7 @@ export function useReportContent(
         isEmpty: rows.length === 0,
         chartRows: rows,
         cardRowLimit: REPORT_CARD_ROW_LIMIT,
+        animateChart: false,
         rows,
       };
     }
@@ -288,12 +329,13 @@ export function useReportContent(
           total: formatNumber(customers.length, locale),
           repeat: formatNumber(repeat, locale),
         }),
+        hint: t('reports.customers.sortHint'),
         isEmpty: customers.length === 0,
         leaders: podium.map((customer) => ({
           id: customer.phone,
-          name: customerName(customer.name),
+          // Podyumda telefon satırı yok; ad boşsa müşteri telefonundan tanınır
+          name: customer.name || formatPhone(customer.phone),
           value: customer.orderCount,
-          subtitle: formatPhone(customer.phone),
         })),
         formatLeaderValue: orderText,
         rows: customers
@@ -303,7 +345,8 @@ export function useReportContent(
             label: customerName(customer.name),
             subtitle: formatPhone(customer.phone),
             value: customer.orderCount,
-            valueLabel: `${orderText(customer.orderCount)} · ${money(customer.amount)}`,
+            valueLabel: money(customer.amount),
+            secondaryValue: orderText(customer.orderCount),
             color: colors.orange,
             rank: customer.rank,
             customer: { phone: customer.phone, name: customerName(customer.name) },
@@ -317,6 +360,7 @@ export function useReportContent(
       const unusedShares = [...paymentNames.keys()]
         .filter((paymentTypeId) => !usedIds.has(paymentTypeId))
         .map((paymentTypeId) => ({ paymentTypeId, count: 0, amount: 0 }));
+      const totalAmount = stats.paymentShares.reduce((sum, share) => sum + share.amount, 0);
       const rows = [...stats.paymentShares, ...unusedShares].map((share, index) => ({
         key: `payment${share.paymentTypeId}`,
         label:
@@ -325,7 +369,8 @@ export function useReportContent(
             : (paymentNames.get(share.paymentTypeId) ??
               t('reports.paymentFallback', { id: share.paymentTypeId })),
         value: share.count,
-        valueLabel: `${orderText(share.count)} · ${money(share.amount)}`,
+        valueLabel: orderText(share.count),
+        secondaryValue: money(share.amount),
         color: paletteColor(index),
       }));
 
@@ -338,9 +383,85 @@ export function useReportContent(
         rows,
         center: {
           label: t('reports.payment.center'),
-          value: formatNumber(stats.revenueOrderCount, locale),
+          value: orderText(stats.revenueOrderCount),
+          secondaryValue: money(totalAmount),
           isNegative: false,
         },
+      };
+    }
+
+    case 'brands': {
+      const totalUnits = stats.brandShares.reduce((sum, share) => sum + share.units, 0);
+      const rows = stats.brandShares.map((share, index) => ({
+        key: `brand${share.brand}`,
+        label: share.brand ?? t('reports.brands.noBrand'),
+        value: share.units,
+        valueLabel: `${unitText(share.units)} · ${formatPercent(
+          totalUnits > 0 ? share.units / totalUnits : 0,
+          locale,
+        )}`,
+        // Yalnızca kutusu olan markalar renk alır; gerisi "Diğer" kutusundadır
+        color: index < REPORT_DETAIL_BRAND_TILE_LIMIT ? paletteColor(index) : colors.border,
+      }));
+
+      return {
+        ...base,
+        kind: 'treemap',
+        subtitle: unitText(totalUnits),
+        isEmpty: rows.length === 0,
+        chartRows: rows,
+        rows,
+      };
+    }
+
+    case 'partners': {
+      // Mağazaların çoğunda birkaç ortak olur; grafik tek çubukla boş durur, rakam ve liste yeter
+      const { partnerSales } = stats;
+      const totalAmount = partnerSales.reduce((sum, partner) => sum + partner.amount, 0);
+      const totalCount = partnerSales.reduce((sum, partner) => sum + partner.count, 0);
+      const partnerName = (affiliateAccountId: number) =>
+        partnerNames.get(affiliateAccountId) ||
+        t('reports.partners.fallback', { id: affiliateAccountId });
+      const [topPartner] = partnerSales;
+
+      return {
+        ...base,
+        kind: 'kpi',
+        subtitle: t('reports.partners.subtitle', {
+          value: formatNumber(partnerSales.length, locale),
+        }),
+        isEmpty: partnerSales.length === 0,
+        kpis: [
+          {
+            key: 'orders',
+            label: t('reports.partners.orders'),
+            value: formatNumber(totalCount, locale),
+          },
+          { key: 'revenue', label: t('reports.partners.revenue'), value: money(totalAmount) },
+        ],
+        footers: topPartner
+          ? [
+              t('reports.partners.share', {
+                value: formatPercent(
+                  stats.profit.revenue > 0 ? totalAmount / stats.profit.revenue : 0,
+                  locale,
+                ),
+              }),
+              t('reports.partners.top', {
+                name: partnerName(topPartner.affiliateAccountId),
+                amount: money(topPartner.amount),
+              }),
+            ]
+          : [],
+        rows: partnerSales.map((partner) => ({
+          key: `partner${partner.affiliateAccountId}`,
+          label: partnerName(partner.affiliateAccountId),
+          value: partner.amount,
+          valueLabel: money(partner.amount),
+          secondaryValue: orderText(partner.count),
+          color: colors.purple,
+          hideDot: true,
+        })),
       };
     }
 
@@ -350,7 +471,8 @@ export function useReportContent(
         label: item.city ?? t('reports.unknown'),
         value: item.count,
         valueLabel: orderText(item.count),
-        color: paletteColor(index),
+        // Yalnızca grafikteki şehirler renk alır; liste 81 ile kadar uzayabilir
+        color: index < REPORT_CITY_LIMIT ? paletteColor(index) : colors.border,
       }));
 
       return {
@@ -365,17 +487,17 @@ export function useReportContent(
     }
 
     case 'weekdays': {
-      const rows = stats.weekdayCounts.map((count, index) => ({
+      const chartRows = stats.weekdayCounts.map((count, index) => ({
         key: DAY_KEYS[index],
         label: dayLabels[index],
         value: count,
         valueLabel: orderText(count),
         // Dar sütunda yazı küçültülmez; büyük sayı kısalır, tam değer alttaki listededir
         chartValue:
-          count >= THOUSAND
+          count >= SHORTEN_FROM
             ? t('reports.thousands', { value: formatNumber(toOneDecimal(count), locale) })
             : formatNumber(count, locale),
-        color: paletteColor(index),
+        color: colors.orange,
       }));
 
       return {
@@ -383,8 +505,16 @@ export function useReportContent(
         kind: 'column',
         subtitle: orderText(stats.revenueOrderCount),
         isEmpty: stats.revenueOrderCount === 0,
-        chartRows: rows,
-        rows,
+        chartRows,
+        rows: chartRows.map((row) => ({
+          ...row,
+          label: t(`reports.dayFullNames.${row.key}`),
+          valueLabel: `${row.valueLabel} · ${formatPercent(
+            stats.revenueOrderCount > 0 ? row.value / stats.revenueOrderCount : 0,
+            locale,
+          )}`,
+          hideDot: true,
+        })),
       };
     }
 
@@ -415,35 +545,47 @@ export function useReportContent(
     }
 
     case 'stock': {
-      const { totalUnits, stockValue, outOfStock, lowStock } = stats.stock;
-      const toRow = (product: Product, color: string): ReportRow => ({
-        key: `product${product.id}`,
-        label: product.name,
-        value: product.stock,
-        valueLabel: unitText(product.stock),
-        color,
-        product,
+      const { totalUnits, stockValue, outOfStock, lowStock, healthy } = stats.stock;
+      const groups: Record<ReportStockGroup, { products: Product[]; color: string }> = {
+        out: { products: outOfStock, color: colors.error },
+        low: { products: lowStock, color: colors.orange },
+        healthy: { products: healthy, color: colors.success },
+      };
+      const toChartRow = (key: ReportStockGroup, label: string) => ({
+        key,
+        label,
+        value: groups[key].products.length,
+        valueLabel: formatNumber(groups[key].products.length, locale),
+        color: groups[key].color,
       });
+      // Liste yalnızca detayda çizilir; kart grup seçmez
+      const listedProducts = stockGroup ? groups[stockGroup].products : [];
 
       return {
         ...base,
-        kind: 'kpi',
-        subtitle: t('reports.products', { value: formatNumber(productsById.size, locale) }),
+        kind: 'bar',
+        subtitle: t('reports.stock.subtitle', {
+          products: t('reports.products', { value: formatNumber(productsById.size, locale) }),
+        }),
         isEmpty: productsById.size === 0,
+        chartRows: [
+          toChartRow('out', t('reports.stock.outOfStock')),
+          toChartRow('low', t('reports.stock.lowStock')),
+          toChartRow('healthy', t('reports.stock.healthy')),
+        ],
+        selectedKey: stockGroup ?? null,
         kpis: [
           { key: 'units', label: t('reports.stock.units'), value: formatNumber(totalUnits, locale) },
           { key: 'value', label: t('reports.stock.value'), value: money(stockValue) },
-          {
-            key: 'out',
-            label: t('reports.stock.outOfStock'),
-            value: formatNumber(outOfStock.length, locale),
-          },
-          { key: 'low', label: t('reports.stock.lowStock'), value: formatNumber(lowStock.length, locale) },
         ],
-        rows: [
-          ...outOfStock.map((product) => toRow(product, colors.error)),
-          ...lowStock.map((product) => toRow(product, colors.orange)),
-        ],
+        rows: listedProducts.map((product) => ({
+          key: `product${product.id}`,
+          label: product.name,
+          value: product.stock,
+          valueLabel: unitText(product.stock),
+          color: colors.orange,
+          product,
+        })),
       };
     }
 

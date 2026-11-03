@@ -28,6 +28,7 @@ type ReportCardProps = {
   productsById: Map<number, Product>;
   paymentNames: Map<number, string>;
   isPaymentNamesLoading: boolean;
+  partnerNames: Map<number, string>;
 };
 
 const PRESSED_SCALE = 0.98;
@@ -38,6 +39,7 @@ export default function ReportCard({
   productsById,
   paymentNames,
   isPaymentNamesLoading,
+  partnerNames,
 }: ReportCardProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -45,7 +47,7 @@ export default function ReportCard({
   const setSelection = useReportFilterStore((state) => state.setSelection);
   const content = useReportContent(
     id,
-    stats ? { stats, productsById, paymentNames, isPaymentNamesLoading } : null,
+    stats ? { stats, productsById, paymentNames, isPaymentNamesLoading, partnerNames } : null,
   );
   const title = t(`reports.${id}.title`);
   const isSmall = REPORT_SMALL_IDS.includes(id);
