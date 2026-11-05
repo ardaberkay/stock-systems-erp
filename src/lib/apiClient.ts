@@ -129,8 +129,9 @@ async function send<TSchema extends z.ZodType>(
 
   const envelope = envelopeSchema.safeParse(data);
 
+  // Ham cevap saklanır: boş veya beklenmeyen biçimdeki yanıtın ne olduğu hatada görünsün
   if (!envelope.success) {
-    throw new ApiError('parse', { status: response.status, data: envelope.error });
+    throw new ApiError('parse', { status: response.status, data });
   }
 
   if (!envelope.data.status) {

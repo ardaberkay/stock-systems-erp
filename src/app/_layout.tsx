@@ -97,6 +97,10 @@ export default function RootLayout() {
               options={{ ...pushedScreenOptions, title: t('orders.newTitle') }}
             />
             <Stack.Screen
+              name="product-detail/[id]"
+              options={{ ...pushedScreenOptions, title: t('orders.detail.productDetailTitle') }}
+            />
+            <Stack.Screen
               name="report-detail/[id]"
               options={{ ...pushedScreenOptions, title: t('reports.title') }}
             />

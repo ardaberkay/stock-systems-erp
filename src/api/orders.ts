@@ -1,5 +1,8 @@
+import { productKeys } from '@/api/products';
 import { apiClient } from '@/lib/apiClient';
+import { env } from '@/lib/env';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
+import type { OrderCreateForm } from '@/schemas/orderCreate';
 import {
   orderCustomStatusListSchema,
   orderListSchema,
@@ -7,12 +10,14 @@ import {
   type Order,
 } from '@/schemas/orders';
 import { addDays } from '@/utils/dateKey';
+import { buildOrderCreatePayload, getMailDomain } from '@/utils/orderCreate';
 import type { OrderSearch } from '@/utils/orderList';
 import { filterOrdersByRange, getBaseOrderRange, isRangeWithin } from '@/utils/orderPeriod';
 import { dedupeOrders } from '@/utils/orderStats';
 import type { DayRange } from '@/utils/periodWindow';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect } from 'react';
+import { z } from 'zod';
 
 // Rate limit ve veri yükü için seyrek yenilenir; güncel rakam aşağı çekerek alınır.
 const ORDERS_STALE_MS = 5 * 60_000;
@@ -23,6 +28,7 @@ export const orderKeys = {
   all: ['orders'] as const,
   list: (range: DayRange) => [...orderKeys.all, 'list', range] as const,
   search: (search: OrderSearch) => [...orderKeys.all, 'search', search] as const,
+  detail: (id: number) => [...orderKeys.all, 'detail', id] as const,
   paymentTypes: () => [...orderKeys.all, 'paymentTypes'] as const,
   customStatuses: () => [...orderKeys.all, 'customStatuses'] as const,
 };
@@ -49,6 +55,13 @@ export async function searchOrders(search: OrderSearch, signal?: AbortSignal) {
   return dedupeOrders(data);
 }
 
+// Numarayla istek tarih istemez; raporlardan açılan eski siparişler de gelir.
+export async function getOrder(id: number, signal?: AbortSignal) {
+  const [order] = await searchOrders({ kind: 'id', value: String(id) }, signal);
+
+  return order ?? null;
+}
+
 export async function getOrderPaymentTypes(signal?: AbortSignal) {
   const { data } = await apiClient.post('order/getPaymentTypes', {
     schema: orderPaymentTypeListSchema,
@@ -65,6 +78,17 @@ export async function getOrderCustomStatuses(signal?: AbortSignal) {
   });
 
   return data;
+}
+
+// Yanıtın biçimi belgelenmemiş; başarı zarfın status alanından anlaşılır, içerik kullanılmaz.
+export async function createOrder(values: OrderCreateForm) {
+  return apiClient.post('order/add', {
+    schema: z.unknown(),
+    arguments: buildOrderCreatePayload(values, {
+      now: new Date(),
+      mailDomain: getMailDomain(env.apiUrl),
+    }),
+  });
 }
 
 // Son 7 güne giren dönemler aynı veriden süzülür: istek ve iskelet olmadan anında görünür.
@@ -118,6 +142,39 @@ export function useOrderSearch(search: OrderSearch | null) {
   });
 }
 
+// Listeden gelinen sipariş önbellekte zaten var; sayfa onunla beklemeden açılır,
+// güncel hali arkada istenir.
+// Yalnızca sipariş listeleri aranır; ödeme türleri de aynı anahtar altındadır ve id'leri çakışır.
+const ORDER_LIST_SCOPES = ['list', 'search'] as const;
+
+function findCachedOrder(queryClient: QueryClient, id: number): Order | undefined {
+  for (const scope of ORDER_LIST_SCOPES) {
+    const cached = queryClient.getQueriesData<Order[]>({ queryKey: [...orderKeys.all, scope] });
+
+    for (const [, orders] of cached) {
+      const found = orders?.find((order) => order.id === id);
+
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+export function useOrder(id: number) {
+  const queryClient = useQueryClient();
+
+  return useQuery<Order | null>({
+    queryKey: orderKeys.detail(id),
+    queryFn: ({ signal }) => getOrder(id, signal),
+    staleTime: ORDERS_STALE_MS,
+    placeholderData: () => findCachedOrder(queryClient, id),
+    enabled: Number.isFinite(id),
+  });
+}
+
 export function useOrderPaymentTypes(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: orderKeys.paymentTypes(),
@@ -135,6 +192,19 @@ export function useOrderCustomStatuses(options?: { enabled?: boolean }) {
     staleTime: ORDER_OPTIONS_CACHE_MS,
     gcTime: ORDER_OPTIONS_CACHE_MS,
     enabled: options?.enabled,
+  });
+}
+
+// Yeni sipariş listeye ve stoğa yansısın diye ikisi de yenilenir (order/add stoğu düşer).
+export function useCreateOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createOrder,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: orderKeys.all });
+      void queryClient.invalidateQueries({ queryKey: productKeys.all });
+    },
   });
 }
 

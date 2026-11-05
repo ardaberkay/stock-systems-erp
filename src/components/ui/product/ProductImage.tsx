@@ -9,20 +9,25 @@ import { StyleSheet, View } from 'react-native';
 type ProductImageProps = {
   uri: string | null | undefined;
   accessibilityLabel: string;
+  size?: number;
 };
 
-const IMAGE_SIZE = 100;
+const DEFAULT_IMAGE_SIZE = 100;
 const FADE_DURATION_MS = 100;
 
 // Görsel yoksa, yüklenirken veya adres bozuksa nötr varsayılan alan görünür.
-export default function ProductImage({ uri, accessibilityLabel }: ProductImageProps) {
+export default function ProductImage({
+  uri,
+  accessibilityLabel,
+  size = DEFAULT_IMAGE_SIZE,
+}: ProductImageProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [failedUri, setFailedUri] = useState<string | null>(null);
   const showImage = Boolean(uri) && uri !== failedUri;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { width: size, height: size }]}>
       <ImageIcon size={ICON_SIZE.lg} color={colors.iconDisabled} />
 
       {showImage && (
@@ -44,8 +49,6 @@ export default function ProductImage({ uri, accessibilityLabel }: ProductImagePr
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
     container: {
-      width: IMAGE_SIZE,
-      height: IMAGE_SIZE,
       borderRadius: RADIUS.md,
       alignItems: 'center',
       justifyContent: 'center',

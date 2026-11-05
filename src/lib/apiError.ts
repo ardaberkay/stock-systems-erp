@@ -61,6 +61,22 @@ export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError;
 }
 
+const ERROR_DETAIL_MAX_LENGTH = 300;
+
+// Sorunun kaynağını bulmak için sunucunun ham cevabı (servis kodu veya beklenmeyen yanıt).
+// Boş cevapta '' döner; ekran bunu "boş yanıt" diye çevirir.
+export function getErrorDetail(error: unknown): string | null {
+  if (!isApiError(error)) {
+    return error instanceof Error ? error.message : null;
+  }
+  if (error.data === undefined || error.data === null || error.data === '') {
+    return error.kind === 'parse' ? '' : null;
+  }
+  const text = typeof error.data === 'string' ? error.data : JSON.stringify(error.data);
+
+  return text.slice(0, ERROR_DETAIL_MAX_LENGTH);
+}
+
 // Kullanıcıya gösterilecek mesajın i18n anahtarı: t(getErrorMessageKey(error))
 export function getErrorMessageKey(error: unknown): `errors.${ApiErrorKind}` {
   return isApiError(error) ? `errors.${error.kind}` : 'errors.unknown';

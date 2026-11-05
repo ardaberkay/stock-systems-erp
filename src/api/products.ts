@@ -1,6 +1,6 @@
 import { apiClient } from '@/lib/apiClient';
-import { productListSchema } from '@/schemas/products';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { productListSchema, type Product } from '@/schemas/products';
+import { keepPreviousData, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 
 // Ürün adı ve görseli sık değişmez
 const PRODUCTS_STALE_MS = 5 * 60_000;
@@ -44,7 +44,23 @@ export function useProducts(options?: { enabled?: boolean }) {
   });
 }
 
+// Stok veya raporlar açıldıysa katalog bellekte durur; istenen ürünlerin hepsi oradaysa
+// ayrıca istek atılmaz. Biri bile eksikse (yeni ürün) istek atılır.
+function pickFromCatalog(queryClient: QueryClient, ids: number[]): Product[] | undefined {
+  const catalog = queryClient.getQueryData<Product[]>(productKeys.list());
+
+  if (!catalog) {
+    return undefined;
+  }
+
+  const wanted = new Set(ids);
+  const found = catalog.filter((product) => wanted.has(product.id));
+
+  return found.length === wanted.size ? found : undefined;
+}
+
 export function useProductsByIds(ids: number[]) {
+  const queryClient = useQueryClient();
   // Aynı ürünler farklı sırada gelince ikinci istek atılmasın
   const sortedIds = [...ids].sort((a, b) => a - b);
 
@@ -53,6 +69,9 @@ export function useProductsByIds(ids: number[]) {
     queryFn: ({ signal }) => getProductsByIds(sortedIds, signal),
     staleTime: PRODUCTS_STALE_MS,
     enabled: sortedIds.length > 0,
+    initialData: () => pickFromCatalog(queryClient, sortedIds),
+    // Katalog ne zaman geldiyse veri o kadar eskidir; süresi geçtiyse arkada yenilenir
+    initialDataUpdatedAt: () => queryClient.getQueryState(productKeys.list())?.dataUpdatedAt,
     // Listeye yeni ürün eklenince elde olanlar ekrandan kalkmasın
     placeholderData: keepPreviousData,
   });
