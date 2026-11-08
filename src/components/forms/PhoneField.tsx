@@ -1,7 +1,3 @@
-import PickerOptionRow, { type PickerValue } from '@/components/forms/PickerOptionRow';
-import SheetModal from '@/components/forms/SheetModal';
-import SearchBar from '@/components/ui/SearchBar';
-import StateMessage from '@/components/ui/StateMessage';
 import {
   DEFAULT_PHONE_COUNTRY,
   PHONE_COUNTRIES,
@@ -9,14 +5,14 @@ import {
   type PhoneCountryCode,
 } from '@/constants/phoneCountries';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { usePickerSheet } from '@/hooks/usePickerSheet';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
-import { normalizeText } from '@/utils/productList';
 import ChevronDown from 'lucide-react-native/icons/chevron-down';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 type PhoneFieldProps = {
   label: string;
@@ -49,8 +45,7 @@ export default function PhoneField({
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  const { openPicker } = usePickerSheet();
   const dial = getPhoneDial(country) || getPhoneDial(DEFAULT_PHONE_COUNTRY);
 
   // Türkiye ve KKTC en üstte, diğerleri seçili dilin alfabesine göre
@@ -65,50 +60,29 @@ export default function PhoneField({
     return [turkey, northCyprus, ...rest.sort((a, b) => a.label.localeCompare(b.label))];
   }, [t]);
 
-  const visibleOptions = useMemo(() => {
-    const normalized = normalizeText(query);
-    // "+44", "44" ve "90 392" gibi kod aramaları için artı ve boşluk yok sayılır
-    const digits = query.replace(/[+\s]/g, '');
+  // Ülke adıyla ya da "+44", "90 392" gibi kodla aranabilir (bkz. PickerModal)
+  const openCountries = () => {
+    openPicker(
+      {
+        title: t('orders.create.phoneCountry'),
+        items: options.map((option) => ({
+          value: option.code,
+          label: option.label,
+          detail: `+${option.dial}`,
+        })),
+        value: country,
+        searchPlaceholder: t('orders.create.searchCountry'),
+        onSelect: (selected) => {
+          const option = options.find((item) => item.code === selected);
 
-    return normalized
-      ? options.filter(
-          (option) =>
-            normalizeText(option.label).includes(normalized) ||
-            (digits !== '' && option.dial.replace(/\s/g, '').startsWith(digits)),
-        )
-      : options;
-  }, [options, query]);
-
-  const close = useCallback(() => {
-    setIsOpen(false);
-    setQuery('');
-  }, []);
-
-  const handleSelect = useCallback(
-    (selected: PickerValue) => {
-      const option = options.find((item) => item.code === selected);
-
-      if (option) {
-        onCountryChange(option.code);
-      }
-      close();
-    },
-    [options, onCountryChange, close],
-  );
-
-  const renderItem = useCallback(
-    ({ item }: { item: CountryOption }) => (
-      <PickerOptionRow
-        value={item.code}
-        label={item.label}
-        detail={`+${item.dial}`}
-        selected={item.code === country}
-        colors={colors}
-        onSelect={handleSelect}
-      />
-    ),
-    [country, colors, handleSelect],
-  );
+          if (option) {
+            onCountryChange(option.code);
+          }
+        },
+      },
+      { searchable: true },
+    );
+  };
 
   return (
     <View style={styles.field}>
@@ -118,7 +92,7 @@ export default function PhoneField({
           accessibilityRole="button"
           accessibilityLabel={t('orders.create.phoneCountry')}
           accessibilityValue={{ text: `+${dial}` }}
-          onPress={() => setIsOpen(true)}
+          onPress={openCountries}
           style={[styles.country, error ? styles.errorBorder : null]}
         >
           <Text style={styles.dial}>{`+${dial}`}</Text>
@@ -137,25 +111,6 @@ export default function PhoneField({
         />
       </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
-
-      <SheetModal visible={isOpen} title={t('orders.create.phoneCountry')} onClose={close}>
-        <View style={styles.search}>
-          <SearchBar
-            value={query}
-            onChangeText={setQuery}
-            placeholder={t('orders.create.searchCountry')}
-          />
-        </View>
-        <FlatList
-          data={visibleOptions}
-          keyExtractor={(item) => item.code}
-          renderItem={renderItem}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          initialNumToRender={20}
-          ListEmptyComponent={<StateMessage message={t('orders.create.noResults')} />}
-        />
-      </SheetModal>
     </View>
   );
 }
@@ -209,11 +164,6 @@ function createStyles(colors: AppColors) {
     error: {
       ...typography.caption,
       color: colors.error,
-    },
-    search: {
-      flexDirection: 'row',
-      paddingHorizontal: SPACING.xl,
-      paddingBottom: SPACING.md,
     },
   });
 }

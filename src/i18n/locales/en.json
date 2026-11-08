@@ -415,6 +415,11 @@
     "detail": {
       "notFound": "Order not found.",
       "externalId": "External no",
+      "tabs": {
+        "order": "Order",
+        "customer": "Customer",
+        "cargo": "Shipping"
+      },
       "sections": {
         "timeline": "Order status",
         "items": "Products",
@@ -478,7 +483,38 @@
       "call": "Call the customer",
       "callError": "The call could not be started."
     },
-    "editPlaceholder": "Order edit page",
+    "editMode": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "changeStatus": "Change order status",
+      "changeCustomStatus": "Change custom status",
+      "addCustomStatus": "Add custom status",
+      "noCustomStatus": "No custom status",
+      "statusStockNote": "Changing the status does not change stock.",
+      "statusLocked": "Not available in the app",
+      "locked": "Not editable for now",
+      "phonePlaceholder": "5XX XXX XX XX",
+      "discardTitle": "Changes not saved",
+      "discardMessage": "If you leave, your changes will be lost.",
+      "keepEditing": "Keep editing",
+      "discard": "Leave",
+      "invalid": "Some fields are invalid. Check the marked sections.",
+      "rejected": "The server did not accept a field.",
+      "tabHasErrors": "This section has invalid fields",
+      "shipToCargo": "Send to carrier",
+      "addItem": "Add product",
+      "increaseQty": "Increase quantity",
+      "decreaseQty": "Decrease quantity",
+      "removeItem": "Remove product",
+      "comingSoon": "Coming soon",
+      "errors": {
+        "phone": "Enter a 10-digit mobile number starting with 5.",
+        "taxOffice": "Tax office must contain letters only.",
+        "taxNumber": "Tax number must be 10 digits, ID number 11 digits.",
+        "cannotClear": "This field cannot be cleared once it is filled.",
+        "rejected": "The server did not accept this value."
+      }
+    },
     "selectedCount": "{{value}} selected",
     "selectAll": "Select all",
     "clearSelection": "Clear selection",

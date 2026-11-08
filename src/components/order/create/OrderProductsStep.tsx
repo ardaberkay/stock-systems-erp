@@ -1,17 +1,17 @@
 import CartItemRow from '@/components/order/create/CartItemRow';
-import ProductPickerModal from '@/components/order/create/ProductPickerModal';
 import Button from '@/components/ui/Button';
 import DetailRow from '@/components/ui/DetailRow';
 import DetailSection from '@/components/ui/DetailSection';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useLocale } from '@/hooks/useLocale';
+import { usePickerSheet } from '@/hooks/usePickerSheet';
 import type { OrderCreateFormInput } from '@/schemas/orderCreate';
 import type { Product, ProductVariant } from '@/schemas/products';
 import type { AppColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { formatMoney } from '@/utils/formatter';
 import { getItemsTotal } from '@/utils/orderCreate';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text } from 'react-native';
@@ -22,7 +22,7 @@ export default function OrderProductsStep() {
   const { colors } = useAppTheme();
   const locale = useLocale();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const { openProductPicker } = usePickerSheet();
   const {
     control,
     getValues,
@@ -87,7 +87,7 @@ export default function OrderProductsStep() {
         <Button
           label={t('orders.create.products.add')}
           variant="secondary"
-          onPress={() => setIsPickerOpen(true)}
+          onPress={() => openProductPicker({ cartQuantities, onPick: handlePick })}
         />
         {itemsError ? <Text style={styles.error}>{t(itemsError)}</Text> : null}
         {fields.length > 0 ? (
@@ -98,13 +98,6 @@ export default function OrderProductsStep() {
           />
         ) : null}
       </DetailSection>
-
-      <ProductPickerModal
-        visible={isPickerOpen}
-        cartQuantities={cartQuantities}
-        onClose={() => setIsPickerOpen(false)}
-        onPick={handlePick}
-      />
     </>
   );
 }

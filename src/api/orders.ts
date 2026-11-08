@@ -91,6 +91,15 @@ export async function createOrder(values: OrderCreateForm) {
   });
 }
 
+// Yalnızca değişen alanlar gönderilir. Durum değişikliği stoğa dokunmaz: API stoğu güncellemiyor,
+// elle güncellemek de panelden geri almayla çakışıyor (stockReloaded API'den yazılamıyor).
+export async function updateOrder(id: number, update: Record<string, unknown>) {
+  return apiClient.post('order/update', {
+    schema: z.unknown(),
+    arguments: { selectArguments: { id }, updateArguments: update },
+  });
+}
+
 // Son 7 güne giren dönemler aynı veriden süzülür: istek ve iskelet olmadan anında görünür.
 // Daha geniş veya eski dönemler kendi isteğini atar.
 export function useOrders(range: DayRange, options?: { enabled?: boolean }) {
@@ -204,6 +213,28 @@ export function useCreateOrder() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: orderKeys.all });
       void queryClient.invalidateQueries({ queryKey: productKeys.all });
+    },
+  });
+}
+
+type UpdateOrderVariables = {
+  id: number;
+  update: Record<string, unknown>;
+};
+
+// Detay yeniden gelene kadar beklenir ki düzenlemeden çıkınca eski bilgi görünmesin;
+// listeler arkada yenilenir.
+export function useUpdateOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, update }: UpdateOrderVariables) => updateOrder(id, update),
+    onSuccess: async (_data, { id }) => {
+      await queryClient.refetchQueries({ queryKey: orderKeys.detail(id), exact: true });
+      void queryClient.invalidateQueries({
+        queryKey: orderKeys.all,
+        predicate: (query) => ORDER_LIST_SCOPES.some((scope) => scope === query.queryKey[1]),
+      });
     },
   });
 }

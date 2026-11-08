@@ -13,9 +13,9 @@ const ERRORS = {
 } as const;
 
 // API 7 karakterden kısa adresi reddeder (prepareOrderArgs:delivery.address)
-const ADDRESS_MIN_LENGTH = 7;
+export const ADDRESS_MIN_LENGTH = 7;
 // Virgüllü de yazılabilir (1299,90); en fazla iki kuruş hanesi
-const MONEY_PATTERN = /^\d+([.,]\d{1,2})?$/;
+export const MONEY_PATTERN = /^\d+([.,]\d{1,2})?$/;
 
 const requiredText = z.string().trim().min(1, ERRORS.required);
 const optionalText = z.string().trim();

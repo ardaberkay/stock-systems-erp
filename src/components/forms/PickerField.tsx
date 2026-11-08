@@ -1,17 +1,13 @@
-import PickerOptionRow, { type PickerValue } from '@/components/forms/PickerOptionRow';
-import SheetModal from '@/components/forms/SheetModal';
-import SearchBar from '@/components/ui/SearchBar';
-import StateMessage from '@/components/ui/StateMessage';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { usePickerSheet } from '@/hooks/usePickerSheet';
 import { getErrorMessageKey } from '@/lib/apiError';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
-import { normalizeText } from '@/utils/productList';
+import { FONT_FAMILY, typography } from '@/theme/typography';
 import ChevronDown from 'lucide-react-native/icons/chevron-down';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export type PickerOption = {
   value: number;
@@ -34,9 +30,13 @@ type PickerFieldProps = {
   isLoading?: boolean;
   loadError?: unknown;
   onRetry?: () => void;
+  // Uzun listelerde (il, ilçe) arama kutulu, neredeyse tam boy pencere; kısa listeler
+  // (ödeme tipi, kargo firması) aramasız, içerik kadar açılır
+  searchable?: boolean;
 };
 
-// Uzun ve aranabilir listeler için: satıra basınca arama kutulu bir pencere açılır
+// Satıra basınca native seçim penceresi açılır (bkz. PickerModal). Liste gelmeden pencere açılmaz:
+// yüklenirken alanda gösterge döner, hata olursa alanın altında "Tekrar dene" çıkar.
 export default function PickerField({
   label,
   placeholder,
@@ -51,52 +51,35 @@ export default function PickerField({
   isLoading = false,
   loadError,
   onRetry,
+  searchable = true,
 }: PickerFieldProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  const { openPicker } = usePickerSheet();
 
   const currentLabel =
     options.find((option) => option.value === value)?.label ?? selectedLabel ?? '';
-  const visibleOptions = useMemo(() => {
-    const normalized = normalizeText(query);
+  const isUnavailable = disabled || isLoading || Boolean(loadError);
 
-    return normalized
-      ? options.filter((option) => normalizeText(option.label).includes(normalized))
-      : options;
-  }, [options, query]);
+  const open = () => {
+    openPicker(
+      {
+        title: label,
+        items: options,
+        value,
+        searchPlaceholder,
+        onSelect: (selected) => {
+          const option = options.find((item) => item.value === selected);
 
-  const close = useCallback(() => {
-    setIsOpen(false);
-    setQuery('');
-  }, []);
-
-  const handleSelect = useCallback(
-    (selected: PickerValue) => {
-      const option = options.find((item) => item.value === selected);
-
-      if (option) {
-        onChange(option);
-      }
-      close();
-    },
-    [options, onChange, close],
-  );
-
-  const renderItem = useCallback(
-    ({ item }: { item: PickerOption }) => (
-      <PickerOptionRow
-        value={item.value}
-        label={item.label}
-        selected={item.value === value}
-        colors={colors}
-        onSelect={handleSelect}
-      />
-    ),
-    [value, colors, handleSelect],
-  );
+          if (option) {
+            onChange(option);
+          }
+        },
+      },
+      { searchable },
+    );
+  };
 
   return (
     <View style={styles.field}>
@@ -106,42 +89,36 @@ export default function PickerField({
         accessibilityLabel={label}
         accessibilityValue={{ text: currentLabel || placeholder }}
         accessibilityHint={error ?? (disabled ? disabledHint : undefined)}
-        accessibilityState={{ disabled }}
-        disabled={disabled}
-        onPress={() => setIsOpen(true)}
+        accessibilityState={{ disabled: isUnavailable, busy: isLoading }}
+        disabled={isUnavailable}
+        onPress={open}
         style={[styles.control, error ? styles.controlError : null]}
       >
-        <Text
-          style={[styles.value, !currentLabel && styles.placeholder]}
-          numberOfLines={1}
-        >
+        <Text style={[styles.value, !currentLabel && styles.placeholder]} numberOfLines={1}>
           {currentLabel || (disabled && disabledHint ? disabledHint : placeholder)}
         </Text>
-        <ChevronDown size={ICON_SIZE.md} color={disabled ? colors.iconDisabled : colors.icon} />
+        {isLoading ? (
+          <ActivityIndicator size="small" color={colors.orange} />
+        ) : (
+          <ChevronDown size={ICON_SIZE.md} color={isUnavailable ? colors.iconDisabled : colors.icon} />
+        )}
       </Pressable>
       {error ? <Text style={styles.error}>{error}</Text> : null}
-
-      <SheetModal visible={isOpen} title={label} onClose={close}>
-        <View style={styles.search}>
-          <SearchBar value={query} onChangeText={setQuery} placeholder={searchPlaceholder} />
+      {Boolean(loadError) && !isLoading ? (
+        <View style={styles.loadError}>
+          <Text style={styles.error}>{t(getErrorMessageKey(loadError))}</Text>
+          {onRetry ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('common.retry')}
+              hitSlop={SPACING.md}
+              onPress={onRetry}
+            >
+              <Text style={styles.retry}>{t('common.retry')}</Text>
+            </Pressable>
+          ) : null}
         </View>
-        {isLoading ? (
-          <View style={styles.state}>
-            <ActivityIndicator color={colors.orange} />
-          </View>
-        ) : loadError ? (
-          <StateMessage message={t(getErrorMessageKey(loadError))} onRetry={onRetry} />
-        ) : (
-          <FlatList
-            data={visibleOptions}
-            keyExtractor={(item) => String(item.value)}
-            renderItem={renderItem}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-            ListEmptyComponent={<StateMessage message={t('orders.create.noResults')} />}
-          />
-        )}
-      </SheetModal>
+      ) : null}
     </View>
   );
 }
@@ -180,16 +157,19 @@ function createStyles(colors: AppColors) {
     },
     error: {
       ...typography.caption,
+      flexShrink: 1,
       color: colors.error,
     },
-    search: {
+    loadError: {
       flexDirection: 'row',
-      paddingHorizontal: SPACING.xl,
-      paddingBottom: SPACING.md,
-    },
-    state: {
-      paddingVertical: SPACING.xxxl,
       alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: SPACING.sm,
+    },
+    retry: {
+      ...typography.caption,
+      fontFamily: FONT_FAMILY.semiBold,
+      color: colors.orange,
     },
   });
 }

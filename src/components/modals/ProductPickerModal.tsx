@@ -1,5 +1,4 @@
 import { useProducts } from '@/api/products';
-import SheetModal from '@/components/forms/SheetModal';
 import ProductPickerRow from '@/components/order/create/ProductPickerRow';
 import SearchBar from '@/components/ui/SearchBar';
 import StateMessage from '@/components/ui/StateMessage';
@@ -9,35 +8,34 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useLocale } from '@/hooks/useLocale';
 import { getErrorMessageKey } from '@/lib/apiError';
 import type { Product, ProductVariant } from '@/schemas/products';
+import { usePickerStore } from '@/stores/pickerStore';
 import type { AppColors } from '@/theme/colors';
 import { SPACING } from '@/theme/spacing';
+import { typography } from '@/theme/typography';
 import { normalizeText } from '@/utils/productList';
+import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type ProductPickerModalProps = {
-  visible: boolean;
-  cartQuantities: ReadonlyMap<number, number>;
-  onClose: () => void;
-  onPick: (product: Product, variant: ProductVariant) => void;
-};
+const NO_CART = new Map<number, number>();
 
-// Katalog bellekteyse anında açılır; yoksa pencere açılınca bir kez istenir (stoktaki gibi)
-export default function ProductPickerModal({
-  visible,
-  cartQuantities,
-  onClose,
-  onPick,
-}: ProductPickerModalProps) {
+// Sipariş oluştururken ürün ve beden seçimi; tam boy native sheet (bkz. src/app/_layout.tsx).
+// Katalog bellekteyse anında açılır; yoksa pencere açılınca bir kez istenir (stoktaki gibi).
+export default function ProductPickerModal() {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const locale = useLocale();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const request = usePickerStore((state) => state.productRequest);
   const [query, setQuery] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const debouncedQuery = useDebounce(query);
-  const { data: products, isPending, error, refetch } = useProducts({ enabled: visible });
+  const { data: products, isPending, error, refetch } = useProducts();
+  const cartQuantities = request?.cartQuantities ?? NO_CART;
+  const onPick = request?.onPick;
 
   // Pasif ürün panelde satışa kapalıdır; listede gösterilmez
   const visibleProducts = useMemo(() => {
@@ -55,22 +53,16 @@ export default function ProductPickerModal({
     );
   }, [products, debouncedQuery]);
 
-  const close = useCallback(() => {
-    setQuery('');
-    setExpandedId(null);
-    onClose();
-  }, [onClose]);
-
   const handleToggle = useCallback((productId: number) => {
     setExpandedId((current) => (current === productId ? null : productId));
   }, []);
 
   const handlePick = useCallback(
     (product: Product, variant: ProductVariant) => {
-      onPick(product, variant);
-      close();
+      onPick?.(product, variant);
+      router.back();
     },
-    [onPick, close],
+    [onPick],
   );
 
   const renderItem = useCallback(
@@ -92,44 +84,68 @@ export default function ProductPickerModal({
     [expandedId, cartQuantities, colors, locale, handleToggle, handlePick],
   );
 
+  // Başlık ve arama listenin yapışık üst kısmıdır: native sheet kaydırılan listeyi en üste
+  // yerleştirir, dışarıda kalırlarsa liste üstlerine biner. Yükleniyor ve hata da liste içinde.
   return (
-    <SheetModal visible={visible} title={t('orders.create.products.pickerTitle')} onClose={close}>
-      <View style={styles.search}>
-        <SearchBar
-          value={query}
-          onChangeText={setQuery}
-          placeholder={t('orders.create.products.searchPlaceholder')}
-        />
-      </View>
-      {isPending ? (
-        <View style={styles.state}>
-          <ActivityIndicator color={colors.orange} />
+    <FlatList
+      style={styles.screen}
+      data={isPending || error ? [] : visibleProducts}
+      keyExtractor={(item) => String(item.id)}
+      renderItem={renderItem}
+      extraData={expandedId}
+      ListHeaderComponent={
+        <View style={styles.stickyHeader}>
+          <Text style={styles.title} accessibilityRole="header">
+            {t('orders.create.products.pickerTitle')}
+          </Text>
+          <View style={styles.search}>
+            <SearchBar
+              value={query}
+              onChangeText={setQuery}
+              placeholder={t('orders.create.products.searchPlaceholder')}
+            />
+          </View>
         </View>
-      ) : error ? (
-        <StateMessage message={t(getErrorMessageKey(error))} onRetry={() => void refetch()} />
-      ) : (
-        <FlatList
-          data={visibleProducts}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderItem}
-          extraData={expandedId}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          initialNumToRender={12}
-          ListEmptyComponent={<StateMessage message={t('orders.create.products.noResults')} />}
-        />
-      )}
-    </SheetModal>
+      }
+      stickyHeaderIndices={[0]}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
+      initialNumToRender={12}
+      contentContainerStyle={{ paddingBottom: insets.bottom + SPACING.lg }}
+      ListEmptyComponent={
+        isPending ? (
+          <View style={styles.state}>
+            <ActivityIndicator color={colors.orange} />
+          </View>
+        ) : error ? (
+          <StateMessage message={t(getErrorMessageKey(error))} onRetry={() => void refetch()} />
+        ) : (
+          <StateMessage message={t('orders.create.products.noResults')} />
+        )
+      }
+    />
   );
 }
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
+    screen: {
+      flex: 1,
+    },
+    stickyHeader: {
+      backgroundColor: colors.surface,
+    },
+    title: {
+      ...typography.h3,
+      color: colors.text,
+      paddingHorizontal: SPACING.xl,
+      paddingTop: SPACING.xxl,
+      paddingBottom: SPACING.md,
+    },
     search: {
       flexDirection: 'row',
       paddingHorizontal: SPACING.xl,
       paddingBottom: SPACING.md,
-      backgroundColor: colors.background,
     },
     state: {
       paddingVertical: SPACING.xxxl,

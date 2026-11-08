@@ -2,10 +2,11 @@ import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
 import Check from 'lucide-react-native/icons/check';
+import type { PickerValue } from '@/stores/pickerStore';
 import { memo, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-export type PickerValue = string | number;
+export type { PickerValue };
 
 type PickerOptionRowProps = {
   value: PickerValue;
@@ -72,8 +73,9 @@ function createStyles(colors: AppColors) {
       borderBottomWidth: 1,
       borderBottomColor: colors.divider,
     },
+    // Satırlar native sheet'in surface zemininde durur; basılınca zemin rengine döner
     pressed: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.background,
     },
     label: {
       ...typography.body,

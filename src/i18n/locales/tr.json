@@ -415,6 +415,11 @@
         "detail": {
             "notFound": "Sipariş bulunamadı.",
             "externalId": "Dış no",
+            "tabs": {
+                "order": "Sipariş",
+                "customer": "Müşteri",
+                "cargo": "Kargo"
+            },
             "sections": {
                 "timeline": "Sipariş durumu",
                 "items": "Ürünler",
@@ -478,7 +483,38 @@
             "call": "Müşteriyi ara",
             "callError": "Arama başlatılamadı."
         },
-        "editPlaceholder": "Sipariş düzenleme sayfası",
+        "editMode": {
+            "save": "Kaydet",
+            "cancel": "Vazgeç",
+            "changeStatus": "Sipariş durumunu değiştir",
+            "changeCustomStatus": "Özel durumu değiştir",
+            "addCustomStatus": "Özel durum ekle",
+            "noCustomStatus": "Özel durum yok",
+            "statusStockNote": "Durum değişikliği stokları değiştirmez.",
+            "statusLocked": "Uygulamadan seçilemiyor",
+            "locked": "Şimdilik düzenlenemiyor",
+            "phonePlaceholder": "5XX XXX XX XX",
+            "discardTitle": "Değişiklikler kaydedilmedi",
+            "discardMessage": "Çıkarsan yaptığın değişiklikler kaybolur.",
+            "keepEditing": "Düzenlemeye devam et",
+            "discard": "Çık",
+            "invalid": "Bazı alanlar hatalı. İşaretli bölümlere bakın.",
+            "rejected": "Sunucu bir alanı kabul etmedi.",
+            "tabHasErrors": "Bu bölümde hatalı alan var",
+            "shipToCargo": "Kargoya gönder",
+            "addItem": "Ürün ekle",
+            "increaseQty": "Adedi artır",
+            "decreaseQty": "Adedi azalt",
+            "removeItem": "Ürünü çıkar",
+            "comingSoon": "Yakında",
+            "errors": {
+                "phone": "5 ile başlayan 10 haneli bir cep numarası girin.",
+                "taxOffice": "Vergi dairesi yalnızca harflerden oluşmalı.",
+                "taxNumber": "Vergi no 10, TC 11 haneli olmalı.",
+                "cannotClear": "Bu alan bir kez girildikten sonra boşaltılamıyor.",
+                "rejected": "Sunucu bu değeri kabul etmedi."
+            }
+        },
         "selectedCount": "{{value}} seçildi",
         "selectAll": "Tümünü seç",
         "clearSelection": "Seçimi kaldır",

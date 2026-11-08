@@ -89,6 +89,7 @@ export default function OrderShippingStep() {
               loadError={cargoQuery.error}
               onRetry={() => void cargoQuery.refetch()}
               onChange={(option) => onChange(option.value)}
+              searchable={false}
               error={translateError(error?.message)}
             />
           )}
@@ -155,6 +156,7 @@ export default function OrderShippingStep() {
               loadError={paymentQuery.error}
               onRetry={() => void paymentQuery.refetch()}
               onChange={(option) => onChange(option.value)}
+              searchable={false}
               error={translateError(error?.message)}
             />
           )}

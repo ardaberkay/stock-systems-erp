@@ -71,8 +71,9 @@ const openOrder = (orderId: number) => {
   router.push({ pathname: '/order-detail/[id]', params: { id: String(orderId) } });
 };
 
+// Düzenleme ayrı bir sayfa değil, detay sayfasının bir modu
 const editOrder = (orderId: number) => {
-  router.push({ pathname: '/order-edit/[id]', params: { id: String(orderId) } });
+  router.push({ pathname: '/order-detail/[id]', params: { id: String(orderId), edit: '1' } });
 };
 
 const openPeriodSelect = () => {

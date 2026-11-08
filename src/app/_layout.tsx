@@ -1,3 +1,4 @@
+import OrderEditHeaderButton from '@/components/order/OrderEditHeaderButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useStoresHydrated } from '@/hooks/useStoresHydrated';
 import '@/i18n';
@@ -86,11 +87,11 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="order-detail/[id]"
-              options={{ ...pushedScreenOptions, title: t('orders.detailTitle') }}
-            />
-            <Stack.Screen
-              name="order-edit/[id]"
-              options={{ ...pushedScreenOptions, title: t('orders.editTitle') }}
+              options={{
+                ...pushedScreenOptions,
+                title: t('orders.detailTitle'),
+                headerRight: () => <OrderEditHeaderButton />,
+              }}
             />
             <Stack.Screen
               name="order-new"
@@ -133,6 +134,17 @@ export default function RootLayout() {
             <Stack.Screen
               name="order-actions"
               options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.65] }}
+            />
+            {/* Formlardaki seçim alanları: kısa listeler içerik kadar, aramalı uzun listeler
+                neredeyse tam boy, ürün seçme tam boy açılır */}
+            <Stack.Screen name="picker" options={fitToContentSheetOptions} />
+            <Stack.Screen
+              name="picker-search"
+              options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.9] }}
+            />
+            <Stack.Screen
+              name="product-picker"
+              options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [1] }}
             />
           </Stack>
         </PanelUIProvider>
