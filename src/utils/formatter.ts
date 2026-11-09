@@ -6,6 +6,57 @@ export function formatNumber(value: number, locale: string): string {
   return value.toLocaleString(locale);
 }
 
+// Dilin binlik ve kuruş ayırıcısı: tr "1.234,5", en "1,234.5"
+export function getNumberSeparators(locale: string): { group: string; decimal: string } {
+  const sample = (1234.5).toLocaleString(locale);
+
+  return {
+    group: sample.length > 6 ? sample.charAt(1) : '',
+    decimal: sample.charAt(sample.length - 2),
+  };
+}
+
+// Tutar alanında yazılan değer: ham "1500.5" ekranda "1.500,5" görünür. Yazarken
+// biçimlendiği için kuruş hanesi yuvarlanmaz, yazıldığı gibi kalır.
+export function formatMoneyInput(raw: string, locale: string): string {
+  const { group, decimal } = getNumberSeparators(locale);
+  const [integer, fraction] = raw.split('.');
+  const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, group);
+
+  return fraction === undefined ? grouped : `${grouped}${decimal}${fraction}`;
+}
+
+const MONEY_FRACTION_DIGITS = 2;
+
+// Ekrandaki biçimli metni ham değere çevirir: "1.500,5" → "1500.5".
+// Önceki değere bakılır: kullanıcı sona nokta veya virgül yazdıysa kuruş başlatılır; ekrandaki
+// binlik noktası silinip yeniden yazılınca kuruş sanılmaz.
+export function parseMoneyInput(text: string, previousRaw: string, locale: string): string {
+  const { group, decimal } = getNumberSeparators(locale);
+  const previousText = formatMoneyInput(previousRaw, locale);
+  const typedSeparator =
+    text.length === previousText.length + 1 &&
+    text.startsWith(previousText) &&
+    /[.,]$/.test(text) &&
+    !previousRaw.includes('.');
+
+  if (typedSeparator) {
+    return `${previousRaw || '0'}.`;
+  }
+
+  const withoutGroups = group ? text.split(group).join('') : text;
+  const [integerPart, ...rest] = withoutGroups.split(decimal);
+  const integer = integerPart.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+
+  if (rest.length === 0) {
+    return integer;
+  }
+
+  const fraction = rest.join('').replace(/\D/g, '').slice(0, MONEY_FRACTION_DIGITS);
+
+  return `${integer || '0'}.${fraction}`;
+}
+
 // 0.128 → "%12,8"
 export function formatPercent(ratio: number, locale: string): string {
   return new Intl.NumberFormat(locale, {

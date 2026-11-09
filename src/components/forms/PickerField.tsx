@@ -1,13 +1,14 @@
+import FieldLabel from '@/components/forms/FieldLabel';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { usePickerSheet } from '@/hooks/usePickerSheet';
-import { getErrorMessageKey } from '@/lib/apiError';
+import { usePickerStore, type PickerRequest } from '@/stores/pickerStore';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
-import { FONT_FAMILY, typography } from '@/theme/typography';
+import { typography } from '@/theme/typography';
 import ChevronDown from 'lucide-react-native/icons/chevron-down';
-import { useMemo } from 'react';
+import { useEffect, useId, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export type PickerOption = {
   value: number;
@@ -24,6 +25,7 @@ type PickerFieldProps = {
   options: PickerOption[];
   onChange: (option: PickerOption) => void;
   error?: string;
+  required?: boolean;
   disabled?: boolean;
   // Pasifken neden seçilemediği (ör. "Önce il seçin")
   disabledHint?: string;
@@ -35,8 +37,8 @@ type PickerFieldProps = {
   searchable?: boolean;
 };
 
-// Satıra basınca native seçim penceresi açılır (bkz. PickerModal). Liste gelmeden pencere açılmaz:
-// yüklenirken alanda gösterge döner, hata olursa alanın altında "Tekrar dene" çıkar.
+// Satıra basınca native seçim penceresi açılır (bkz. PickerModal). Liste yüklenirken de açılır;
+// gösterge ve "Tekrar dene" pencerenin içinde görünür, form sayfası sade kalır.
 export default function PickerField({
   label,
   placeholder,
@@ -46,6 +48,7 @@ export default function PickerField({
   options,
   onChange,
   error,
+  required = false,
   disabled = false,
   disabledHint,
   isLoading = false,
@@ -57,68 +60,56 @@ export default function PickerField({
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { openPicker } = usePickerSheet();
+  const setRequest = usePickerStore((state) => state.setRequest);
+  const sourceId = useId();
 
   const currentLabel =
     options.find((option) => option.value === value)?.label ?? selectedLabel ?? '';
-  const isUnavailable = disabled || isLoading || Boolean(loadError);
 
-  const open = () => {
-    openPicker(
-      {
-        title: label,
-        items: options,
-        value,
-        searchPlaceholder,
-        onSelect: (selected) => {
-          const option = options.find((item) => item.value === selected);
+  const buildRequest = (): PickerRequest => ({
+    sourceId,
+    title: label,
+    items: options,
+    value,
+    searchPlaceholder,
+    isLoading,
+    loadError,
+    onRetry,
+    onSelect: (selected) => {
+      const option = options.find((item) => item.value === selected);
 
-          if (option) {
-            onChange(option);
-          }
-        },
-      },
-      { searchable },
-    );
-  };
+      if (option) {
+        onChange(option);
+      }
+    },
+  });
+
+  // Pencere açıkken liste gelirse veya hata değişirse pencere de güncellenir
+  useEffect(() => {
+    if (usePickerStore.getState().request?.sourceId === sourceId) {
+      setRequest(buildRequest());
+    }
+  });
 
   return (
     <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
+      <FieldLabel label={label} required={required} />
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={label}
+        accessibilityLabel={required ? `${label}, ${t('common.required')}` : label}
         accessibilityValue={{ text: currentLabel || placeholder }}
         accessibilityHint={error ?? (disabled ? disabledHint : undefined)}
-        accessibilityState={{ disabled: isUnavailable, busy: isLoading }}
-        disabled={isUnavailable}
-        onPress={open}
+        accessibilityState={{ disabled }}
+        disabled={disabled}
+        onPress={() => openPicker(buildRequest(), { searchable })}
         style={[styles.control, error ? styles.controlError : null]}
       >
         <Text style={[styles.value, !currentLabel && styles.placeholder]} numberOfLines={1}>
           {currentLabel || (disabled && disabledHint ? disabledHint : placeholder)}
         </Text>
-        {isLoading ? (
-          <ActivityIndicator size="small" color={colors.orange} />
-        ) : (
-          <ChevronDown size={ICON_SIZE.md} color={isUnavailable ? colors.iconDisabled : colors.icon} />
-        )}
+        <ChevronDown size={ICON_SIZE.md} color={disabled ? colors.iconDisabled : colors.icon} />
       </Pressable>
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      {Boolean(loadError) && !isLoading ? (
-        <View style={styles.loadError}>
-          <Text style={styles.error}>{t(getErrorMessageKey(loadError))}</Text>
-          {onRetry ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('common.retry')}
-              hitSlop={SPACING.md}
-              onPress={onRetry}
-            >
-              <Text style={styles.retry}>{t('common.retry')}</Text>
-            </Pressable>
-          ) : null}
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -127,10 +118,6 @@ function createStyles(colors: AppColors) {
   return StyleSheet.create({
     field: {
       gap: SPACING.xs,
-    },
-    label: {
-      ...typography.label,
-      color: colors.textSecondary,
     },
     control: {
       minHeight: MIN_TOUCH_SIZE,
@@ -157,19 +144,7 @@ function createStyles(colors: AppColors) {
     },
     error: {
       ...typography.caption,
-      flexShrink: 1,
       color: colors.error,
-    },
-    loadError: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: SPACING.sm,
-    },
-    retry: {
-      ...typography.caption,
-      fontFamily: FONT_FAMILY.semiBold,
-      color: colors.orange,
     },
   });
 }

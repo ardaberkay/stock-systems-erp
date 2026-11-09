@@ -98,6 +98,10 @@ export default function RootLayout() {
               options={{ ...pushedScreenOptions, title: t('orders.newTitle') }}
             />
             <Stack.Screen
+              name="product-new"
+              options={{ ...pushedScreenOptions, title: t('stock.create.title') }}
+            />
+            <Stack.Screen
               name="product-detail/[id]"
               options={{ ...pushedScreenOptions, title: t('orders.detail.productDetailTitle') }}
             />
@@ -140,6 +144,10 @@ export default function RootLayout() {
             <Stack.Screen name="picker" options={fitToContentSheetOptions} />
             <Stack.Screen
               name="picker-search"
+              options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.9] }}
+            />
+            <Stack.Screen
+              name="picker-multi"
               options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.9] }}
             />
             <Stack.Screen

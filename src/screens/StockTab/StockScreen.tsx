@@ -6,6 +6,7 @@ import SearchFilterBar from "@/components/ui/SearchFilterBar";
 import StateMessage from "@/components/ui/StateMessage";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useLocale } from "@/hooks/useLocale";
+import { useProductBatchWatcher } from "@/hooks/useProductBatchWatcher";
 import { useProductList } from "@/hooks/useProductList";
 import { useTabBarInset } from "@/hooks/useTabBarInset";
 import { useTopInset } from "@/hooks/useTopInset";
@@ -28,7 +29,6 @@ import Plus from "lucide-react-native/icons/plus";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -74,6 +74,9 @@ export default function StockScreen() {
     isRefreshing,
     refresh,
   } = useProductList(searchText);
+
+  // Sıraya alınan yeni ürünler tamamlanınca liste yenilenir ve sonuç bildirilir
+  useProductBatchWatcher();
 
   // iOS'ta sekmenin kendi başa dönme davranışı kaydırma alanını bulamıyor: ilk görünüm sabit panel.
   // Başka sekmeden gelince konum korunur, yalnızca açık sekmeye tekrar basınca başa döner.
@@ -200,7 +203,7 @@ export default function StockScreen() {
       <FloatingActionButton
         icon={Plus}
         accessibilityLabel={t("stock.addProduct")}
-        onPress={() => Alert.alert(t("common.comingSoon"))}
+        onPress={() => router.push("/product-new")}
         bottomOffset={fabOffset}
       />
     </View>

@@ -16,7 +16,17 @@ export type PickerItem = {
   content?: ReactNode;
 };
 
-export type PickerRequest = {
+// Liste henüz gelmeden de pencere açılır; yükleniyor ve hata durumu pencerenin içinde görünür.
+// Alan açık pencereyi tanıyıp liste gelince isteği günceller (bkz. PickerField).
+type PickerLoadState = {
+  // Hangi alanın açtığı; liste gelince yalnızca o alanın isteği güncellenir
+  sourceId?: string;
+  isLoading?: boolean;
+  loadError?: unknown;
+  onRetry?: () => void;
+};
+
+export type PickerRequest = PickerLoadState & {
   title: string;
   items: PickerItem[];
   value: PickerValue | null;
@@ -26,6 +36,15 @@ export type PickerRequest = {
   onSelect: (value: PickerValue) => void;
 };
 
+export type MultiPickerRequest = PickerLoadState & {
+  title: string;
+  items: PickerItem[];
+  values: PickerValue[];
+  searchPlaceholder?: string;
+  // Seçim "Tamam"a basınca bir kerede bildirilir
+  onConfirm: (values: PickerValue[]) => void;
+};
+
 export type ProductPickerRequest = {
   cartQuantities: ReadonlyMap<number, number>;
   onPick: (product: Product, variant: ProductVariant) => void;
@@ -33,8 +52,10 @@ export type ProductPickerRequest = {
 
 type PickerState = {
   request: PickerRequest | null;
+  multiRequest: MultiPickerRequest | null;
   productRequest: ProductPickerRequest | null;
   setRequest: (request: PickerRequest) => void;
+  setMultiRequest: (request: MultiPickerRequest) => void;
   setProductRequest: (request: ProductPickerRequest) => void;
 };
 
@@ -42,7 +63,9 @@ type PickerState = {
 // burada taşınır. Formun değeri yine formda kalır; store yalnızca köprüdür, kalıcı değildir.
 export const usePickerStore = create<PickerState>((set) => ({
   request: null,
+  multiRequest: null,
   productRequest: null,
   setRequest: (request) => set({ request }),
+  setMultiRequest: (multiRequest) => set({ multiRequest }),
   setProductRequest: (productRequest) => set({ productRequest }),
 }));

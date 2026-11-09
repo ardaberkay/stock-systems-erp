@@ -3,6 +3,7 @@ import PickerOptionRow from '@/components/forms/PickerOptionRow';
 import SearchBar from '@/components/ui/SearchBar';
 import StateMessage from '@/components/ui/StateMessage';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { getErrorMessageKey } from '@/lib/apiError';
 import { usePickerStore, type PickerItem, type PickerValue } from '@/stores/pickerStore';
 import type { AppColors } from '@/theme/colors';
 import { SPACING } from '@/theme/spacing';
@@ -11,7 +12,7 @@ import { normalizeText } from '@/utils/productList';
 import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type PickerModalProps = {
@@ -79,6 +80,14 @@ export default function PickerModal({ searchable }: PickerModalProps) {
     return <StateMessage message={t('errors.unknown')} />;
   }
 
+  // Liste henüz gelmediyse veya gelemediyse satırların yerinde durum görünür
+  const loadState =
+    request.isLoading && request.items.length === 0 ? (
+      <ActivityIndicator style={styles.loading} color={colors.orange} />
+    ) : request.loadError && request.items.length === 0 ? (
+      <StateMessage message={t(getErrorMessageKey(request.loadError))} onRetry={request.onRetry} />
+    ) : null;
+
   const title = (
     <View style={styles.header}>
       <Text style={styles.title} accessibilityRole="header">
@@ -93,21 +102,23 @@ export default function PickerModal({ searchable }: PickerModalProps) {
     return (
       <View style={{ paddingBottom: insets.bottom + SPACING.lg }}>
         {title}
-        <View accessibilityRole="radiogroup" style={styles.choices}>
-          {request.items.map((item) => (
-            <ChoiceOptionRow
-              key={item.value}
-              value={item.value}
-              label={item.label}
-              badge={item.badge}
-              disabled={item.disabled}
-              content={item.content}
-              selected={item.value === selectedValue}
-              colors={colors}
-              onSelect={handleSelect}
-            />
-          ))}
-        </View>
+        {loadState ?? (
+          <View accessibilityRole="radiogroup" style={styles.choices}>
+            {request.items.map((item) => (
+              <ChoiceOptionRow
+                key={item.value}
+                value={item.value}
+                label={item.label}
+                badge={item.badge}
+                disabled={item.disabled}
+                content={item.content}
+                selected={item.value === selectedValue}
+                colors={colors}
+                onSelect={handleSelect}
+              />
+            ))}
+          </View>
+        )}
       </View>
     );
   }
@@ -137,7 +148,7 @@ export default function PickerModal({ searchable }: PickerModalProps) {
       keyboardDismissMode="on-drag"
       initialNumToRender={20}
       contentContainerStyle={{ paddingBottom: insets.bottom + SPACING.lg }}
-      ListEmptyComponent={<StateMessage message={t('orders.create.noResults')} />}
+      ListEmptyComponent={loadState ?? <StateMessage message={t('orders.create.noResults')} />}
     />
   );
 }
@@ -167,6 +178,9 @@ function createStyles(colors: AppColors) {
     choices: {
       gap: SPACING.sm,
       paddingHorizontal: SPACING.xl,
+    },
+    loading: {
+      paddingVertical: SPACING.xxl,
     },
     search: {
       flexDirection: 'row',

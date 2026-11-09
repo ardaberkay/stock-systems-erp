@@ -1,8 +1,10 @@
+import FieldLabel from '@/components/forms/FieldLabel';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 
 type TextFieldProps = {
@@ -13,6 +15,7 @@ type TextFieldProps = {
   // Çevrilmiş hata metni; varsa çerçeve kırmızı olur
   error?: string;
   hint?: string;
+  required?: boolean;
   placeholder?: string;
   multiline?: boolean;
   editable?: boolean;
@@ -32,6 +35,7 @@ export default function TextField({
   onBlur,
   error,
   hint,
+  required = false,
   placeholder,
   multiline = false,
   editable = true,
@@ -40,19 +44,20 @@ export default function TextField({
   autoComplete,
   maxLength,
 }: TextFieldProps) {
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
+      <FieldLabel label={label} required={required} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
         onBlur={onBlur}
         placeholder={placeholder}
         placeholderTextColor={colors.textDisabled}
-        accessibilityLabel={label}
+        accessibilityLabel={required ? `${label}, ${t('common.required')}` : label}
         accessibilityHint={error ?? hint}
         editable={editable}
         multiline={multiline}
@@ -82,10 +87,6 @@ function createStyles(colors: AppColors) {
   return StyleSheet.create({
     field: {
       gap: SPACING.xs,
-    },
-    label: {
-      ...typography.label,
-      color: colors.textSecondary,
     },
     // lineHeight verilmez: iOS'ta tek satırlı alanda yazmaya başlayınca metni aşağı kaydırıyor
     input: {

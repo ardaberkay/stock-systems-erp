@@ -14,6 +14,8 @@ export const productSchema = z.object({
   id: z.coerce.number(),
   name: z.string(),
   modelCode: z.string().nullish(),
+  // Model kodu ve renk birlikte benzersizdir; yeni üründe tekrar kontrolü için gerekir
+  colorId: z.coerce.number().nullish(),
   colorName: z.string().nullish(),
   typeName: z.string().nullish(),
   brandName: z.string().nullish(),
