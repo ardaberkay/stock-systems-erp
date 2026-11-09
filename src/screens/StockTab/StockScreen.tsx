@@ -8,6 +8,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { useLocale } from "@/hooks/useLocale";
 import { useProductList } from "@/hooks/useProductList";
 import { useTabBarInset } from "@/hooks/useTabBarInset";
+import { useTopInset } from "@/hooks/useTopInset";
 import { getErrorMessageKey } from "@/lib/apiError";
 import type { Product } from "@/schemas/products";
 import type { AppColors } from "@/theme/colors";
@@ -36,7 +37,6 @@ import {
   View,
   type ListRenderItem,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // expo-router sekme olayının tipini dışa açmıyor; yalnızca dinlenen olay tanımlanır
 type TabsNavigation = NavigationProp<
@@ -59,7 +59,7 @@ export default function StockScreen() {
   const listRef = useRef<FlatList<Product>>(null);
   const { colors } = useAppTheme();
   const locale = useLocale();
-  const insets = useSafeAreaInsets();
+  const topInset = useTopInset();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const fabOffset = useTabBarInset();
   const [searchText, setSearchText] = useState("");
@@ -107,7 +107,7 @@ export default function StockScreen() {
   return (
     <View style={styles.screen}>
       {/* Sabit üst panel: durum çubuğundan başlar, liste alt köşelerinin arkasından akar */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
+      <View style={[styles.header, { paddingTop: topInset }]}>
         {/* Appbar: menü, başlık ve katalog yönetimi */}
         <View style={styles.topBar}>
           <Pressable

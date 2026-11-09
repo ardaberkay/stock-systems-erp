@@ -12,6 +12,7 @@ import { useOrderLookups } from '@/hooks/useOrderLookups';
 import { useOrderSelection } from '@/hooks/useOrderSelection';
 import { usePeriodLabel } from '@/hooks/usePeriodLabel';
 import { useTabBarInset } from '@/hooks/useTabBarInset';
+import { useTopInset } from '@/hooks/useTopInset';
 import { getErrorMessageKey } from '@/lib/apiError';
 import type { Order } from '@/schemas/orders';
 import { useOrderFilterStore } from '@/stores/orderFilterStore';
@@ -47,7 +48,6 @@ import {
   View,
   type ListRenderItem,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // expo-router sekme olayının tipini dışa açmıyor; yalnızca dinlenen olay tanımlanır
 type TabsNavigation = NavigationProp<
@@ -86,7 +86,7 @@ export default function OrderScreen() {
   const listRef = useRef<FlatList<Order>>(null);
   const { colors } = useAppTheme();
   const locale = useLocale();
-  const insets = useSafeAreaInsets();
+  const topInset = useTopInset();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const fabOffset = useTabBarInset();
   const [searchText, setSearchText] = useState('');
@@ -221,7 +221,7 @@ export default function OrderScreen() {
   return (
     <View style={styles.screen}>
       {/* Sabit üst panel: durum çubuğundan başlar, liste alt köşelerinin arkasından akar */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
+      <View style={[styles.header, { paddingTop: topInset }]}>
         {isSelecting ? (
           <View style={styles.topBar}>
             <Pressable

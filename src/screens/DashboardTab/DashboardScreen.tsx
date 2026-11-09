@@ -10,6 +10,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { usePeriodLabel } from '@/hooks/usePeriodLabel';
 import { useTabBarInset } from '@/hooks/useTabBarInset';
 import { useTabPressScrollToTop } from '@/hooks/useTabPressScrollToTop';
+import { useTopInset } from '@/hooks/useTopInset';
 import { getErrorMessageKey } from '@/lib/apiError';
 import { useDashboardFilterStore } from '@/stores/dashboardFilterStore';
 import type { AppColors } from '@/theme/colors';
@@ -29,7 +30,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SKELETON_CARD_KEYS = ['first', 'second', 'third'];
 
@@ -38,7 +38,7 @@ export default function DashboardScreen() {
   const navigation = useNavigation();
   const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
+  const topInset = useTopInset();
   const locale = useLocale();
   const selection = useDashboardFilterStore((state) => state.selection);
   const periodLabel = usePeriodLabel(selection);
@@ -63,7 +63,7 @@ export default function DashboardScreen() {
   return (
     // SafeAreaView boşluğu sonradan uygular ve iOS sekmelerinin otomatik boşluğuyla çakışır;
     // üst boşluk ilk karede verilir ki açılışta appbar ve sayfa aşağı kaymasın.
-    <View style={[styles.safeArea, { paddingTop: insets.top }]}>
+    <View style={[styles.safeArea, { paddingTop: topInset }]}>
       {/* Appbar: menü, logo ve bildirimler */}
       <View style={styles.topBar}>
         <Pressable

@@ -13,6 +13,7 @@ import { usePeriodLabel } from '@/hooks/usePeriodLabel';
 import { useReportData } from '@/hooks/useReportData';
 import { useTabBarInset } from '@/hooks/useTabBarInset';
 import { useTabPressScrollToTop } from '@/hooks/useTabPressScrollToTop';
+import { useTopInset } from '@/hooks/useTopInset';
 import { getErrorMessageKey } from '@/lib/apiError';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
@@ -23,13 +24,12 @@ import Menu from 'lucide-react-native/icons/menu';
 import { useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ReportScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
+  const topInset = useTopInset();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const periodLabel = usePeriodLabel(REPORT_DEFAULT_SELECTION);
@@ -52,7 +52,7 @@ export default function ReportScreen() {
   useTabPressScrollToTop(scrollRef);
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
+    <View style={[styles.screen, { paddingTop: topInset }]}>
       <View style={styles.topBar}>
         <Pressable
           accessibilityRole="button"
