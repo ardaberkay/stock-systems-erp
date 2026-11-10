@@ -615,6 +615,36 @@
       "categories": "Product categories",
       "brands": "Brands"
     },
+    "catalogList": {
+      "editHint": "Tap to edit or delete"
+    },
+    "catalogForm": {
+      "save": "Save",
+      "delete": "Delete",
+      "errors": {
+        "required": "This field is required."
+      }
+    },
+    "catalogPages": {
+      "types": {
+        "searchPlaceholder": "Search types",
+        "empty": "No product types yet.",
+        "noResults": "No types match your search.",
+        "add": "Add new type",
+        "newTitle": "New product type",
+        "editTitle": "Edit product type",
+        "nameLabel": "Type name",
+        "namePlaceholder": "E.g. Dress",
+        "duplicate": "A type with this name already exists.",
+        "deleteTitle": "Delete this type?",
+        "deleteMessage": "The \"{{name}}\" type will be permanently deleted.",
+        "deleteBlockedTitle": "Type cannot be deleted",
+        "deleteBlocked": "This type has {{value}} products, so it cannot be deleted. Change the type of these products first.",
+        "deleteFailedTitle": "Type could not be deleted",
+        "deleteFailed": "Passive or deleted products may still use this type.",
+        "notFound": "This type was not found. It may have been deleted."
+      }
+    },
     "create": {
       "title": "New Product",
       "steps": {

@@ -110,6 +110,8 @@ export default function RootLayout() {
                 headerRight: () => <ProductEditHeaderButton />,
               }}
             />
+            {/* Tip, marka, renk ve kategori listeleri; başlığı ekran kendisi verir */}
+            <Stack.Screen name="catalog/[kind]" options={pushedScreenOptions} />
             <Stack.Screen
               name="report-detail/[id]"
               options={{ ...pushedScreenOptions, title: t('reports.title') }}
@@ -124,6 +126,7 @@ export default function RootLayout() {
             <Stack.Screen name="period/[scope]" options={fitToContentSheetOptions} />
             <Stack.Screen name="period-custom/[scope]" options={fitToContentSheetOptions} />
             <Stack.Screen name="product-catalog" options={fitToContentSheetOptions} />
+            <Stack.Screen name="catalog-form/[kind]" options={fitToContentSheetOptions} />
             <Stack.Screen
               name="product-images"
               options={{ presentation: 'fullScreenModal', animation: 'fade' }}

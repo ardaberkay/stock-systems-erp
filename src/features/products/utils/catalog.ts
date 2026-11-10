@@ -1,5 +1,44 @@
 import type { PickerOption } from '@/features/picker/components/PickerField';
 import type { CatalogItem, Category } from '@/features/products/schemas/catalog';
+import type { Product } from '@/features/products/schemas/products';
+
+// Katalog sayfalarında ürün sayısının okunduğu alan
+export type CatalogProductField = 'typeId' | 'brandId' | 'colorId';
+
+function normalizeName(name: string) {
+  return name.trim().toLocaleLowerCase('tr');
+}
+
+// Ürün sayısı yüklü katalogdan sayılır, ek istek atılmaz. Pasif ürünler de sayılır; silinmiş
+// ürünler katalogda gelmediği için sayı 0 olan kayıt yine de silinemeyebilir.
+export function countProductsBy(products: Product[], field: CatalogProductField) {
+  const counts = new Map<number, number>();
+
+  for (const product of products) {
+    const id = product[field];
+    if (id) {
+      counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+  }
+
+  return counts;
+}
+
+// Sunucu kayıtları eklenme sırasıyla verir; sayfada alfabetik ve aramaya göre süzülmüş görünür
+export function getVisibleCatalogItems(items: CatalogItem[], query: string) {
+  const normalizedQuery = normalizeName(query);
+
+  return items
+    .filter((item) => normalizeName(item.name).includes(normalizedQuery))
+    .sort((a, b) => a.name.trim().localeCompare(b.name.trim(), 'tr'));
+}
+
+// Sunucu aynı adla ikinci kaydı kabul ediyor; büyük/küçük harf farkı da aynı ad sayılır
+export function hasDuplicateName(items: CatalogItem[], name: string, exceptId?: number) {
+  const normalized = normalizeName(name);
+
+  return items.some((item) => item.id !== exceptId && normalizeName(item.name) === normalized);
+}
 
 // Marka, tip ve renk listeleri seçim penceresinde alfabetik görünür
 export function toSortedOptions(items: CatalogItem[]): PickerOption[] {

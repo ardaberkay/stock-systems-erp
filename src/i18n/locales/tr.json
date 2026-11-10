@@ -615,6 +615,36 @@
             "categories": "Ürün kategorileri",
             "brands": "Markalar"
         },
+        "catalogList": {
+            "editHint": "Düzenlemek veya silmek için dokunun"
+        },
+        "catalogForm": {
+            "save": "Kaydet",
+            "delete": "Sil",
+            "errors": {
+                "required": "Bu alan zorunludur."
+            }
+        },
+        "catalogPages": {
+            "types": {
+                "searchPlaceholder": "Tip ara",
+                "empty": "Henüz ürün tipi yok.",
+                "noResults": "Aramaya uyan tip yok.",
+                "add": "Yeni tip ekle",
+                "newTitle": "Yeni ürün tipi",
+                "editTitle": "Ürün tipini düzenle",
+                "nameLabel": "Tip adı",
+                "namePlaceholder": "Örn. Elbise",
+                "duplicate": "Bu adda bir tip zaten var.",
+                "deleteTitle": "Tip silinsin mi?",
+                "deleteMessage": "\"{{name}}\" tipi kalıcı olarak silinecek.",
+                "deleteBlockedTitle": "Tip silinemez",
+                "deleteBlocked": "Bu tipte {{value}} ürün olduğu için silinemez. Önce bu ürünlerin tipini değiştirin.",
+                "deleteFailedTitle": "Tip silinemedi",
+                "deleteFailed": "Bu tipe bağlı pasif veya silinmiş ürünler olabilir.",
+                "notFound": "Bu tip bulunamadı, silinmiş olabilir."
+            }
+        },
         "create": {
             "title": "Yeni Ürün",
             "steps": {

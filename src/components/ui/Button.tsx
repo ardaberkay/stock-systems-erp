@@ -15,7 +15,8 @@ import {
 type ButtonProps = {
   label: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary';
+  // destructive: silme gibi geri alınamayan işlemler; ikincil buton görünümünde, kırmızı yazılı
+  variant?: 'primary' | 'secondary' | 'destructive';
   disabled?: boolean;
   // İstek sürerken yazının yerinde gösterge döner, buton basılamaz
   loading?: boolean;
@@ -34,8 +35,12 @@ export default function Button({
 }: ButtonProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const isPrimary = variant === 'primary';
   const isDisabled = disabled || loading;
+  const variantStyles = {
+    primary: { button: styles.primary, label: styles.primaryLabel, indicator: colors.buttonPrimaryText },
+    secondary: { button: styles.secondary, label: styles.secondaryLabel, indicator: colors.text },
+    destructive: { button: styles.destructive, label: styles.destructiveLabel, indicator: colors.error },
+  }[variant];
 
   return (
     <Pressable
@@ -46,18 +51,16 @@ export default function Button({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        isPrimary ? styles.primary : styles.secondary,
+        variantStyles.button,
         isDisabled && styles.disabled,
         pressed && styles.pressed,
         style,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={isPrimary ? colors.buttonPrimaryText : colors.text} />
+        <ActivityIndicator color={variantStyles.indicator} />
       ) : (
-        <Text style={[styles.label, isPrimary ? styles.primaryLabel : styles.secondaryLabel]}>
-          {label}
-        </Text>
+        <Text style={[styles.label, variantStyles.label]}>{label}</Text>
       )}
     </Pressable>
   );
@@ -81,6 +84,10 @@ function createStyles(colors: AppColors) {
       backgroundColor: colors.buttonSecondary,
       borderColor: colors.buttonSecondaryBorder,
     },
+    destructive: {
+      backgroundColor: colors.buttonSecondary,
+      borderColor: colors.buttonSecondaryBorder,
+    },
     disabled: {
       opacity: 0.5,
     },
@@ -96,6 +103,9 @@ function createStyles(colors: AppColors) {
     },
     secondaryLabel: {
       color: colors.buttonSecondaryText,
+    },
+    destructiveLabel: {
+      color: colors.error,
     },
   });
 }

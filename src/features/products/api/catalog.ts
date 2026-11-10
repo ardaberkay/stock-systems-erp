@@ -1,7 +1,10 @@
 import { apiClient } from '@/lib/apiClient';
+import { isApiError } from '@/lib/apiError';
 import { CACHE } from '@/lib/cachePolicy';
 import {
   brandListSchema,
+  catalogAffectedSchema,
+  catalogCreatedSchema,
   categoryListSchema,
   colorListSchema,
   productTypeListSchema,
@@ -29,6 +32,49 @@ export async function getProductTypes(signal?: AbortSignal) {
   });
 
   return data;
+}
+
+// Tip kodu zorunlu ve benzersiz ama listede gelmiyor; boş kod aranamadığı için rastgele 4 haneli
+// kod verilir. Çakışırsa sunucu genel bir "logic" hatası döner, bir kez başka kodla denenir.
+const TYPE_CODE_MIN = 1000;
+const TYPE_CODE_RANGE = 9000;
+
+function createTypeCode() {
+  return String(TYPE_CODE_MIN + Math.floor(Math.random() * TYPE_CODE_RANGE));
+}
+
+function postProductType(name: string, code: string) {
+  return apiClient.post('product/addType', {
+    schema: catalogCreatedSchema,
+    arguments: { name, code },
+  });
+}
+
+// Yeni tipin id'sini döner
+export async function addProductType(name: string) {
+  try {
+    return await postProductType(name, createTypeCode());
+  } catch (error) {
+    if (isApiError(error) && error.kind === 'unknown') {
+      return postProductType(name, createTypeCode());
+    }
+    throw error;
+  }
+}
+
+export async function updateProductType(id: number, name: string) {
+  await apiClient.post('product/updateType', {
+    schema: catalogAffectedSchema,
+    arguments: { selectArguments: { id }, updateArguments: { name } },
+  });
+}
+
+// Ürünü olan tip silinemeyebilir; sunucu reddederse genel "logic" hatası döner
+export async function deleteProductType(id: number) {
+  await apiClient.post('product/deleteType', {
+    schema: catalogAffectedSchema,
+    arguments: { id },
+  });
 }
 
 export async function getColors(signal?: AbortSignal) {
