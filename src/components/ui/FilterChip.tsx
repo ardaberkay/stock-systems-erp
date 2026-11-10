@@ -3,7 +3,8 @@ import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import Text from '@/components/ui/Text';
+import { Pressable, StyleSheet } from 'react-native';
 
 type FilterChipProps = {
   label: string;

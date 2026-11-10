@@ -1,4 +1,4 @@
-import { Calendar, type DateRange } from 'panelui-native';
+import { Calendar, type DateRange } from 'panelui-native/components/calendar';
 import { StyleSheet, View } from 'react-native';
 
 type DateRangePickerProps = {

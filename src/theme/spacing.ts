@@ -28,3 +28,13 @@ export const ICON_SIZE = {
 
 // Dokunulabilir öğelerin minimum genişlik/yüksekliği
 export const MIN_TOUCH_SIZE = 44;
+
+// Tablette içerik bu genişlikte ortalanır; telefonlar daha dar olduğu için etkilenmez.
+export const CONTENT_MAX_WIDTH = 720;
+
+// Her ekranın kök stiline yayılır (`...SCREEN_CONTENT`); tablette kartlar ve formlar uzamaz.
+export const SCREEN_CONTENT = {
+  width: '100%',
+  maxWidth: CONTENT_MAX_WIDTH,
+  alignSelf: 'center',
+} as const;

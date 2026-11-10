@@ -1,4 +1,4 @@
-import OrderEditHeaderButton from '@/components/order/OrderEditHeaderButton';
+import OrderEditHeaderButton from '@/features/orders/components/edit/OrderEditHeaderButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useStoresHydrated } from '@/hooks/useStoresHydrated';
 import '@/i18n';
@@ -18,7 +18,7 @@ import { useFonts } from 'expo-font';
 import { Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { PanelUIProvider } from 'panelui-native';
+import { PanelUIProvider } from 'panelui-native/provider';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Appearance } from 'react-native';
@@ -115,12 +115,9 @@ export default function RootLayout() {
             />
             {/* Native alttan açılan sheet'ler: iOS'ta UISheetPresentationController,
                 Android'de Material bottom sheet. Yükseklik içeriğe göre ayarlanır. */}
-            <Stack.Screen name="period-select" options={fitToContentSheetOptions} />
-            <Stack.Screen name="period-custom" options={fitToContentSheetOptions} />
-            <Stack.Screen name="order-period" options={fitToContentSheetOptions} />
-            <Stack.Screen name="order-period-custom" options={fitToContentSheetOptions} />
-            <Stack.Screen name="report-period" options={fitToContentSheetOptions} />
-            <Stack.Screen name="report-period-custom" options={fitToContentSheetOptions} />
+            {/* Dashboard, siparişler ve raporlar aynı dönem sheet'ini kullanır (scope parametresi) */}
+            <Stack.Screen name="period/[scope]" options={fitToContentSheetOptions} />
+            <Stack.Screen name="period-custom/[scope]" options={fitToContentSheetOptions} />
             <Stack.Screen name="product-catalog" options={fitToContentSheetOptions} />
             <Stack.Screen
               name="product-images"

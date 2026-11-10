@@ -6,7 +6,8 @@ import Search from 'lucide-react-native/icons/search';
 import X from 'lucide-react-native/icons/x';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import TextInput from '@/components/ui/TextInput';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 type SearchBarProps = {
   value: string;
@@ -62,8 +63,11 @@ function createStyles(colors: AppColors) {
       borderColor: colors.border,
       backgroundColor: colors.surface,
     },
+    // TextInput'a lineHeight verilmez: yazarken metin aşağı kayar ve g, y gibi harflerin
+    // alt kısmı kesilir. Preset'ten yalnızca font ailesi ve boyutu alınır.
     input: {
-      ...typography.bodySmall,
+      fontFamily: typography.bodySmall.fontFamily,
+      fontSize: typography.bodySmall.fontSize,
       flex: 1,
       paddingVertical: 0,
       color: colors.text,

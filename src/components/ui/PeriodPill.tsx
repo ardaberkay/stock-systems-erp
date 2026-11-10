@@ -6,7 +6,8 @@ import Calendar from 'lucide-react-native/icons/calendar';
 import ChevronDown from 'lucide-react-native/icons/chevron-down';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import Text from '@/components/ui/Text';
+import { Pressable, StyleSheet } from 'react-native';
 
 type PeriodPillProps = {
   label: string;

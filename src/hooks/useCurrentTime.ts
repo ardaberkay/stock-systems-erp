@@ -1,20 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
-import { AppState } from 'react-native';
+import { useClockStore } from '@/stores/clockStore';
 
-// Uygulama açık kalsa bile "bugün" eskimesin diye öne gelince yenilenir.
+// Tüm ekranlar ve hook'lar aynı "şimdi"yi okur (bkz. clockStore).
 export function useCurrentTime() {
-  const [now, setNow] = useState(() => new Date());
-  const refreshNow = useCallback(() => setNow(new Date()), []);
-
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (status) => {
-      if (status === 'active') {
-        refreshNow();
-      }
-    });
-
-    return () => subscription.remove();
-  }, [refreshNow]);
+  const now = useClockStore((state) => state.now);
+  const refreshNow = useClockStore((state) => state.refreshNow);
 
   return { now, refreshNow };
 }

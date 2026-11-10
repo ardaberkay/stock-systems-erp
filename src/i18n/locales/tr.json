@@ -680,7 +680,6 @@
                 "removeVariant": "Varyantı sil"
             },
             "queued": "Ürün sıraya alındı. Birkaç dakika içinde listede görünecek.",
-            "added": "{{name}} eklendi.",
             "failed": "{{name}} eklenemedi.",
             "stillProcessing": "{{name}} hâlâ işleniyor. Birkaç dakika sonra listeyi yenileyin.",
             "invalid": "Eksik veya hatalı alanlar var.",

@@ -2,7 +2,8 @@ import type { AppColors } from '@/theme/colors';
 import { SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import Text from '@/components/ui/Text';
+import { StyleSheet } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 export type ChartTimeAxisLabel = {

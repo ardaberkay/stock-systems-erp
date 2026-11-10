@@ -1,4 +1,4 @@
-import ProductDetailScreen from '@/screens/StockTab/ProductDetailScreen';
+import ProductDetailScreen from '@/features/products/screens/ProductDetailScreen';
 
 export default function ProductDetail() {
   return <ProductDetailScreen />;

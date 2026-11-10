@@ -1,4 +1,4 @@
-import SettingsScreen from '@/screens/Settings/SettingsScreen';
+import SettingsScreen from '@/features/settings/SettingsScreen';
 
 export default function Settings() {
   return <SettingsScreen />;

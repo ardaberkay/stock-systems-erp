@@ -7,7 +7,8 @@ import { ICON_SIZE, MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
 import Check from 'lucide-react-native/icons/check';
 import { useMemo, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Text from '@/components/ui/Text';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 export type SelectOption = {
   value: string;

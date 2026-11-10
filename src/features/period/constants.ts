@@ -1,0 +1,26 @@
+// Dashboard dönem filtreleri; görünen ad `filters.<anahtar>` çevirisinden gelir.
+// weekly son 7 günü, monthly son 30 günü kapsar; ikisi de bugünü içerir.
+export const PERIODS = ['today', 'yesterday', 'weekly', 'monthly'] as const;
+
+export type Period = (typeof PERIODS)[number];
+
+// Ya hazır bir dönem ya da kullanıcının seçtiği tarih aralığı (tek gün için from === to).
+// Dönem listesi ekrana göre değişir, seçimin biçimi her yerde aynıdır.
+export type PeriodSelection<TPeriod extends string = Period> =
+  | { kind: 'preset'; period: TPeriod }
+  | { kind: 'range'; from: Date; to: Date };
+
+export const DEFAULT_PERIOD_SELECTION: PeriodSelection = { kind: 'preset', period: 'today' };
+
+// API tek istekte en fazla 30 gün kabul eder (MaxQueryRangeIs30Days).
+export const MAX_RANGE_DAYS = 30;
+
+// Dönem seçen ekranlar. Her biri kendi seçimini tutar; seçim sheet'i tek route'tur, hangi ekran
+// için açıldığı route parametresiyle verilir (bkz. usePeriodScope).
+export const PERIOD_SCOPES = ['dashboard', 'orders', 'reports'] as const;
+
+export type PeriodScope = (typeof PERIOD_SCOPES)[number];
+
+export function isPeriodScope(value: unknown): value is PeriodScope {
+  return PERIOD_SCOPES.some((scope) => scope === value);
+}

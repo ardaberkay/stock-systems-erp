@@ -1,4 +1,4 @@
-import StockScreen from '@/screens/StockTab/StockScreen';
+import StockScreen from '@/features/products/screens/StockScreen';
 
 export default function StockRoute() {
     return <StockScreen />;

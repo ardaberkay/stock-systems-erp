@@ -26,6 +26,11 @@ export const LINE_HEIGHT = {
   relaxed: 1.7,
 } as const;
 
+// Telefonun yazı boyutu ayarı metinleri en fazla bu kadar büyütür. Bir-iki kademe büyüten
+// kullanıcı fark görür; en uç ayarlarda (2-3 kat) kartlar ve satırlar taşmaz.
+// Uygulanması: components/ui/Text ve components/ui/TextInput.
+export const MAX_FONT_SCALE = 1.3;
+
 export const typography = StyleSheet.create({
   display: {
     fontFamily: FONT_FAMILY.bold,

@@ -1,4 +1,4 @@
-import OrderScreen from '@/screens/OrdersTab/OrderScreen';
+import OrderScreen from '@/features/orders/screens/OrderScreen';
 
 export default function OrderRoute() {
   return <OrderScreen />;

@@ -3,7 +3,8 @@ import type { AppColors } from '@/theme/colors';
 import { SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import Text from '@/components/ui/Text';
+import { StyleSheet, View } from 'react-native';
 
 type DetailNoteProps = {
   label: string;

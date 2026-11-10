@@ -62,6 +62,11 @@ function enqueue<T>(task: () => Promise<T>, signal?: AbortSignal): Promise<T> {
       await new Promise((resolve) => setTimeout(resolve, wait));
     }
 
+    // Aralık beklenirken iptal edilen istek de gönderilmez; hakkı sıradakine kalır.
+    if (signal?.aborted) {
+      throw new Error('aborted');
+    }
+
     lastRequestAt = Date.now();
     return task();
   };

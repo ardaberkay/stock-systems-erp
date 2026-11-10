@@ -9,7 +9,8 @@ import LogOut from 'lucide-react-native/icons/log-out';
 import Settings from 'lucide-react-native/icons/settings';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import Text from '@/components/ui/Text';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 export default function AppDrawerContent(props: DrawerContentComponentProps) {
   const { t } = useTranslation();

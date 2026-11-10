@@ -3,7 +3,8 @@ import type { AppColors } from '@/theme/colors';
 import { SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
 import { useMemo, type ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import Text from '@/components/ui/Text';
+import { StyleSheet, View } from 'react-native';
 
 type DetailRowProps = {
   label: string;

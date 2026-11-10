@@ -680,7 +680,6 @@
         "removeVariant": "Remove variant"
       },
       "queued": "The product is queued. It will appear in the list within a few minutes.",
-      "added": "{{name}} was added.",
       "failed": "{{name}} could not be added.",
       "stillProcessing": "{{name}} is still being processed. Refresh the list in a few minutes.",
       "invalid": "Some fields are missing or invalid.",

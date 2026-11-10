@@ -4,7 +4,8 @@ import { ICON_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
 import type { LucideIcon } from 'lucide-react-native';
 import { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import Text from '@/components/ui/Text';
+import { StyleSheet, View } from 'react-native';
 
 export type ChartReadoutItem = {
   key: string;

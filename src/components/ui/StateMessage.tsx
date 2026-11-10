@@ -4,7 +4,8 @@ import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Text from '@/components/ui/Text';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 type StateMessageProps = {
   message: string;

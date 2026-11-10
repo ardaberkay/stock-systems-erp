@@ -3,11 +3,11 @@ import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
 import { useMemo } from 'react';
+import Text from '@/components/ui/Text';
 import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
-  Text,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';

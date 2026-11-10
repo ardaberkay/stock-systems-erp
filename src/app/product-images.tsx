@@ -1,4 +1,4 @@
-import ProductImagesModal from '@/components/modals/ProductImagesModal';
+import ProductImagesModal from '@/features/products/components/ProductImagesModal';
 
 export default function ProductImages() {
   return <ProductImagesModal />;

@@ -1,4 +1,4 @@
-import OrderFilterModal from '@/components/modals/OrderFilterModal';
+import OrderFilterModal from '@/features/orders/components/OrderFilterModal';
 
 export default function OrderFilters() {
   return <OrderFilterModal />;
