@@ -10,7 +10,7 @@ import Award from 'lucide-react-native/icons/award';
 import CircleCheck from 'lucide-react-native/icons/circle-check';
 import CircleOff from 'lucide-react-native/icons/circle-off';
 import Coins from 'lucide-react-native/icons/coins';
-import Eye from 'lucide-react-native/icons/eye';
+import Info from 'lucide-react-native/icons/info';
 import Folder from 'lucide-react-native/icons/folder';
 import Pencil from 'lucide-react-native/icons/pencil';
 import Trash from 'lucide-react-native/icons/trash';
@@ -103,7 +103,7 @@ export default function ProductCardDetails({ product, colors, locale }: ProductC
           }
           style={[styles.actionButton, styles.outlineButton]}
         >
-          <Eye size={ICON_SIZE.sm} color={colors.text} />
+          <Info size={ICON_SIZE.sm} color={colors.text} />
           <Text style={styles.actionText}>{t('stock.openDetail')}</Text>
         </Pressable>
 

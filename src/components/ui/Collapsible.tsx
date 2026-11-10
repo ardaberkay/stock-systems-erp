@@ -7,7 +7,9 @@ type CollapsibleProps = {
   children: ReactNode;
 };
 
-const DURATION_MS = 220;
+// Dışarı açık: listeler yeni satır çizimini bu sürenin sonrasına erteleyebilsin
+export const COLLAPSE_DURATION_MS = 220;
+const DURATION_MS = COLLAPSE_DURATION_MS;
 
 // Perde gibi açılır. İçerik ilk açılışta çizilir: kapalı yüzlerce kart boşuna ölçülmez.
 // Yükseklik state yerine shared value'da durur; ölçüm React'i yeniden çizdirmez.

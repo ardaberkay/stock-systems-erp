@@ -1,6 +1,7 @@
 import ProductCard from "@/features/products/components/ProductCard";
 import ProductCardSkeleton from "@/features/products/components/ProductCardSkeleton";
 import Skeleton from "@/components/ui/Skeleton";
+import { COLLAPSE_DURATION_MS } from "@/components/ui/Collapsible";
 import FloatingActionButton from "@/components/ui/FloatingActionButton";
 import SearchFilterBar from "@/components/ui/SearchFilterBar";
 import StateMessage from "@/components/ui/StateMessage";
@@ -52,6 +53,8 @@ const SKELETON_CARD_KEYS = ["first", "second", "third", "fourth"];
 const FAB_SPACE = 88;
 // Liste panelin köşe yuvarlaklığı kadar altına girer; köşelerde arkadaki kartlar görünür
 const HEADER_OVERLAP = RADIUS.xxl;
+// Perde animasyonu bitsin, sonra yeni kartlar çizilsin (bkz. FlatList updateCellsBatchingPeriod)
+const LIST_BATCH_DELAY_MS = COLLAPSE_DURATION_MS + 30;
 
 export default function StockScreen() {
   const { t } = useTranslation();
@@ -175,6 +178,9 @@ export default function StockScreen() {
           initialNumToRender={6}
           maxToRenderPerBatch={4}
           windowSize={5}
+          // Perde kapanınca liste kısalır ve alttan yeni kartlar çizilir; varsayılan 50 ms'de bu
+          // çizim animasyonun ortasına denk gelip takılma yapıyordu. Animasyon bitince çizilir.
+          updateCellsBatchingPeriod={LIST_BATCH_DELAY_MS}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
