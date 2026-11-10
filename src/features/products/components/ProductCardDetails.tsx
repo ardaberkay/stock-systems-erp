@@ -10,9 +10,11 @@ import Award from 'lucide-react-native/icons/award';
 import CircleCheck from 'lucide-react-native/icons/circle-check';
 import CircleOff from 'lucide-react-native/icons/circle-off';
 import Coins from 'lucide-react-native/icons/coins';
+import Eye from 'lucide-react-native/icons/eye';
 import Folder from 'lucide-react-native/icons/folder';
 import Pencil from 'lucide-react-native/icons/pencil';
 import Trash from 'lucide-react-native/icons/trash';
+import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import Text from '@/components/ui/Text';
@@ -89,24 +91,45 @@ export default function ProductCardDetails({ product, colors, locale }: ProductC
       </View>
 
       <View style={styles.actions}>
+        {/* Karta dokunmak perdeyi açar; tüm bilgiler için detay sayfası buradan */}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={t('stock.edit')}
-          onPress={showComingSoon}
-          style={[styles.actionButton, styles.editButton]}
+          accessibilityLabel={t('stock.openDetail')}
+          onPress={() =>
+            router.push({
+              pathname: '/product-detail/[id]',
+              params: { id: String(product.id) },
+            })
+          }
+          style={[styles.actionButton, styles.outlineButton]}
         >
-          <Pencil size={ICON_SIZE.sm} color={colors.text} />
-          <Text style={styles.editText}>{t('stock.edit')}</Text>
+          <Eye size={ICON_SIZE.sm} color={colors.text} />
+          <Text style={styles.actionText}>{t('stock.openDetail')}</Text>
         </Pressable>
 
         <Pressable
           accessibilityRole="button"
+          accessibilityLabel={t('stock.edit')}
+          onPress={() =>
+            router.push({
+              pathname: '/product-detail/[id]',
+              params: { id: String(product.id), edit: '1' },
+            })
+          }
+          style={[styles.actionButton, styles.outlineButton]}
+        >
+          <Pencil size={ICON_SIZE.sm} color={colors.text} />
+          <Text style={styles.actionText}>{t('stock.edit')}</Text>
+        </Pressable>
+
+        {/* Üç buton dar ekrana sığsın diye silme yalnızca ikon */}
+        <Pressable
+          accessibilityRole="button"
           accessibilityLabel={t('stock.delete')}
           onPress={showComingSoon}
-          style={[styles.actionButton, styles.deleteButton]}
+          style={styles.deleteButton}
         >
-          <Trash size={ICON_SIZE.sm} color={colors.error} />
-          <Text style={styles.deleteText}>{t('stock.delete')}</Text>
+          <Trash size={ICON_SIZE.md} color={colors.error} />
         </Pressable>
       </View>
     </View>
@@ -161,21 +184,21 @@ function createStyles(colors: AppColors) {
       gap: SPACING.xs,
       borderRadius: RADIUS.md,
     },
-    editButton: {
+    outlineButton: {
       borderWidth: 1,
       borderColor: colors.border,
     },
     deleteButton: {
+      width: MIN_TOUCH_SIZE,
+      minHeight: MIN_TOUCH_SIZE,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: RADIUS.md,
       backgroundColor: colors.errorBackground,
     },
-    editText: {
+    actionText: {
       ...typography.label,
       color: colors.text,
-      fontFamily: FONT_FAMILY.semiBold,
-    },
-    deleteText: {
-      ...typography.label,
-      color: colors.error,
       fontFamily: FONT_FAMILY.semiBold,
     },
   });

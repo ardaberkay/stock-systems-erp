@@ -7,7 +7,9 @@
     "cancel": "Cancel",
     "back": "Back",
     "clear": "Clear",
-    "comingSoon": "This feature is coming soon."
+    "comingSoon": "This feature is coming soon.",
+    "increase": "Increase",
+    "decrease": "Decrease"
   },
   "errors": {
     "config": "Server address is not configured.",
@@ -74,9 +76,9 @@
     "paymentTitle": "Payment type",
     "cargoTitle": "Cargo company",
     "partnerTitle": "Sales partner",
-    "detailTitle": "Order details",
-    "editTitle": "Edit order",
-    "newTitle": "New order",
+    "detailTitle": "Order Details",
+    "editTitle": "Edit Order",
+    "newTitle": "New Order",
     "create": {
       "steps": {
         "products": "Products",
@@ -444,7 +446,6 @@
       "cargoSteps": "Shipment tracking",
       "cargoStepsEmpty": "No tracking information yet.",
       "openProduct": "Open product details for {{name}}",
-      "productDetailTitle": "Product details",
       "city": "Province",
       "district": "District",
       "partner": "Sales partner",
@@ -581,6 +582,7 @@
     "type": "Type",
     "category": "Category",
     "status": "Status",
+    "openDetail": "Details",
     "edit": "Edit",
     "delete": "Delete",
     "filterTitle": "Filters",
@@ -614,7 +616,7 @@
       "brands": "Brands"
     },
     "create": {
-      "title": "New product",
+      "title": "New Product",
       "steps": {
         "info": "Details",
         "price": "Price",
@@ -626,10 +628,10 @@
       "requiredNote": "Fields marked with * are required.",
       "sections": {
         "general": "General information",
-        "extras": "Other information",
+        "classification": "Classification",
+        "status": "Sales status",
         "pricing": "Sale price",
         "costs": "Cost",
-        "tax": "Tax",
         "affiliate": "Reseller",
         "color": "Color and model",
         "variants": "Variants"
@@ -645,17 +647,14 @@
         "categories": "Categories",
         "selectCategories": "Select categories",
         "searchCategories": "Search categories",
-        "categoriesHint": "You can select more than one category.",
-        "mainCategory": "Main category",
         "gender": "Gender",
         "description": "Description",
         "active": "Active",
         "activeHint": "Inactive products are not shown for sale.",
         "salePrice": "Sale price",
         "listPrice": "Market price",
-        "costPrice": "Cost 1",
+        "costPrice": "Cost",
         "costPrice2": "Cost 2",
-        "costPrice3": "Cost 3",
         "taxRate": "VAT rate",
         "selectTaxRate": "Select a VAT rate",
         "taxRateOption": "{{value}}%",
@@ -693,7 +692,34 @@
         "barcode": "The barcode must be a valid 13-digit EAN-13.",
         "noVariants": "Add at least one variant.",
         "duplicateSize": "This variant is already added.",
+        "duplicateBarcode": "This barcode is already used by another variant.",
         "duplicate": "This model code already exists in this color."
+      }
+    },
+    "detail": {
+      "title": "Product Details",
+      "notFound": "Product not found. It may have been deleted.",
+      "noImages": "No images.",
+      "noVariants": "No variants.",
+      "cover": "Cover",
+      "imageLabel": "{{name}}, image {{index}}",
+      "tabs": {
+        "info": "Info",
+        "price": "Price",
+        "variants": "Variants"
+      }
+    },
+    "editMode": {
+      "title": "Edit Product",
+      "makeCover": "Set as cover",
+      "addImage": "Add image",
+      "barcodePlaceholder": "Can be left empty",
+      "removeVariantTitle": "Delete variant {{name}}?",
+      "removeVariantMessage": "When you save, the variant is deleted permanently and will not appear in the panel archive either.",
+      "partialTitle": "Saving stopped halfway",
+      "partialMessage": "{{saved}} of {{total}} changes were saved. The unsaved ones are still in the form; you can save again.",
+      "errors": {
+        "notSaved": "This variant could not be saved. Try saving again."
       }
     }
   },

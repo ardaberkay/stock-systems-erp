@@ -6,16 +6,16 @@ import SwitchRow from '@/components/ui/form/SwitchRow';
 import TextField from '@/components/ui/form/TextField';
 import DetailSection from '@/components/ui/DetailSection';
 import { ACTIVE_CATEGORY_STATUS } from '@/features/products/constants/productCreate';
-import type { ProductCreateFormInput } from '@/features/products/schemas/productCreate';
+import type { ProductBaseFormInput } from '@/features/products/schemas/productCreate';
 import { getCategoryOptions, toSortedOptions } from '@/features/products/utils/catalog';
 import { useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-// 1. adım: ürünün tüm renklerinde ortak kalan bilgiler
+// 1. adım: ürünün tüm renklerinde ortak kalan bilgiler. Düzenlemenin Bilgi bölümü de budur.
 export default function ProductInfoStep() {
   const { t } = useTranslation();
-  const { control } = useFormContext<ProductCreateFormInput>();
+  const { control } = useFormContext<ProductBaseFormInput>();
   const brandQuery = useBrands();
   const typeQuery = useProductTypes();
   const categoryQuery = useCategories();
@@ -67,6 +67,23 @@ export default function ProductInfoStep() {
         />
         <Controller
           control={control}
+          name="description"
+          render={({ field: { value, onChange, onBlur } }) => (
+            <TextField
+              label={t('stock.create.fields.description')}
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              multiline
+              autoCapitalize="sentences"
+            />
+          )}
+        />
+      </DetailSection>
+
+      <DetailSection title={t('stock.create.sections.classification')}>
+        <Controller
+          control={control}
           name="typeId"
           render={({ field: { value, onChange }, fieldState: { error } }) => (
             <PickerField
@@ -92,7 +109,6 @@ export default function ProductInfoStep() {
               label={t('stock.create.fields.categories')}
               placeholder={t('stock.create.fields.selectCategories')}
               searchPlaceholder={t('stock.create.fields.searchCategories')}
-              hint={t('stock.create.fields.categoriesHint')}
               values={value}
               options={categoryOptions}
               isLoading={categoryQuery.isPending}
@@ -102,25 +118,10 @@ export default function ProductInfoStep() {
             />
           )}
         />
-        {/* API ana kategoriyi seçtirmiyor; panel kendisi belirliyor */}
-        <ComingSoonRow label={t('stock.create.fields.mainCategory')} />
+        <ComingSoonRow label={t('stock.create.fields.gender')} />
       </DetailSection>
 
-      <DetailSection title={t('stock.create.sections.extras')}>
-        <Controller
-          control={control}
-          name="description"
-          render={({ field: { value, onChange, onBlur } }) => (
-            <TextField
-              label={t('stock.create.fields.description')}
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              multiline
-              autoCapitalize="sentences"
-            />
-          )}
-        />
+      <DetailSection title={t('stock.create.sections.status')}>
         <Controller
           control={control}
           name="active"
@@ -133,7 +134,6 @@ export default function ProductInfoStep() {
             />
           )}
         />
-        <ComingSoonRow label={t('stock.create.fields.gender')} />
       </DetailSection>
     </>
   );

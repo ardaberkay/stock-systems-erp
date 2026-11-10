@@ -7,7 +7,9 @@
         "cancel": "Vazgeç",
         "back": "Geri",
         "clear": "Temizle",
-        "comingSoon": "Bu özellik yakında eklenecek."
+        "comingSoon": "Bu özellik yakında eklenecek.",
+        "increase": "Artır",
+        "decrease": "Azalt"
     },
     "errors": {
         "config": "Sunucu adresi ayarlanmamış.",
@@ -74,9 +76,9 @@
         "paymentTitle": "Ödeme türü",
         "cargoTitle": "Kargo firması",
         "partnerTitle": "Satış ortağı",
-        "detailTitle": "Sipariş detayı",
-        "editTitle": "Siparişi düzenle",
-        "newTitle": "Yeni sipariş",
+        "detailTitle": "Sipariş Detayı",
+        "editTitle": "Siparişi Düzenle",
+        "newTitle": "Yeni Sipariş",
         "create": {
             "steps": {
                 "products": "Ürünler",
@@ -444,7 +446,6 @@
             "cargoSteps": "Kargo hareketleri",
             "cargoStepsEmpty": "Kargo takip bilgisi henüz yok.",
             "openProduct": "{{name}} ürün detayını aç",
-            "productDetailTitle": "Ürün detayı",
             "city": "İl",
             "district": "İlçe",
             "partner": "Satış ortağı",
@@ -581,6 +582,7 @@
         "type": "Tip",
         "category": "Kategori",
         "status": "Durum",
+        "openDetail": "Detay",
         "edit": "Düzenle",
         "delete": "Sil",
         "filterTitle": "Filtreler",
@@ -614,7 +616,7 @@
             "brands": "Markalar"
         },
         "create": {
-            "title": "Yeni ürün",
+            "title": "Yeni Ürün",
             "steps": {
                 "info": "Bilgiler",
                 "price": "Fiyat",
@@ -626,10 +628,10 @@
             "requiredNote": "* ile işaretli alanlar zorunludur.",
             "sections": {
                 "general": "Genel bilgiler",
-                "extras": "Diğer bilgiler",
+                "classification": "Sınıflandırma",
+                "status": "Satış durumu",
                 "pricing": "Satış fiyatı",
                 "costs": "Maliyet",
-                "tax": "Vergi",
                 "affiliate": "Bayi",
                 "color": "Renk ve model",
                 "variants": "Varyantlar"
@@ -645,17 +647,14 @@
                 "categories": "Kategoriler",
                 "selectCategories": "Kategori seçin",
                 "searchCategories": "Kategori ara",
-                "categoriesHint": "Birden fazla kategori seçebilirsiniz.",
-                "mainCategory": "Ana kategori",
                 "gender": "Cinsiyet",
                 "description": "Açıklama",
                 "active": "Aktif",
                 "activeHint": "Pasif ürün satışta görünmez.",
                 "salePrice": "Satış fiyatı",
                 "listPrice": "Piyasa fiyatı",
-                "costPrice": "Maliyet 1",
+                "costPrice": "Maliyet",
                 "costPrice2": "Maliyet 2",
-                "costPrice3": "Maliyet 3",
                 "taxRate": "KDV oranı",
                 "selectTaxRate": "KDV oranı seçin",
                 "taxRateOption": "%{{value}}",
@@ -674,7 +673,7 @@
                 "barcode": "Barkod",
                 "barcodePlaceholder": "Otomatik üretilir",
                 "shelf": "Raf",
-                "variantTitle": "{{index}}. varyant",
+                "variantTitle": "Varyant {{index}}",
                 "moreFields": "Diğer alanlar",
                 "addVariant": "Varyant ekle",
                 "removeVariant": "Varyantı sil"
@@ -693,7 +692,34 @@
                 "barcode": "Barkod 13 haneli geçerli bir EAN-13 olmalı.",
                 "noVariants": "En az bir varyant ekleyin.",
                 "duplicateSize": "Bu varyant zaten eklendi.",
+                "duplicateBarcode": "Bu barkod başka bir varyantta var.",
                 "duplicate": "Bu model kodu bu renkte zaten var."
+            }
+        },
+        "detail": {
+            "title": "Ürün Detayı",
+            "notFound": "Ürün bulunamadı. Silinmiş olabilir.",
+            "noImages": "Görsel yok.",
+            "noVariants": "Varyant yok.",
+            "cover": "Kapak",
+            "imageLabel": "{{name}}, {{index}}. görsel",
+            "tabs": {
+                "info": "Bilgi",
+                "price": "Fiyat",
+                "variants": "Varyantlar"
+            }
+        },
+        "editMode": {
+            "title": "Ürünü Düzenle",
+            "makeCover": "Kapak yap",
+            "addImage": "Görsel ekle",
+            "barcodePlaceholder": "Boş bırakılabilir",
+            "removeVariantTitle": "{{name}} varyantı silinsin mi?",
+            "removeVariantMessage": "Kaydedince varyant kalıcı olarak silinir ve panelde arşivde de görünmez.",
+            "partialTitle": "Kaydetme yarıda kaldı",
+            "partialMessage": "{{total}} değişiklikten {{saved}} tanesi kaydedildi. Kaydedilemeyenler formda duruyor; tekrar kaydedebilirsin.",
+            "errors": {
+                "notSaved": "Bu varyant kaydedilemedi. Tekrar kaydetmeyi dene."
             }
         }
     },

@@ -1,12 +1,13 @@
 import ComingSoonRow from '@/components/ui/form/ComingSoonRow';
 import MoneyField from '@/components/ui/form/MoneyField';
+import StepperField from '@/components/ui/form/StepperField';
 import TextField from '@/components/ui/form/TextField';
 import AnimatedChevron from '@/components/ui/AnimatedChevron';
 import Collapsible from '@/components/ui/Collapsible';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import type { ProductCreateFormInput } from '@/features/products/schemas/productCreate';
+import type { ProductVariantsFormInput } from '@/features/products/schemas/productCreate';
 import type { AppColors } from '@/theme/colors';
-import { ICON_SIZE, MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
+import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
 import { EAN13_LENGTH } from '@/features/products/utils/productCreate';
 import Trash from 'lucide-react-native/icons/trash';
@@ -21,15 +22,26 @@ type VariantRowProps = {
   // Tek varyant kaldıysa silinemez; ürünün en az bir varyantı olmalı
   canRemove: boolean;
   onRemove: () => void;
+  // Eklemede boş barkodu sunucu üretir, düzenlemede yeni varyantta boş kalır
+  barcodePlaceholder: string;
+  // Verilmezse "Diğer alanlar" içi doluysa açık gelir (eklemede adım değişince değer gizlenmesin).
+  // Düzenlemede kayıtlı her varyantın barkodu dolu olduğu için kapalı başlatılır.
+  initiallyExpanded?: boolean;
 };
 
-// Bir varyantın satırı. Zorunlu olan varyant adı ve stok hep görünür; özel fiyat, barkod ve
-// raf "Diğer alanlar"ın altında durur ki liste uzamasın.
-export default function VariantRow({ index, canRemove, onRemove }: VariantRowProps) {
+// Bir varyantın satırı; ürün ekleme ve düzenleme formunda ortak. Zorunlu olan varyant adı ve
+// stok hep görünür; özel fiyat, barkod ve raf "Diğer alanlar"ın altında durur ki liste uzamasın.
+export default function VariantRow({
+  index,
+  canRemove,
+  onRemove,
+  barcodePlaceholder,
+  initiallyExpanded,
+}: VariantRowProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { control, formState } = useFormContext<ProductCreateFormInput>();
+  const { control, formState } = useFormContext<ProductVariantsFormInput>();
   const [price, barcode] = useWatch({
     control,
     name: [`variants.${index}.price`, `variants.${index}.barcode`],
@@ -38,7 +50,7 @@ export default function VariantRow({ index, canRemove, onRemove }: VariantRowPro
   const optionalErrors = formState.errors.variants?.[index];
   const hasOptionalContent =
     Boolean(price || barcode) || Boolean(optionalErrors?.price || optionalErrors?.barcode);
-  const [isExpanded, setIsExpanded] = useState(hasOptionalContent);
+  const [isExpanded, setIsExpanded] = useState(initiallyExpanded ?? hasOptionalContent);
   const showOptional = isExpanded || Boolean(optionalErrors?.price || optionalErrors?.barcode);
   const title = t('stock.create.fields.variantTitle', { index: index + 1 });
 
@@ -47,7 +59,10 @@ export default function VariantRow({ index, canRemove, onRemove }: VariantRowPro
   return (
     <View style={[styles.row, index > 0 && styles.divided]}>
       <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
+        {/* Yalnızca sıra numarası görünür; ekran okuyucu "Varyant 1" der */}
+        <View accessible accessibilityRole="header" accessibilityLabel={title} style={styles.badge}>
+          <Text style={styles.badgeText}>{index + 1}</Text>
+        </View>
         {canRemove ? (
           <Pressable
             accessibilityRole="button"
@@ -83,12 +98,11 @@ export default function VariantRow({ index, canRemove, onRemove }: VariantRowPro
             control={control}
             name={`variants.${index}.quantity`}
             render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
-              <TextField
+              <StepperField
                 label={t('stock.create.fields.quantity')}
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
-                keyboardType="number-pad"
                 required
                 error={translateError(error?.message)}
               />
@@ -133,7 +147,7 @@ export default function VariantRow({ index, canRemove, onRemove }: VariantRowPro
                 onChangeText={onChange}
                 onBlur={onBlur}
                 keyboardType="number-pad"
-                placeholder={t('stock.create.fields.barcodePlaceholder')}
+                placeholder={barcodePlaceholder}
                 maxLength={EAN13_LENGTH}
                 error={translateError(error?.message)}
               />
@@ -162,7 +176,14 @@ function createStyles(colors: AppColors) {
       alignItems: 'center',
       justifyContent: 'space-between',
     },
-    title: {
+    badge: {
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.xs,
+      borderRadius: RADIUS.full,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    badgeText: {
       ...typography.label,
       fontFamily: FONT_FAMILY.semiBold,
       color: colors.text,

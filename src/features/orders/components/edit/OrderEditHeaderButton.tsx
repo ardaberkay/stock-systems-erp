@@ -21,7 +21,8 @@ export default function OrderEditHeaderButton() {
       hitSlop={EDIT_HIT_SLOP}
       onPress={() => router.setParams({ edit: '1' })}
     >
-      <Pencil size={ICON_SIZE.md} color={colors.icon} />
+      {/* Başlık çubuğundaki geri oku ve başlıkla aynı renk (headerTintColor) */}
+      <Pencil size={ICON_SIZE.md} color={colors.text} />
     </Pressable>
   );
 }

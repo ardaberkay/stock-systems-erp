@@ -80,6 +80,7 @@ export default function ProductVariantsStep() {
             index={index}
             canRemove={fields.length > 1}
             onRemove={() => remove(index)}
+            barcodePlaceholder={t('stock.create.fields.barcodePlaceholder')}
           />
         ))}
         {variantsError ? <Text style={styles.error}>{t(variantsError)}</Text> : null}

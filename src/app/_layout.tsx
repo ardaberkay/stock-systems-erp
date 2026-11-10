@@ -1,4 +1,5 @@
 import OrderEditHeaderButton from '@/features/orders/components/edit/OrderEditHeaderButton';
+import ProductEditHeaderButton from '@/features/products/components/edit/ProductEditHeaderButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useStoresHydrated } from '@/hooks/useStoresHydrated';
 import '@/i18n';
@@ -103,7 +104,11 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="product-detail/[id]"
-              options={{ ...pushedScreenOptions, title: t('orders.detail.productDetailTitle') }}
+              options={{
+                ...pushedScreenOptions,
+                title: t('stock.detail.title'),
+                headerRight: () => <ProductEditHeaderButton />,
+              }}
             />
             <Stack.Screen
               name="report-detail/[id]"

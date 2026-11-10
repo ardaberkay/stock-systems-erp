@@ -55,6 +55,8 @@ export const lightColors = {
     icon: '#888782',
     iconActive: '#F97316',
     iconDisabled: '#B8B4AD',
+    // Görselin üstündeki rozet (kapak yıldızı): görsel temadan bağımsız olduğu için iki temada da beyaz
+    imageBadge: '#FFFFFF',
 
     // Durum renkleri
     success: '#16865C',
@@ -138,6 +140,7 @@ export const darkColors = {
     icon: '#A3A3A3',
     iconActive: '#F97316',
     iconDisabled: '#666666',
+    imageBadge: '#FFFFFF',
 
     // Durum renkleri
     success: '#4CCB91',

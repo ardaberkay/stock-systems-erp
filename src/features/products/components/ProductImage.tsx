@@ -12,7 +12,8 @@ type ProductImageProps = {
   size?: number;
 };
 
-const DEFAULT_IMAGE_SIZE = 100;
+// Görsel yokken yerine konan kutular da (ör. görsel ekleme) aynı boyda olsun diye dışarı açık
+export const DEFAULT_IMAGE_SIZE = 100;
 const FADE_DURATION_MS = 100;
 
 // Görsel yoksa, yüklenirken veya adres bozuksa nötr varsayılan alan görünür.

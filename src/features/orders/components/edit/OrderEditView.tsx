@@ -30,13 +30,22 @@ import {
   getTabsWithErrors,
 } from '@/features/orders/utils/orderEdit';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Stack, useNavigation, usePreventRemove } from 'expo-router';
+import { Stack, useFocusEffect, useNavigation, usePreventRemove } from 'expo-router';
+import type { TFunction } from 'i18next';
 import Check from 'lucide-react-native/icons/check';
 import X from 'lucide-react-native/icons/x';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  BackHandler,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type OrderEditViewProps = {
@@ -53,6 +62,13 @@ type OrderEditViewProps = {
 
 // İkon 24; dokunma alanı 44'e tamamlanır
 const HEADER_BUTTON_HIT_SLOP = (MIN_TOUCH_SIZE - ICON_SIZE.lg) / 2;
+
+function confirmDiscard(t: TFunction, onDiscard: () => void) {
+  Alert.alert(t('orders.editMode.discardTitle'), t('orders.editMode.discardMessage'), [
+    { text: t('orders.editMode.keepEditing'), style: 'cancel' },
+    { text: t('orders.editMode.discard'), style: 'destructive', onPress: onDiscard },
+  ]);
+}
 
 // Detay sayfasının düzenleme hali. Üç bölüm tek formu paylaşır, tek "Kaydet" hepsini gönderir.
 // Form yalnızca bu mod açıkken vardır; okuma halinde hiçbir maliyeti yok.
@@ -141,14 +157,8 @@ export default function OrderEditView({
     });
   };
 
-  const confirmDiscard = (onDiscard: () => void) => {
-    Alert.alert(t('orders.editMode.discardTitle'), t('orders.editMode.discardMessage'), [
-      { text: t('orders.editMode.keepEditing'), style: 'cancel' },
-      { text: t('orders.editMode.discard'), style: 'destructive', onPress: onDiscard },
-    ]);
-  };
-
-  // Moddan çıkınca başlık okuma haline döner: geri oku, sayfa adı ve kalem (rota tanımındakiyle aynı)
+  // Moddan çıkınca başlık okuma haline döner: geri oku, sayfa adı, kalem ve kaydırarak geri dönme
+  // (rota tanımındakiyle aynı)
   useEffect(
     () => () =>
       navigation.setOptions({
@@ -156,22 +166,40 @@ export default function OrderEditView({
         headerBackVisible: true,
         headerLeft: undefined,
         headerRight: () => <OrderEditHeaderButton />,
+        gestureEnabled: true,
       }),
     [navigation, t],
   );
 
-  // Geri tuşu, iOS kaydırma hareketi ve geri butonu: kaydedilmemiş değişiklik varsa sorulur
+  // Düzenlemede sayfadan çıkan yollar kapalı (aşağıda); bu yalnızca başka bir yoldan kapanırsa
+  // (ör. bildirimden başka sayfaya gidiş) kaydedilmemiş değişikliği sorar
   usePreventRemove(isDirty && !isSaving, ({ data }) => {
-    confirmDiscard(() => navigation.dispatch(data.action));
+    confirmDiscard(t, () => navigation.dispatch(data.action));
   });
 
-  const cancel = () => {
+  // Effect bağımlılığı olduğu için sabit tutulur
+  const cancel = useCallback(() => {
     if (isDirty) {
-      confirmDiscard(onExit);
+      confirmDiscard(t, onExit);
       return;
     }
     onExit();
-  };
+  }, [isDirty, onExit, t]);
+
+  // Android geri hareketi sayfadan çıkmaz, X gibi düzenlemeden çıkar. Odakta değilken (picker
+  // sheet'i açıkken) devreye girmez; geri hareketi önce sheet'i kapatır.
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+        if (!isSaving) {
+          cancel();
+        }
+        return true;
+      });
+
+      return () => subscription.remove();
+    }, [cancel, isSaving]),
+  );
 
   // Sunucu bir alanı reddettiyse alan işaretlenir ve bölümüne geçilir; diğer hatalar pencerede
   const showSaveError = (error: unknown) => {
@@ -221,6 +249,8 @@ export default function OrderEditView({
         options={{
           title: t('orders.editTitle'),
           headerBackVisible: false,
+          // iOS'ta kaydırarak geri dönülmez; native kaydırma bitince JS durduramıyor, uyarı döngüye giriyordu
+          gestureEnabled: false,
           headerLeft: () => (
             <Pressable
               accessibilityRole="button"
@@ -229,7 +259,7 @@ export default function OrderEditView({
               disabled={isSaving}
               onPress={cancel}
             >
-              <X size={ICON_SIZE.lg} color={isSaving ? colors.iconDisabled : colors.icon} />
+              <X size={ICON_SIZE.lg} color={isSaving ? colors.iconDisabled : colors.text} />
             </Pressable>
           ),
           headerRight: () =>

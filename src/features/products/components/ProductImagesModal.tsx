@@ -1,4 +1,4 @@
-import { useProducts } from '@/features/products/api/products';
+import { useProduct } from '@/features/products/api/products';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
@@ -33,15 +33,13 @@ export default function ProductImagesModal() {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { width } = useWindowDimensions();
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const { data: products } = useProducts();
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const images = useMemo(() => {
-    const product = products?.find((item) => String(item.id) === id);
-
-    return product ? getProductImages(product) : [];
-  }, [products, id]);
+  // index: detay sayfasında dokunulan görsel; galeri oradan açılır
+  const { id, index } = useLocalSearchParams<{ id: string; index?: string }>();
+  // Katalog bellekteyse oradan gelir; sipariş detayından açılan üründe katalog olmayabilir
+  const { data: product } = useProduct(Number(id));
+  const images = product ? getProductImages(product) : [];
+  const [startIndex] = useState(() => Math.max(Number(index) || 0, 0));
+  const [activeIndex, setActiveIndex] = useState(startIndex);
 
   const handleScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     setActiveIndex(Math.round(event.nativeEvent.contentOffset.x / width));
@@ -67,11 +65,16 @@ export default function ProductImagesModal() {
       </View>
 
       <FlatList
+        // Ürün sonradan yüklenirse liste yeniden kurulur ki başlangıç görseline atlansın
+        key={images.length}
         data={images}
         keyExtractor={(image) => image}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
+        // Her sayfa ekran genişliğinde; başlangıç görseline ölçmeden atlanır
+        initialScrollIndex={startIndex < images.length ? startIndex : 0}
+        getItemLayout={(_, itemIndex) => ({ length: width, offset: width * itemIndex, index: itemIndex })}
         onMomentumScrollEnd={handleScrollEnd}
         renderItem={({ item }) => (
           <Pressable accessible={false} onPress={close} style={[styles.page, { width }]}>
