@@ -31,6 +31,16 @@ export const PRODUCT_STATUS = {
   active: 1,
 } as const;
 
+// Kategoride 0 üst kategorisi olmayan, ana kategori demektir.
+export const ROOT_CATEGORY_ID = 0;
+
+// Kategori durumu (pasif kategori ürün formunda seçilemez) ve görünürlüğü
+export const CATEGORY_STATUS = { active: 1, passive: 0 } as const;
+export const CATEGORY_VISIBILITY = { visible: 1, hidden: 0 } as const;
+
+// Paneldeki yeni kategori formunun varsayılan sırası
+export const DEFAULT_CATEGORY_SORT = 1;
+
 // Bu adet ve altı "az stok" sayılır.
 export const LOW_STOCK_LIMIT = 5;
 

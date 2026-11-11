@@ -5,7 +5,7 @@ import PickerField from '@/features/picker/components/PickerField';
 import SwitchRow from '@/components/ui/form/SwitchRow';
 import TextField from '@/components/ui/form/TextField';
 import DetailSection from '@/components/ui/DetailSection';
-import { ACTIVE_CATEGORY_STATUS } from '@/features/products/constants/productCreate';
+import { CATEGORY_STATUS } from '@/features/products/constants/products';
 import type { ProductBaseFormInput } from '@/features/products/schemas/productCreate';
 import { getCategoryOptions, toSortedOptions } from '@/features/products/utils/catalog';
 import { useMemo } from 'react';
@@ -22,7 +22,7 @@ export default function ProductInfoStep() {
   const brandOptions = useMemo(() => toSortedOptions(brandQuery.data ?? []), [brandQuery.data]);
   const typeOptions = useMemo(() => toSortedOptions(typeQuery.data ?? []), [typeQuery.data]);
   const categoryOptions = useMemo(
-    () => getCategoryOptions(categoryQuery.data ?? [], ACTIVE_CATEGORY_STATUS),
+    () => getCategoryOptions(categoryQuery.data ?? [], CATEGORY_STATUS.active),
     [categoryQuery.data],
   );
 

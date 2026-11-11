@@ -4,12 +4,21 @@ import type { CatalogItem } from '@/features/products/schemas/catalog';
 import { getProductColorHex } from '@/features/products/utils/productColor';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
+import { FONT_FAMILY, FONT_SIZE, typography } from '@/theme/typography';
 import { formatNumber } from '@/utils/formatter';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
-import { memo } from 'react';
+import { Fragment, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
+
+export type CatalogSubtitlePart = {
+  text: string;
+  // Varsayılan değeri anlatan parça (ör. "Ana kategori") italik yazılır
+  italic?: boolean;
+};
+
+// Parçalar arasındaki nokta, iki yanında ikişer boşlukla
+const SUBTITLE_SEPARATOR = '  ·  ';
 
 type CatalogItemRowProps = {
   item: CatalogItem;
@@ -18,6 +27,9 @@ type CatalogItemRowProps = {
   onPress: (id: number) => void;
   // Renk listesinde adın önünde renk noktası; eşleşmeyen adda yazılar hizalı kalsın diye boşluk
   showColorDot?: boolean;
+  // Adın altında küçük bilgi satırı (ör. kategoride üst kategori, gizli, pasif); parçalar
+  // aralarına nokta konarak yazılır
+  subtitleParts?: CatalogSubtitlePart[];
   colors: AppColors;
   locale: string;
 };
@@ -42,6 +54,7 @@ function CatalogItemRow({
   productCount,
   onPress,
   showColorDot = false,
+  subtitleParts,
   colors,
   locale,
 }: CatalogItemRowProps) {
@@ -56,7 +69,9 @@ function CatalogItemRow({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={countText ? `${item.name}, ${countText}` : item.name}
+      accessibilityLabel={[item.name, ...(subtitleParts ?? []).map((part) => part.text), countText]
+        .filter(Boolean)
+        .join(', ')}
       accessibilityHint={t('stock.catalogList.editHint')}
       onPress={() => onPress(item.id)}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
@@ -68,9 +83,21 @@ function CatalogItemRow({
           <View style={styles.dotPlaceholder} />
         ))}
 
-      <Text style={styles.name} numberOfLines={2}>
-        {item.name}
-      </Text>
+      <View style={styles.texts}>
+        <Text style={styles.name} numberOfLines={2}>
+          {item.name}
+        </Text>
+        {subtitleParts && subtitleParts.length > 0 && (
+          <Text style={styles.subtitle} numberOfLines={1}>
+            {subtitleParts.map((part, index) => (
+              <Fragment key={part.text}>
+                {index > 0 && <Text style={styles.separator}>{SUBTITLE_SEPARATOR}</Text>}
+                <Text style={part.italic ? styles.italic : undefined}>{part.text}</Text>
+              </Fragment>
+            ))}
+          </Text>
+        )}
+      </View>
 
       {countText && <Text style={styles.count}>{countText}</Text>}
 
@@ -97,10 +124,24 @@ function createStyles(colors: AppColors) {
     dotPlaceholder: {
       width: ICON_SIZE.sm,
     },
+    texts: {
+      flex: 1,
+      gap: SPACING.xxs,
+    },
     name: {
       ...typography.body,
-      flex: 1,
       color: colors.text,
+    },
+    subtitle: {
+      ...typography.caption,
+      color: colors.textSecondary,
+    },
+    // Alt yazıdan bir boy büyük; küçük yazıda nokta kayboluyordu
+    separator: {
+      fontSize: FONT_SIZE.md,
+    },
+    italic: {
+      fontFamily: FONT_FAMILY.italic,
     },
     count: {
       ...typography.caption,

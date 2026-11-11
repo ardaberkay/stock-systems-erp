@@ -46,9 +46,6 @@ export function createProductDefaults(modelCode: string): ProductCreateFormInput
   };
 }
 
-// Panelde aktif kategoriler 1 durumundadır
-export const ACTIVE_CATEGORY_STATUS = 1;
-
 // Ürün ekleme toplu işlemde sırayla işleniyor (test hesabında 10 dakikada bir).
 // Durum bu aralıkla sorulur; süre dolarsa takip bırakılır, ürün yine de oluşabilir.
 export const PRODUCT_BATCH_POLL_MS = 30_000;

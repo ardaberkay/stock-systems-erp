@@ -1,11 +1,19 @@
 import {
+  addBrand,
+  addCategory,
   addColor,
   addProductType,
   catalogKeys,
+  deleteBrand,
+  deleteCategory,
   deleteColor,
   deleteProductType,
+  getBrands,
+  getCategories,
   getColors,
   getProductTypes,
+  updateBrand,
+  updateCategory,
   updateColor,
   updateProductType,
 } from '@/features/products/api/catalog';
@@ -13,9 +21,17 @@ import { productKeys, useProducts } from '@/features/products/api/products';
 import type {
   CatalogItem,
   CatalogKind,
+  Category,
+  CategoryForm,
   ProductColorItem,
 } from '@/features/products/schemas/catalog';
-import { countProductsBy, type CatalogProductField } from '@/features/products/utils/catalog';
+import {
+  countProductsBy,
+  getCategoryChanges,
+  getCategoryFormDefaults,
+  toCategoryPayload,
+  type ProductCatalogIds,
+} from '@/features/products/utils/catalog';
 import { useFocusSubscribed } from '@/hooks/useFocusSubscribed';
 import { CACHE } from '@/lib/cachePolicy';
 import { queryClient } from '@/lib/queryClient';
@@ -24,18 +40,19 @@ import { useMemo } from 'react';
 
 type CatalogResource = {
   queryKey: readonly unknown[];
-  productField: CatalogProductField;
+  getProductIds: ProductCatalogIds;
   get: (signal?: AbortSignal) => Promise<CatalogItem[]>;
   add: (name: string) => Promise<number>;
   update: (id: number, name: string) => Promise<void>;
   remove: (id: number) => Promise<void>;
 };
 
-// Tip, marka, renk ve kategori sayfaları aynı listeyi ve formu kullanır; farkları burada
+// Tip, marka, renk ve kategori sayfaları aynı listeyi kullanır; farkları burada.
+// Kategori formu daha fazla alan içerir ve kendi hook'uyla kaydeder (useSaveCategory).
 const CATALOG_RESOURCES: Record<CatalogKind, CatalogResource> = {
   types: {
     queryKey: catalogKeys.types(),
-    productField: 'typeId',
+    getProductIds: (product) => [product.typeId],
     get: getProductTypes,
     add: addProductType,
     update: updateProductType,
@@ -43,13 +60,31 @@ const CATALOG_RESOURCES: Record<CatalogKind, CatalogResource> = {
   },
   colors: {
     queryKey: catalogKeys.colors(),
-    productField: 'colorId',
+    getProductIds: (product) => [product.colorId],
     get: getColors,
     // Boş kod, sayfanın zaten yüklediği listeden bulunur; ek istek atılmaz
     add: (name) =>
       addColor(name, queryClient.getQueryData<ProductColorItem[]>(catalogKeys.colors()) ?? []),
     update: updateColor,
     remove: deleteColor,
+  },
+  brands: {
+    queryKey: catalogKeys.brands(),
+    // Markasız üründe 0 gelir, sayılmaz
+    getProductIds: (product) => [product.brandId],
+    get: getBrands,
+    add: addBrand,
+    update: updateBrand,
+    remove: deleteBrand,
+  },
+  categories: {
+    queryKey: catalogKeys.categories(),
+    // Bir ürün birden çok kategoride olabilir; her birinde sayılır
+    getProductIds: (product) => product.categories.map((category) => category.categoryId),
+    get: getCategories,
+    add: (name) => addCategory(toCategoryPayload({ ...getCategoryFormDefaults(), name })),
+    update: (id, name) => updateCategory(id, { name }),
+    remove: deleteCategory,
   },
 };
 
@@ -70,11 +105,11 @@ export function useCatalogItems(kind: CatalogKind) {
 // refetchProducts: panelde ürünün tipi değişmiş olabilir; aşağı çekince sayılar da yenilensin
 export function useCatalogProductCounts(kind: CatalogKind) {
   const { data: products, refetch: refetchProducts } = useProducts();
-  const { productField } = CATALOG_RESOURCES[kind];
+  const { getProductIds } = CATALOG_RESOURCES[kind];
 
   const productCounts = useMemo(
-    () => (products ? countProductsBy(products, productField) : undefined),
-    [products, productField],
+    () => (products ? countProductsBy(products, getProductIds) : undefined),
+    [products, getProductIds],
   );
 
   return { productCounts, refetchProducts };
@@ -109,6 +144,50 @@ export function useSaveCatalogItem(kind: CatalogKind) {
       );
       void queryClient.invalidateQueries({ queryKey: resource.queryKey });
       if (id !== undefined) {
+        void queryClient.invalidateQueries({ queryKey: productKeys.all, refetchType: 'none' });
+      }
+    },
+  });
+}
+
+type SaveCategoryVariables = {
+  // Düzenleme açıldığındaki kategori; yoksa yeni kategori eklenir
+  original?: Category;
+  values: CategoryForm;
+};
+
+// Kategori formunun kaydı: düzenlemede yalnızca değişen alanlar gider. Liste diğer sayfalardaki
+// gibi beklemeden güncellenir, sonra arkada yeniden okunur.
+export function useSaveCategory() {
+  const queryClient = useQueryClient();
+  const queryKey = catalogKeys.categories();
+
+  return useMutation({
+    mutationFn: async ({ original, values }: SaveCategoryVariables) => {
+      if (!original) {
+        return addCategory(toCategoryPayload(values));
+      }
+      await updateCategory(original.id, getCategoryChanges(original, values));
+
+      return original.id;
+    },
+    onSuccess: (savedId, { original, values }) => {
+      const { description, ...payload } = toCategoryPayload(values);
+      // Boş açıklama gönderilmediği için eski açıklama sunucuda kalır
+      const saved: Category = {
+        ...original,
+        ...payload,
+        id: savedId,
+        description: description ?? original?.description,
+      };
+
+      queryClient.setQueryData<Category[]>(queryKey, (items = []) =>
+        original
+          ? items.map((item) => (item.id === original.id ? saved : item))
+          : [...items, saved],
+      );
+      void queryClient.invalidateQueries({ queryKey });
+      if (original && original.name.trim() !== payload.name) {
         void queryClient.invalidateQueries({ queryKey: productKeys.all, refetchType: 'none' });
       }
     },

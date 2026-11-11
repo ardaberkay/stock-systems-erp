@@ -10,7 +10,7 @@ import {
   productTypeListSchema,
   type ProductColorItem,
 } from '@/features/products/schemas/catalog';
-import { getFreeColorCode } from '@/features/products/utils/catalog';
+import { getFreeColorCode, type CategoryPayload } from '@/features/products/utils/catalog';
 import { useQuery } from '@tanstack/react-query';
 
 export const catalogKeys = {
@@ -36,32 +36,36 @@ export async function getProductTypes(signal?: AbortSignal) {
   return data;
 }
 
-// Tip kodu zorunlu ve benzersiz ama listede gelmiyor; boş kod aranamadığı için rastgele 4 haneli
-// kod verilir. Çakışırsa sunucu genel bir "logic" hatası döner, bir kez başka kodla denenir.
-const TYPE_CODE_MIN = 1000;
-const TYPE_CODE_RANGE = 9000;
+// Tip ve marka kodu zorunlu ve benzersiz ama listede gelmiyor; boş kod aranamadığı için rastgele
+// 4 haneli kod verilir. Çakışırsa sunucu genel bir "logic" hatası döner, bir kez başka kodla denenir.
+const RANDOM_CODE_MIN = 1000;
+const RANDOM_CODE_RANGE = 9000;
 
-function createTypeCode() {
-  return String(TYPE_CODE_MIN + Math.floor(Math.random() * TYPE_CODE_RANGE));
+function createRandomCode() {
+  return String(RANDOM_CODE_MIN + Math.floor(Math.random() * RANDOM_CODE_RANGE));
 }
 
-function postProductType(name: string, code: string) {
-  return apiClient.post('product/addType', {
+function postNamedItem(path: string, name: string, code: string) {
+  return apiClient.post(path, {
     schema: catalogCreatedSchema,
     arguments: { name, code },
   });
 }
 
-// Yeni tipin id'sini döner
-export async function addProductType(name: string) {
+// Yeni kaydın id'sini döner
+async function addWithRandomCode(path: string, name: string) {
   try {
-    return await postProductType(name, createTypeCode());
+    return await postNamedItem(path, name, createRandomCode());
   } catch (error) {
     if (isApiError(error) && error.kind === 'unknown') {
-      return postProductType(name, createTypeCode());
+      return postNamedItem(path, name, createRandomCode());
     }
     throw error;
   }
+}
+
+export function addProductType(name: string) {
+  return addWithRandomCode('product/addType', name);
 }
 
 export async function updateProductType(id: number, name: string) {
@@ -85,11 +89,26 @@ export async function getColors(signal?: AbortSignal) {
   return data;
 }
 
-function postColor(name: string, code: string) {
-  return apiClient.post('product/addColor', {
-    schema: catalogCreatedSchema,
-    arguments: { name, code },
+export function addBrand(name: string) {
+  return addWithRandomCode('product/addBrand', name);
+}
+
+export async function updateBrand(id: number, name: string) {
+  await apiClient.post('product/updateBrand', {
+    schema: catalogAffectedSchema,
+    arguments: { selectArguments: { id }, updateArguments: { name } },
   });
+}
+
+export async function deleteBrand(id: number) {
+  await apiClient.post('product/deleteBrand', {
+    schema: catalogAffectedSchema,
+    arguments: { id },
+  });
+}
+
+function postColor(name: string, code: string) {
+  return postNamedItem('product/addColor', name, code);
 }
 
 // Yeni rengin id'sini döner. Kod eldeki listeden seçilir; liste eskiyse ve o kod bu arada
@@ -129,6 +148,31 @@ export async function getCategories(signal?: AbortSignal) {
   return data;
 }
 
+// Kategoride kod yok; adı aynı üst kategori altında benzersiz olmalı. Yeni kategorinin id'sini döner
+export function addCategory(payload: CategoryPayload) {
+  return apiClient.post('product/addCategory', {
+    schema: catalogCreatedSchema,
+    arguments: payload,
+  });
+}
+
+// Yalnızca değişen alanlar gönderilir
+export async function updateCategory(id: number, changes: Partial<CategoryPayload>) {
+  await apiClient.post('product/updateCategory', {
+    schema: catalogAffectedSchema,
+    arguments: { selectArguments: { id }, updateArguments: changes },
+  });
+}
+
+// Sunucu alt kategorisi olan kategoriyi de siler ve alt kategori güncellenemez hale gelir;
+// bu yüzden uygulama alt kategorisi olan kategoride silmeyi engeller.
+export async function deleteCategory(id: number) {
+  await apiClient.post('product/deleteCategory', {
+    schema: catalogAffectedSchema,
+    arguments: { id },
+  });
+}
+
 export function useBrands() {
   return useQuery({
     queryKey: catalogKeys.brands(),
@@ -153,10 +197,12 @@ export function useColors() {
   });
 }
 
-export function useCategories() {
+// enabled: katalog sayfası tüm türlerde aynı bileşen; kategori alanları yalnızca orada okunur
+export function useCategories(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: catalogKeys.categories(),
     queryFn: ({ signal }) => getCategories(signal),
     ...CACHE.productOptions,
+    enabled: options?.enabled,
   });
 }

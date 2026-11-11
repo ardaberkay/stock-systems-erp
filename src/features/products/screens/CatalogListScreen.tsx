@@ -3,14 +3,17 @@ import FloatingActionButton from '@/components/ui/FloatingActionButton';
 import SearchBar from '@/components/ui/SearchBar';
 import Skeleton from '@/components/ui/Skeleton';
 import StateMessage from '@/components/ui/StateMessage';
+import { useCategories } from '@/features/products/api/catalog';
 import { useCatalogItems, useCatalogProductCounts } from '@/features/products/api/catalogItems';
-import CatalogItemRow from '@/features/products/components/catalog/CatalogItemRow';
+import CatalogItemRow, {
+  type CatalogSubtitlePart,
+} from '@/features/products/components/catalog/CatalogItemRow';
 import {
   catalogKindSchema,
   type CatalogItem,
   type CatalogKind,
 } from '@/features/products/schemas/catalog';
-import { getVisibleCatalogItems } from '@/features/products/utils/catalog';
+import { getCategoryRowInfo, getVisibleCatalogItems } from '@/features/products/utils/catalog';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useLocale } from '@/hooks/useLocale';
@@ -66,6 +69,29 @@ function CatalogListContent({ kind }: CatalogListContentProps) {
 
   const items = useMemo(() => getVisibleCatalogItems(data ?? [], query), [data, query]);
 
+  // Kategori satırlarında üst kategori ve varsayılandan farklı durumlar yazılır. Liste aynı
+  // önbellekten okunur, ek istek atılmaz.
+  const { data: categories } = useCategories({ enabled: kind === 'categories' });
+  const subtitles = useMemo(() => {
+    if (kind !== 'categories' || !categories) {
+      return undefined;
+    }
+    const partsById = new Map<number, CatalogSubtitlePart[]>();
+
+    for (const [id, info] of getCategoryRowInfo(categories)) {
+      const parts: CatalogSubtitlePart[] = [
+        info.parentName
+          ? { text: t('stock.catalogPages.categories.under', { name: info.parentName }) }
+          : { text: t('stock.catalogPages.categories.root'), italic: true },
+      ];
+      if (info.hidden) parts.push({ text: t('stock.catalogPages.categories.hidden') });
+      if (info.passive) parts.push({ text: t('stock.catalogPages.categories.passive') });
+      partsById.set(id, parts);
+    }
+
+    return partsById;
+  }, [kind, categories, t]);
+
   // Sessiz yenilemede gösterge dönmesin; yalnızca kullanıcı aşağı çekince görünür.
   // Ürün sayıları ürün listesinden geldiği için o da yenilenir (istekler sırayla gider).
   const refresh = async () => {
@@ -74,12 +100,17 @@ function CatalogListContent({ kind }: CatalogListContentProps) {
     setIsRefreshing(false);
   };
 
+  // Kategorinin alanları farklı olduğu için kendi sheet'i var
   const openForm = useCallback(
-    (id?: number) =>
-      router.push({
-        pathname: '/catalog-form/[kind]',
-        params: id === undefined ? { kind } : { kind, id: String(id) },
-      }),
+    (id?: number) => {
+      const idParam = id === undefined ? {} : { id: String(id) };
+
+      if (kind === 'categories') {
+        router.push({ pathname: '/category-form', params: idParam });
+        return;
+      }
+      router.push({ pathname: '/catalog-form/[kind]', params: { kind, ...idParam } });
+    },
     [kind],
   );
 
@@ -91,16 +122,17 @@ function CatalogListContent({ kind }: CatalogListContentProps) {
         productCount={productCounts ? (productCounts.get(item.id) ?? 0) : undefined}
         onPress={openForm}
         showColorDot={kind === 'colors'}
+        subtitleParts={subtitles?.get(item.id)}
         colors={colors}
         locale={locale}
       />
     ),
-    [productCounts, openForm, kind, colors, locale],
+    [productCounts, openForm, kind, subtitles, colors, locale],
   );
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: t(`stock.catalog.${kind}`) }} />
+      <Stack.Screen options={{ title: t(`stock.catalogPages.${kind}.title`) }} />
 
       <View style={styles.searchRow}>
         <SearchBar

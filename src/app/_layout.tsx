@@ -127,6 +127,12 @@ export default function RootLayout() {
             <Stack.Screen name="period-custom/[scope]" options={fitToContentSheetOptions} />
             <Stack.Screen name="product-catalog" options={fitToContentSheetOptions} />
             <Stack.Screen name="catalog-form/[kind]" options={fitToContentSheetOptions} />
+            {/* Kategori formu uzun ve açıklama alanı var; içerik kadar değil sabit yükseklikte
+                açılır, içi kaydırılır ve klavye alt alanları kapatmaz */}
+            <Stack.Screen
+              name="category-form"
+              options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.9] }}
+            />
             <Stack.Screen
               name="product-images"
               options={{ presentation: 'fullScreenModal', animation: 'fade' }}
