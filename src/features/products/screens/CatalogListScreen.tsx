@@ -60,16 +60,17 @@ function CatalogListContent({ kind }: CatalogListContentProps) {
   const [searchText, setSearchText] = useState('');
   const query = useDebounce(searchText);
   const { data, isPending, error, refetch } = useCatalogItems(kind);
-  const productCounts = useCatalogProductCounts(kind);
+  const { productCounts, refetchProducts } = useCatalogProductCounts(kind);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isSearching = query.trim().length > 0;
 
   const items = useMemo(() => getVisibleCatalogItems(data ?? [], query), [data, query]);
 
-  // Sessiz yenilemede gösterge dönmesin; yalnızca kullanıcı aşağı çekince görünür
+  // Sessiz yenilemede gösterge dönmesin; yalnızca kullanıcı aşağı çekince görünür.
+  // Ürün sayıları ürün listesinden geldiği için o da yenilenir (istekler sırayla gider).
   const refresh = async () => {
     setIsRefreshing(true);
-    await refetch();
+    await Promise.all([refetch(), refetchProducts()]);
     setIsRefreshing(false);
   };
 
@@ -89,11 +90,12 @@ function CatalogListContent({ kind }: CatalogListContentProps) {
         // Katalog yüklendiyse ürünü olmayan kayıtta 0 yazılır
         productCount={productCounts ? (productCounts.get(item.id) ?? 0) : undefined}
         onPress={openForm}
+        showColorDot={kind === 'colors'}
         colors={colors}
         locale={locale}
       />
     ),
-    [productCounts, openForm, colors, locale],
+    [productCounts, openForm, kind, colors, locale],
   );
 
   return (

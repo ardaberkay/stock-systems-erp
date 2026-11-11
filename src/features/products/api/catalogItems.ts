@@ -1,15 +1,24 @@
 import {
+  addColor,
   addProductType,
   catalogKeys,
+  deleteColor,
   deleteProductType,
+  getColors,
   getProductTypes,
+  updateColor,
   updateProductType,
 } from '@/features/products/api/catalog';
 import { productKeys, useProducts } from '@/features/products/api/products';
-import type { CatalogItem, CatalogKind } from '@/features/products/schemas/catalog';
+import type {
+  CatalogItem,
+  CatalogKind,
+  ProductColorItem,
+} from '@/features/products/schemas/catalog';
 import { countProductsBy, type CatalogProductField } from '@/features/products/utils/catalog';
 import { useFocusSubscribed } from '@/hooks/useFocusSubscribed';
 import { CACHE } from '@/lib/cachePolicy';
+import { queryClient } from '@/lib/queryClient';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
@@ -32,6 +41,16 @@ const CATALOG_RESOURCES: Record<CatalogKind, CatalogResource> = {
     update: updateProductType,
     remove: deleteProductType,
   },
+  colors: {
+    queryKey: catalogKeys.colors(),
+    productField: 'colorId',
+    get: getColors,
+    // Boş kod, sayfanın zaten yüklediği listeden bulunur; ek istek atılmaz
+    add: (name) =>
+      addColor(name, queryClient.getQueryData<ProductColorItem[]>(catalogKeys.colors()) ?? []),
+    update: updateColor,
+    remove: deleteColor,
+  },
 };
 
 // Ürün formlarındaki seçim alanlarıyla aynı önbelleği paylaşır
@@ -47,15 +66,18 @@ export function useCatalogItems(kind: CatalogKind) {
   });
 }
 
-// Katalog henüz yüklenmediyse undefined döner; satırlarda sayı yerine boşluk kalır
+// Katalog henüz yüklenmediyse sayılar undefined döner; satırlarda sayı yerine boşluk kalır.
+// refetchProducts: panelde ürünün tipi değişmiş olabilir; aşağı çekince sayılar da yenilensin
 export function useCatalogProductCounts(kind: CatalogKind) {
-  const { data: products } = useProducts();
+  const { data: products, refetch: refetchProducts } = useProducts();
   const { productField } = CATALOG_RESOURCES[kind];
 
-  return useMemo(
+  const productCounts = useMemo(
     () => (products ? countProductsBy(products, productField) : undefined),
     [products, productField],
   );
+
+  return { productCounts, refetchProducts };
 }
 
 type SaveCatalogItemVariables = {

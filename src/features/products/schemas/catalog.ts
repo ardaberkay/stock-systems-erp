@@ -25,8 +25,8 @@ export const categoryListSchema = z.object({ data: z.array(categorySchema) });
 export const catalogCreatedSchema = z.coerce.number();
 export const catalogAffectedSchema = z.object({ numOfAffectedRecords: z.coerce.number() });
 
-// Katalog yönetim sayfaları (catalog/[kind]); markalar, renkler ve kategoriler sırası gelince eklenir
-export const catalogKindSchema = z.enum(['types']);
+// Katalog yönetim sayfaları (catalog/[kind]); markalar ve kategoriler sırası gelince eklenir
+export const catalogKindSchema = z.enum(['types', 'colors']);
 
 // Hata mesajları çeviri anahtarıdır; ekranda t() ile gösterilir
 export const catalogItemFormSchema = z.object({

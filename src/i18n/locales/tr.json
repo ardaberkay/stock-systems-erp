@@ -643,6 +643,24 @@
                 "deleteFailedTitle": "Tip silinemedi",
                 "deleteFailed": "Bu tipe bağlı pasif veya silinmiş ürünler olabilir.",
                 "notFound": "Bu tip bulunamadı, silinmiş olabilir."
+            },
+            "colors": {
+                "searchPlaceholder": "Renk ara",
+                "empty": "Henüz ürün rengi yok.",
+                "noResults": "Aramaya uyan renk yok.",
+                "add": "Yeni renk ekle",
+                "newTitle": "Yeni ürün rengi",
+                "editTitle": "Ürün rengini düzenle",
+                "nameLabel": "Renk adı",
+                "namePlaceholder": "Örn. Lacivert",
+                "duplicate": "Bu adda bir renk zaten var.",
+                "deleteTitle": "Renk silinsin mi?",
+                "deleteMessage": "\"{{name}}\" rengi kalıcı olarak silinecek.",
+                "deleteBlockedTitle": "Renk silinemez",
+                "deleteBlocked": "Bu renkte {{value}} ürün olduğu için silinemez. Önce bu ürünlerin rengini değiştirin.",
+                "deleteFailedTitle": "Renk silinemedi",
+                "deleteFailed": "Bu renge bağlı pasif veya silinmiş ürünler olabilir.",
+                "notFound": "Bu renk bulunamadı, silinmiş olabilir."
             }
         },
         "create": {

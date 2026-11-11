@@ -2,6 +2,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/theme/colors';
 import { SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
+import ColorDot from '@/features/products/components/ColorDot';
 import { getProductColorHex } from '@/features/products/utils/productColor';
 import { useMemo } from 'react';
 import Text from '@/components/ui/Text';
@@ -23,7 +24,7 @@ export default function ProductColor({ colorName }: ProductColorProps) {
 
   return (
     <View style={styles.container}>
-      {colorHex && <View style={[styles.dot, { backgroundColor: colorHex }]} />}
+      {colorHex && <ColorDot hex={colorHex} />}
       <Text style={styles.name} numberOfLines={1}>
         {colorName}
       </Text>
@@ -39,14 +40,6 @@ function createStyles(colors: AppColors) {
       gap: SPACING.xs,
       minWidth: 0,
       flexShrink: 1,
-    },
-    // Açık renkler koyu temada ve kart zemininde kaybolmasın diye her noktada kenarlık var
-    dot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      borderWidth: 1,
-      borderColor: colors.textDisabled,
     },
     name: {
       ...typography.caption,

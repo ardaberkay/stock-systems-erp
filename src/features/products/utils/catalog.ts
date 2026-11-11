@@ -33,6 +33,25 @@ export function getVisibleCatalogItems(items: CatalogItem[], query: string) {
     .sort((a, b) => a.name.trim().localeCompare(b.name.trim(), 'tr'));
 }
 
+// Renk kodu zorunlu ve benzersiz; kullanıcıya sorulmaz. 0-999 arasındaki ilk boş kod verilir,
+// hepsi doluysa 4 haneli ilk boş kod.
+const MAX_COLOR_CODE = 9999;
+
+export function getFreeColorCode(codes: (string | null | undefined)[]) {
+  // Boş kod 0 sayılmasın
+  const used = new Set(
+    codes.flatMap((code) => (code?.trim() ? [Number(code)] : [])).filter(Number.isInteger),
+  );
+
+  for (let code = 0; code <= MAX_COLOR_CODE; code += 1) {
+    if (!used.has(code)) {
+      return String(code);
+    }
+  }
+
+  return String(MAX_COLOR_CODE + 1);
+}
+
 // Sunucu aynı adla ikinci kaydı kabul ediyor; büyük/küçük harf farkı da aynı ad sayılır
 export function hasDuplicateName(items: CatalogItem[], name: string, exceptId?: number) {
   const normalized = normalizeName(name);

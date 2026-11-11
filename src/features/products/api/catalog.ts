@@ -8,7 +8,9 @@ import {
   categoryListSchema,
   colorListSchema,
   productTypeListSchema,
+  type ProductColorItem,
 } from '@/features/products/schemas/catalog';
+import { getFreeColorCode } from '@/features/products/utils/catalog';
 import { useQuery } from '@tanstack/react-query';
 
 export const catalogKeys = {
@@ -81,6 +83,41 @@ export async function getColors(signal?: AbortSignal) {
   const { data } = await apiClient.post('product/getColors', { schema: colorListSchema, signal });
 
   return data;
+}
+
+function postColor(name: string, code: string) {
+  return apiClient.post('product/addColor', {
+    schema: catalogCreatedSchema,
+    arguments: { name, code },
+  });
+}
+
+// Yeni rengin id'sini döner. Kod eldeki listeden seçilir; liste eskiyse ve o kod bu arada
+// alınmışsa sunucu "logic" hatası döner, güncel liste okunup bir kez daha denenir.
+export async function addColor(name: string, knownColors: ProductColorItem[]) {
+  try {
+    return await postColor(name, getFreeColorCode(knownColors.map((color) => color.code)));
+  } catch (error) {
+    if (isApiError(error) && error.kind === 'unknown') {
+      const colors = await getColors();
+      return postColor(name, getFreeColorCode(colors.map((color) => color.code)));
+    }
+    throw error;
+  }
+}
+
+export async function updateColor(id: number, name: string) {
+  await apiClient.post('product/updateColor', {
+    schema: catalogAffectedSchema,
+    arguments: { selectArguments: { id }, updateArguments: { name } },
+  });
+}
+
+export async function deleteColor(id: number) {
+  await apiClient.post('product/deleteColor', {
+    schema: catalogAffectedSchema,
+    arguments: { id },
+  });
 }
 
 export async function getCategories(signal?: AbortSignal) {

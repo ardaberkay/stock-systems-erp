@@ -643,6 +643,24 @@
         "deleteFailedTitle": "Type could not be deleted",
         "deleteFailed": "Passive or deleted products may still use this type.",
         "notFound": "This type was not found. It may have been deleted."
+      },
+      "colors": {
+        "searchPlaceholder": "Search colors",
+        "empty": "No product colors yet.",
+        "noResults": "No colors match your search.",
+        "add": "Add new color",
+        "newTitle": "New product color",
+        "editTitle": "Edit product color",
+        "nameLabel": "Color name",
+        "namePlaceholder": "E.g. Navy",
+        "duplicate": "A color with this name already exists.",
+        "deleteTitle": "Delete this color?",
+        "deleteMessage": "The \"{{name}}\" color will be permanently deleted.",
+        "deleteBlockedTitle": "Color cannot be deleted",
+        "deleteBlocked": "This color has {{value}} products, so it cannot be deleted. Change the color of these products first.",
+        "deleteFailedTitle": "Color could not be deleted",
+        "deleteFailed": "Passive or deleted products may still use this color.",
+        "notFound": "This color was not found. It may have been deleted."
       }
     },
     "create": {

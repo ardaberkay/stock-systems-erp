@@ -1,5 +1,7 @@
 import Text from '@/components/ui/Text';
+import ColorDot from '@/features/products/components/ColorDot';
 import type { CatalogItem } from '@/features/products/schemas/catalog';
+import { getProductColorHex } from '@/features/products/utils/productColor';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -7,13 +9,15 @@ import { formatNumber } from '@/utils/formatter';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 type CatalogItemRowProps = {
   item: CatalogItem;
   // Ürün kataloğu henüz yüklenmediyse yok; sayı yazılmaz
   productCount?: number;
   onPress: (id: number) => void;
+  // Renk listesinde adın önünde renk noktası; eşleşmeyen adda yazılar hizalı kalsın diye boşluk
+  showColorDot?: boolean;
   colors: AppColors;
   locale: string;
 };
@@ -33,9 +37,17 @@ function getStyles(colors: AppColors) {
   return styles;
 }
 
-function CatalogItemRow({ item, productCount, onPress, colors, locale }: CatalogItemRowProps) {
+function CatalogItemRow({
+  item,
+  productCount,
+  onPress,
+  showColorDot = false,
+  colors,
+  locale,
+}: CatalogItemRowProps) {
   const { t } = useTranslation();
   const styles = getStyles(colors);
+  const colorHex = showColorDot ? getProductColorHex(item.name) : null;
   const countText =
     productCount === undefined
       ? undefined
@@ -49,6 +61,13 @@ function CatalogItemRow({ item, productCount, onPress, colors, locale }: Catalog
       onPress={() => onPress(item.id)}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
+      {showColorDot &&
+        (colorHex ? (
+          <ColorDot hex={colorHex} size={ICON_SIZE.sm} />
+        ) : (
+          <View style={styles.dotPlaceholder} />
+        ))}
+
       <Text style={styles.name} numberOfLines={2}>
         {item.name}
       </Text>
@@ -74,6 +93,9 @@ function createStyles(colors: AppColors) {
     },
     pressed: {
       backgroundColor: colors.divider,
+    },
+    dotPlaceholder: {
+      width: ICON_SIZE.sm,
     },
     name: {
       ...typography.body,

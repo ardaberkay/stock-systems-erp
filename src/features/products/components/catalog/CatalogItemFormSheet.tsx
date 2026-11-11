@@ -65,7 +65,7 @@ function CatalogItemFormContent({ kind, itemId }: CatalogItemFormContentProps) {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const locale = useLocale();
   const { data: items } = useCatalogItems(kind);
-  const productCounts = useCatalogProductCounts(kind);
+  const { productCounts } = useCatalogProductCounts(kind);
   // Açılıştaki kayıt tutulur: silinince liste hemen güncellenir, kapanırken "bulunamadı" görünmesin
   const [item] = useState(() => items?.find((entry) => entry.id === itemId));
   const saveItem = useSaveCatalogItem(kind);
