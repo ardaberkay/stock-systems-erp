@@ -3,7 +3,10 @@
     "name": "<Butiksistem.",
     "slug": "stock-erp",
     "version": "1.0.0",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "stockerp",
@@ -42,7 +45,8 @@
       "expo-localization",
       "expo-web-browser",
       "expo-font",
-      "expo-image"
+      "expo-image",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true,

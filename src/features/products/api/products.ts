@@ -285,6 +285,46 @@ export function useSaveProductEdit() {
   });
 }
 
+const productRemovedSchema = z.object({ removedNum: z.coerce.number() });
+
+// Panelde silme ürünü pasife çeker; bu servisin yaptığı denenmedi, ne yapıyorsa o kabul edilir.
+// Sunucu "başarılı" deyip hiçbir ürünü silmediyse (removedNum 0) silinemedi sayılır.
+export async function removeProduct(id: number) {
+  const { removedNum } = await apiClient.post('product/remove', {
+    schema: productRemovedSchema,
+    arguments: { ids: [id] },
+  });
+
+  if (removedNum === 0) {
+    throw new Error('product/remove: removedNum 0');
+  }
+}
+
+// Ürün katalogdan hemen kalkar, listeler arkada yeniden okunur. Sunucu ürünü yalnızca pasife
+// çektiyse listede "Pasif" olarak geri gelir. Açık detay sayfası kapanacağı için yeniden
+// okunmaz, yalnızca eskimiş sayılır.
+export function useRemoveProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: removeProduct,
+    onSuccess: (_, id) => {
+      queryClient.setQueryData<Product[]>(productKeys.list(), (catalog) =>
+        catalog?.filter((product) => product.id !== id),
+      );
+      void queryClient.invalidateQueries({
+        queryKey: productKeys.detail(id),
+        exact: true,
+        refetchType: 'none',
+      });
+      void queryClient.invalidateQueries({
+        queryKey: productKeys.all,
+        predicate: (query) => PRODUCT_LIST_SCOPES.some((scope) => scope === query.queryKey[1]),
+      });
+    },
+  });
+}
+
 // product/add ürünü hemen oluşturmaz: işi sıraya alır ve iş numarası döner (test 09.11.2026).
 // Backend anında oluşturan bir yol açınca yalnızca bu fonksiyon ve useCreateProduct değişir.
 export async function createProduct(values: ProductCreateForm) {

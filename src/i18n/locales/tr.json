@@ -343,7 +343,7 @@
                 "add": "Ürün ekle",
                 "empty": "Henüz ürün eklenmedi.",
                 "pickerTitle": "Ürün seç",
-                "searchPlaceholder": "Ürün adı veya model kodu",
+                "searchPlaceholder": "Ad, kod veya barkod ara",
                 "noResults": "Ürün bulunamadı.",
                 "stock": "Stok: {{value}}",
                 "outOfStock": "Tükendi",
@@ -567,7 +567,7 @@
         "toggleOrdersLine": "Sipariş çizgisini aç veya kapat"
     },
     "stock": {
-        "searchPlaceholder": "Ürün adı veya kodu ara",
+        "searchPlaceholder": "Ad, kod veya barkod ara",
         "resultCount": "{{value}} sonuç",
         "productCount": "{{value}} ürün",
         "empty": "Henüz ürün yok.",
@@ -585,6 +585,15 @@
         "openDetail": "Detay",
         "edit": "Düzenle",
         "delete": "Sil",
+        "deleteProduct": {
+            "title": "Ürün silinsin mi?",
+            "message": "\"{{name}}\" ürünü silinecek.",
+            "modelCode": "Model kodu: {{code}}",
+            "unsavedChanges": "Kaydedilmemiş değişiklikler de kaybolur.",
+            "button": "Ürünü sil",
+            "failedTitle": "Ürün silinemedi",
+            "failedMessage": "Sunucu silme isteğini kabul etmedi."
+        },
         "filterTitle": "Filtreler",
         "resetFilters": "Sıfırla",
         "stockTitle": "Stok",

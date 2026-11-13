@@ -70,6 +70,7 @@ export default function StockScreen() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const {
     products,
+    barcodeMatchId,
     isFiltering,
     hasActiveFilters,
     isLoading,
@@ -77,6 +78,15 @@ export default function StockScreen() {
     isRefreshing,
     refresh,
   } = useProductList(searchText);
+  // Barkod tek ürüne denk gelince kartı açık gelir; yalnızca eşleşme değişince açılır,
+  // kullanıcı kapatırsa aynı arama durdukça tekrar açılmaz
+  const [openedMatchId, setOpenedMatchId] = useState<number | null>(null);
+  if (barcodeMatchId !== openedMatchId) {
+    setOpenedMatchId(barcodeMatchId);
+    if (barcodeMatchId !== null) {
+      setExpandedId(barcodeMatchId);
+    }
+  }
 
   // Sıraya alınan yeni ürünler tamamlanınca liste yenilenir ve sonuç bildirilir
   useProductBatchWatcher();

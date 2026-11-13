@@ -12,7 +12,13 @@ import { usePickerStore } from '@/features/picker/pickerStore';
 import type { AppColors } from '@/theme/colors';
 import { SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
-import { normalizeText } from '@/features/products/utils/productList';
+import {
+  buildBarcodeIndex,
+  getBarcodeMatches,
+  getSingleBarcodeMatch,
+  matchesProductText,
+  normalizeText,
+} from '@/features/products/utils/productList';
 import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -38,7 +44,11 @@ export default function ProductPickerModal() {
   const cartQuantities = request?.cartQuantities ?? NO_CART;
   const onPick = request?.onPick;
 
-  // Pasif ürün panelde satışa kapalıdır; listede gösterilmez
+  // Büyük katalogda her aramada tüm varyantlar gezilmesin; katalog değişince bir kez kurulur
+  const barcodeIndex = useMemo(() => buildBarcodeIndex(products ?? []), [products]);
+  const barcodeMatches = getBarcodeMatches(barcodeIndex, debouncedQuery);
+
+  // Pasif ürün panelde satışa kapalıdır; barkodla bulunsa da listede gösterilmez
   const visibleProducts = useMemo(() => {
     const active = (products ?? []).filter((product) => product.status === PRODUCT_STATUS.active);
     const normalized = normalizeText(debouncedQuery);
@@ -48,11 +58,24 @@ export default function ProductPickerModal() {
     }
 
     return active.filter(
-      (product) =>
-        normalizeText(product.name).includes(normalized) ||
-        normalizeText(product.modelCode ?? '').includes(normalized),
+      (product) => barcodeMatches.has(product.id) || matchesProductText(product, normalized),
     );
-  }, [products, debouncedQuery]);
+  }, [products, debouncedQuery, barcodeMatches]);
+
+  // Barkod tek (aktif) ürüne denk gelince satırı açık gelir, bedenler ve stok görünür.
+  // Yalnızca eşleşme değişince açılır; kullanıcı kapatırsa aynı arama durdukça açılmaz.
+  const singleMatchId = getSingleBarcodeMatch(barcodeMatches);
+  const barcodeMatchId =
+    singleMatchId !== null && visibleProducts.some((product) => product.id === singleMatchId)
+      ? singleMatchId
+      : null;
+  const [openedMatchId, setOpenedMatchId] = useState<number | null>(null);
+  if (barcodeMatchId !== openedMatchId) {
+    setOpenedMatchId(barcodeMatchId);
+    if (barcodeMatchId !== null) {
+      setExpandedId(barcodeMatchId);
+    }
+  }
 
   const handleToggle = useCallback((productId: number) => {
     setExpandedId((current) => (current === productId ? null : productId));

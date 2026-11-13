@@ -62,20 +62,74 @@ function compareProducts(a: Product, b: Product, sort: ProductFilters['sort']): 
   }
 }
 
+// Barkod → o barkodu taşıyan ürünlerin id'leri
+export type BarcodeIndex = ReadonlyMap<string, ReadonlySet<number>>;
+
+const NO_BARCODE_MATCHES: ReadonlySet<number> = new Set();
+
+// Okuyucu veya kamera barkodu eksiksiz verir; boşluk ve harf büyüklüğü fark etmez
+export function normalizeBarcode(text: string): string {
+  return text.replace(/\s/g, '').toLocaleUpperCase('en');
+}
+
+// Katalog değişince bir kez kurulur; her aramada tüm varyantlar tek tek gezilmez.
+// Düzenlemede eklenen varyantın barkodu boş gelir, dizine girmez.
+export function buildBarcodeIndex(products: Product[]): BarcodeIndex {
+  const index = new Map<string, Set<number>>();
+
+  for (const product of products) {
+    for (const variant of product.variants) {
+      const barcode = normalizeBarcode(variant.barcode ?? '');
+
+      if (barcode) {
+        const ids = index.get(barcode) ?? new Set<number>();
+        ids.add(product.id);
+        index.set(barcode, ids);
+      }
+    }
+  }
+
+  return index;
+}
+
+// Barkod tam eşleşmeyle aranır: parça eşleşme sayı olan model kodlarıyla karışır, gürültü üretir
+export function getBarcodeMatches(index: BarcodeIndex, query: string): ReadonlySet<number> {
+  return index.get(normalizeBarcode(query)) ?? NO_BARCODE_MATCHES;
+}
+
+// Barkod tek ürüne denk geldiyse o ürün; kartı kendiliğinden açmak için
+export function getSingleBarcodeMatch(matches: ReadonlySet<number>): number | null {
+  if (matches.size !== 1) {
+    return null;
+  }
+  const [id] = matches;
+
+  return id ?? null;
+}
+
+// Ad ve model kodunda parça eşleşme; search normalizeText'ten geçmiş olmalı
+export function matchesProductText(product: Product, search: string): boolean {
+  return (
+    normalizeText(product.name).includes(search) ||
+    normalizeText(product.modelCode ?? '').includes(search)
+  );
+}
+
 // Arama ve filtre tüm katalogda telefonda çalışır; API'de isimle arama servisi yok.
+// Barkodla bulunan ürün filtreye takılmaz: okutmak "tam olarak bu ürünü göster" demektir.
 export function getVisibleProducts(
   products: Product[],
   query: string,
   filters: ProductFilters,
+  barcodeMatches: ReadonlySet<number> = NO_BARCODE_MATCHES,
 ): Product[] {
   const search = normalizeText(query);
 
   return products
     .filter(
       (product) =>
-        matchesFilters(product, filters) &&
-        (normalizeText(product.name).includes(search) ||
-          normalizeText(product.modelCode ?? '').includes(search)),
+        barcodeMatches.has(product.id) ||
+        (matchesFilters(product, filters) && matchesProductText(product, search)),
     )
     .sort((a, b) => compareProducts(a, b, filters.sort));
 }

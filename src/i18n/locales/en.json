@@ -343,7 +343,7 @@
         "add": "Add product",
         "empty": "No products added yet.",
         "pickerTitle": "Select product",
-        "searchPlaceholder": "Product name or model code",
+        "searchPlaceholder": "Search name, code or barcode",
         "noResults": "No products found.",
         "stock": "Stock: {{value}}",
         "outOfStock": "Out of stock",
@@ -567,7 +567,7 @@
     "toggleOrdersLine": "Show or hide the orders line"
   },
   "stock": {
-    "searchPlaceholder": "Search by product name or code",
+    "searchPlaceholder": "Search name, code or barcode",
     "resultCount": "{{value}} results",
     "productCount": "{{value}} products",
     "empty": "No products yet.",
@@ -585,6 +585,15 @@
     "openDetail": "Details",
     "edit": "Edit",
     "delete": "Delete",
+    "deleteProduct": {
+      "title": "Delete product?",
+      "message": "\"{{name}}\" will be deleted.",
+      "modelCode": "Model code: {{code}}",
+      "unsavedChanges": "Unsaved changes will also be lost.",
+      "button": "Delete product",
+      "failedTitle": "Product could not be deleted",
+      "failedMessage": "The server did not accept the delete request."
+    },
     "filterTitle": "Filters",
     "resetFilters": "Reset",
     "stockTitle": "Stock",

@@ -1,6 +1,12 @@
 import { useProducts } from '@/features/products/api/products';
 import { useProductFilterStore } from '@/features/products/stores/productFilterStore';
-import { getVisibleProducts, hasActiveFilters } from '@/features/products/utils/productList';
+import {
+  buildBarcodeIndex,
+  getBarcodeMatches,
+  getSingleBarcodeMatch,
+  getVisibleProducts,
+  hasActiveFilters,
+} from '@/features/products/utils/productList';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useDeferredValue, useMemo, useState } from 'react';
 
@@ -13,9 +19,13 @@ export function useProductList(searchText: string) {
   const { data, isPending, error, refetch } = useProducts();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Büyük katalogda her aramada tüm varyantlar gezilmesin; katalog değişince bir kez kurulur
+  const barcodeIndex = useMemo(() => buildBarcodeIndex(data ?? []), [data]);
+  const barcodeMatches = getBarcodeMatches(barcodeIndex, query);
+
   const products = useMemo(
-    () => getVisibleProducts(data ?? [], query, deferredFilters),
-    [data, query, deferredFilters],
+    () => getVisibleProducts(data ?? [], query, deferredFilters, barcodeMatches),
+    [data, query, deferredFilters, barcodeMatches],
   );
   const isFilterActive = hasActiveFilters(filters);
 
@@ -29,6 +39,8 @@ export function useProductList(searchText: string) {
 
   return {
     products,
+    // Barkod tek ürüne denk geldiyse o ürünün kartı açık gelir
+    barcodeMatchId: getSingleBarcodeMatch(barcodeMatches),
     isFiltering: isFilterActive || query.trim().length > 0,
     hasActiveFilters: isFilterActive,
     isLoading: isPending,

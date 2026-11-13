@@ -1,3 +1,4 @@
+import Button from '@/components/ui/Button';
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import { useSaveProductEdit, type ProductSaveResult } from '@/features/products/api/products';
 import ProductInfoStep from '@/features/products/components/create/ProductInfoStep';
@@ -6,6 +7,7 @@ import ProductDetailHeader from '@/features/products/components/detail/ProductDe
 import ProductEditHeaderButton from '@/features/products/components/edit/ProductEditHeaderButton';
 import ProductEditVariantsTab from '@/features/products/components/edit/ProductEditVariantsTab';
 import { PRODUCT_DETAIL_TABS, type ProductDetailTab } from '@/features/products/constants/productEdit';
+import { useConfirmProductDelete } from '@/features/products/hooks/useConfirmProductDelete';
 import {
   createProductEditSchema,
   type ProductEditForm,
@@ -25,7 +27,7 @@ import { getErrorDetail, getErrorMessageKey } from '@/lib/apiError';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Stack, useFocusEffect, useNavigation, usePreventRemove } from 'expo-router';
+import { router, Stack, useFocusEffect, useNavigation, usePreventRemove } from 'expo-router';
 import type { TFunction } from 'i18next';
 import Check from 'lucide-react-native/icons/check';
 import X from 'lucide-react-native/icons/x';
@@ -88,6 +90,11 @@ export default function ProductEditView({
   const { isDirty, errors } = form.formState;
   const saveProduct = useSaveProductEdit();
   const isSaving = saveProduct.isPending;
+  const { confirmDelete, isDeleting } = useConfirmProductDelete();
+  // Kayıt veya silme sürerken başlıktaki butonlar ve geri hareketi çalışmaz
+  const isBusy = isSaving || isDeleting;
+  // Ürün silindi; sayfa kapanırken kaydedilmemiş değişiklik sorulmaz (onay zaten söyledi)
+  const [isRemoved, setIsRemoved] = useState(false);
   const tabsWithErrors = getTabsWithErrors(errors);
   // Açılan bölüm sonra gizlenir ama kaldırılmaz: varyant satırları her geçişte baştan
   // çizilmesin (düzenlemede gecikme yapıyordu), açık satırlar da kapanmasın
@@ -112,9 +119,17 @@ export default function ProductEditView({
 
   // Düzenlemede sayfadan çıkan yollar kapalı (aşağıda); bu yalnızca başka bir yoldan kapanırsa
   // (ör. bildirimden başka sayfaya gidiş) kaydedilmemiş değişikliği sorar
-  usePreventRemove(isDirty && !isSaving, ({ data }) => {
+  usePreventRemove(isDirty && !isSaving && !isRemoved, ({ data }) => {
     confirmDiscard(t, () => navigation.dispatch(data.action));
   });
+
+  // Silinince sayfa kapanır, kullanıcı geldiği yere (liste veya sipariş detayı) döner. Engel
+  // kalkmış haliyle çizildikten sonra çalışsın diye effect'te.
+  useEffect(() => {
+    if (isRemoved) {
+      router.back();
+    }
+  }, [isRemoved]);
 
   // Effect bağımlılığı olduğu için sabit tutulur
   const cancel = useCallback(() => {
@@ -130,14 +145,14 @@ export default function ProductEditView({
   useFocusEffect(
     useCallback(() => {
       const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-        if (!isSaving) {
+        if (!isBusy) {
           cancel();
         }
         return true;
       });
 
       return () => subscription.remove();
-    }, [cancel, isSaving]),
+    }, [cancel, isBusy]),
   );
 
   const errorCodeText = (error: unknown) => {
@@ -229,6 +244,12 @@ export default function ProductEditView({
     },
   );
 
+  const deleteProduct = () =>
+    confirmDelete(product, {
+      hasUnsavedChanges: isDirty,
+      onDeleted: () => setIsRemoved(true),
+    });
+
   return (
     <FormProvider {...form}>
       <Stack.Screen
@@ -242,10 +263,10 @@ export default function ProductEditView({
               accessibilityRole="button"
               accessibilityLabel={t('orders.editMode.cancel')}
               hitSlop={HEADER_BUTTON_HIT_SLOP}
-              disabled={isSaving}
+              disabled={isBusy}
               onPress={cancel}
             >
-              <X size={ICON_SIZE.lg} color={isSaving ? colors.iconDisabled : colors.text} />
+              <X size={ICON_SIZE.lg} color={isBusy ? colors.iconDisabled : colors.text} />
             </Pressable>
           ),
           headerRight: () =>
@@ -256,9 +277,13 @@ export default function ProductEditView({
                 accessibilityRole="button"
                 accessibilityLabel={t('orders.editMode.save')}
                 hitSlop={HEADER_BUTTON_HIT_SLOP}
+                disabled={isDeleting}
                 onPress={() => void save()}
               >
-                <Check size={ICON_SIZE.lg} color={colors.orange} />
+                <Check
+                  size={ICON_SIZE.lg}
+                  color={isDeleting ? colors.iconDisabled : colors.orange}
+                />
               </Pressable>
             ),
         }}
@@ -292,7 +317,19 @@ export default function ProductEditView({
 
         {PRODUCT_DETAIL_TABS.filter((tab) => visitedTabs.includes(tab)).map((tab) => (
           <View key={tab} style={[styles.tabContent, tab !== activeTab && styles.hidden]}>
-            {tab === 'info' ? <ProductInfoStep /> : null}
+            {tab === 'info' ? (
+              <>
+                <ProductInfoStep />
+                {/* Satış durumunun altında: çoğu zaman pasife çekmek yeterli, önce o görünür */}
+                <Button
+                  label={t('stock.deleteProduct.button')}
+                  variant="destructive"
+                  onPress={deleteProduct}
+                  loading={isDeleting}
+                  disabled={isSaving}
+                />
+              </>
+            ) : null}
             {tab === 'price' ? <ProductPriceStep /> : null}
             {tab === 'variants' ? <ProductEditVariantsTab product={product} /> : null}
           </View>

@@ -1,5 +1,6 @@
 import SizeRow from '@/features/products/components/SizeRow';
 import { PRODUCT_STATUS, SIZES_PER_ROW } from '@/features/products/constants/products';
+import { useConfirmProductDelete } from '@/features/products/hooks/useConfirmProductDelete';
 import type { Product } from '@/features/products/schemas/products';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
@@ -18,7 +19,7 @@ import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import Text from '@/components/ui/Text';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 type ProductCardDetailsProps = {
   product: Product;
@@ -30,6 +31,7 @@ type ProductCardDetailsProps = {
 export default function ProductCardDetails({ product, colors, locale }: ProductCardDetailsProps) {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { confirmDelete, isDeleting } = useConfirmProductDelete();
   const [firstRow = [], ...otherRows] = chunkItems(product.variants, SIZES_PER_ROW);
   const isPassive = product.status === PRODUCT_STATUS.passive;
 
@@ -54,8 +56,6 @@ export default function ProductCardDetails({ product, colors, locale }: ProductC
       value: product.categories.map((item) => item.name).join(', '),
     },
   ].filter((detail) => detail.value);
-
-  const showComingSoon = () => Alert.alert(t('common.comingSoon'));
 
   return (
     <View style={styles.container}>
@@ -122,14 +122,20 @@ export default function ProductCardDetails({ product, colors, locale }: ProductC
           <Text style={styles.actionText}>{t('stock.edit')}</Text>
         </Pressable>
 
-        {/* Üç buton dar ekrana sığsın diye silme yalnızca ikon */}
+        {/* Üç buton dar ekrana sığsın diye silme yalnızca ikon. İstek sürerken tekrar basılamaz. */}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={t('stock.delete')}
-          onPress={showComingSoon}
+          accessibilityLabel={t('stock.deleteProduct.button')}
+          accessibilityState={{ busy: isDeleting, disabled: isDeleting }}
+          disabled={isDeleting}
+          onPress={() => confirmDelete(product)}
           style={styles.deleteButton}
         >
-          <Trash size={ICON_SIZE.md} color={colors.error} />
+          {isDeleting ? (
+            <ActivityIndicator color={colors.error} />
+          ) : (
+            <Trash size={ICON_SIZE.md} color={colors.error} />
+          )}
         </Pressable>
       </View>
     </View>
