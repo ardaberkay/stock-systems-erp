@@ -59,6 +59,8 @@ export const orderCreateItemSchema = z.object({
   variantId: z.number(),
   name: z.string(),
   sizeName: z.string(),
+  // Aynı adlı ürünün renkleri ayrı üründür; sepette ayırt edilsin diye yalnızca gösterilir
+  colorName: z.string().nullable(),
   image: z.string().nullable(),
   stock: z.number(),
   quantity: z.number().int().min(1),

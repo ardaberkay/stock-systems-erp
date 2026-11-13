@@ -41,8 +41,15 @@ export default function ProductPickerModal() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const request = usePickerStore((state) => state.productRequest);
   const [query, setQuery] = useState('');
-  // Okunan barkod arama kutusuna yazılır; eşleşme ve satırın açılması aramanın işidir
-  const openBarcodeScanner = useOpenBarcodeScanner(setQuery, { activeOnly: true });
+  // Siparişte okutulan barkod beden seçtirmeden sepete eklenir; kamera açık kalır, arka arkaya
+  // okutulur. Elle yazılan barkod ise aramada ürünü bulup gösterir.
+  const openScanner = useOpenBarcodeScanner();
+  const onScanAdd = request?.onScanAdd;
+  const openBarcodeScanner = () => {
+    if (onScanAdd) {
+      openScanner({ mode: 'cart', onAdd: onScanAdd });
+    }
+  };
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const debouncedQuery = useDebounce(query);
   const { data: products, isPending, error, refetch } = useProducts();

@@ -7,6 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { usePickerSheet } from '@/features/picker/usePickerSheet';
 import type { OrderCreateFormInput } from '@/features/orders/schemas/orderCreate';
 import type { Product, ProductVariant } from '@/features/products/schemas/products';
+import type { BarcodeCartAddResult } from '@/features/products/stores/barcodeScanStore';
 import type { AppColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { formatMoney } from '@/utils/formatter';
@@ -54,6 +55,7 @@ export default function OrderProductsStep() {
           variantId: variant.id,
           name: product.name,
           sizeName: variant.name,
+          colorName: product.colorName ?? null,
           image: product.image ?? null,
           stock: variant.quantity,
           quantity: 1,
@@ -65,32 +67,40 @@ export default function OrderProductsStep() {
     [getValues, setValue, append, clearErrors],
   );
 
+  // Barkodla ekleme kamera açıkken arka arkaya yapılır. Elle eklemede adet sessizce stokta
+  // kalır; okutan kullanıcı bunu görmez, bu yüzden stok dolduysa eklenmez ve söylenir.
+  const handleScanAdd = useCallback(
+    (product: Product, variant: ProductVariant): BarcodeCartAddResult => {
+      const inCart =
+        getValues('items').find((item) => item.variantId === variant.id)?.quantity ?? 0;
+
+      if (inCart >= variant.quantity) {
+        return { kind: 'outOfStock' };
+      }
+      handlePick(product, variant);
+      const next = getValues('items');
+
+      return {
+        kind: 'added',
+        productName: product.name,
+        sizeName: variant.name,
+        sizeQuantity: inCart + 1,
+        cartCount: next.reduce((count, item) => count + item.quantity, 0),
+        cartTotal: getItemsTotal(next),
+      };
+    },
+    [getValues, handlePick],
+  );
+
   const itemsError = errors.items?.message ?? errors.items?.root?.message;
+
+  // Toplam ve buton sabit üstte durur; yeni eklenen en üstte görünür, eskiler aşağı kayar.
+  // Yalnızca görünüm ters; siparişe giden sıra eklenme sırasıdır.
+  const newestFirst = fields.map((field, index) => ({ field, index })).reverse();
 
   return (
     <>
       <DetailSection title={t('orders.create.steps.products')}>
-        {fields.length === 0 ? (
-          <Text style={styles.empty}>{t('orders.create.products.empty')}</Text>
-        ) : (
-          fields.map((field, index) => (
-            <CartItemRow
-              key={field.key}
-              index={index}
-              item={field}
-              control={control}
-              colors={colors}
-              locale={locale}
-              onRemove={remove}
-            />
-          ))
-        )}
-        <Button
-          label={t('orders.create.products.add')}
-          variant="secondary"
-          onPress={() => openProductPicker({ cartQuantities, onPick: handlePick })}
-        />
-        {itemsError ? <Text style={styles.error}>{t(itemsError)}</Text> : null}
         {fields.length > 0 ? (
           <DetailRow
             label={t('orders.create.products.total')}
@@ -98,6 +108,25 @@ export default function OrderProductsStep() {
             emphasized
           />
         ) : null}
+        <Button
+          label={t('orders.create.products.add')}
+          variant="secondary"
+          onPress={() =>
+            openProductPicker({ cartQuantities, onPick: handlePick, onScanAdd: handleScanAdd })
+          }
+        />
+        {itemsError ? <Text style={styles.error}>{t(itemsError)}</Text> : null}
+        {newestFirst.map(({ field, index }) => (
+          <CartItemRow
+            key={field.key}
+            index={index}
+            item={field}
+            control={control}
+            colors={colors}
+            locale={locale}
+            onRemove={remove}
+          />
+        ))}
       </DetailSection>
     </>
   );
@@ -105,10 +134,6 @@ export default function OrderProductsStep() {
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
-    empty: {
-      ...typography.bodySmall,
-      color: colors.textSecondary,
-    },
     error: {
       ...typography.caption,
       color: colors.error,

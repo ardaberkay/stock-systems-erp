@@ -1,4 +1,5 @@
 import type { Product, ProductVariant } from '@/features/products/schemas/products';
+import type { BarcodeCartAddResult } from '@/features/products/stores/barcodeScanStore';
 import type { ReactNode } from 'react';
 import { create } from 'zustand';
 
@@ -48,6 +49,8 @@ export type MultiPickerRequest = PickerLoadState & {
 export type ProductPickerRequest = {
   cartQuantities: ReadonlyMap<number, number>;
   onPick: (product: Product, variant: ProductVariant) => void;
+  // Pencerede barkod okutunca beden seçmeden sepete eklenir (bkz. barcodeScanStore)
+  onScanAdd: (product: Product, variant: ProductVariant) => BarcodeCartAddResult;
 };
 
 type PickerState = {

@@ -118,30 +118,30 @@ export function getSingleBarcodeMatch(matches: ReadonlySet<number>): number | nu
   return id ?? null;
 }
 
-export type BarcodeScanOutcome = 'found' | 'notFound' | 'passive';
+export type BarcodeResolution =
+  | { kind: 'notFound' }
+  // Barkod birden çok ürüne denk geldi (sunucu benzersiz tutuyor, yine de); hangisi bilinmez
+  | { kind: 'multiple' }
+  | { kind: 'match'; product: Product; variant: ProductVariant };
 
-// Okutma ekranı sonucu kendisi söyler. activeOnly: sipariş ekranı; pasif ürün panelde
-// satışa kapalıdır, bulunsa da eklenemez.
-export function getBarcodeScanOutcome(
+// Okutulan barkodun ürünü ve bedeni; barkod bedene aittir
+export function resolveBarcode(
   products: Product[],
   index: BarcodeIndex,
   barcode: string,
-  activeOnly: boolean,
-): BarcodeScanOutcome {
-  const matches = getBarcodeMatches(index, barcode);
+): BarcodeResolution {
+  const entry = index.get(normalizeBarcode(barcode));
 
-  if (matches.size === 0) {
-    return 'notFound';
+  if (!entry) {
+    return { kind: 'notFound' };
   }
-  if (!activeOnly) {
-    return 'found';
+  if (entry.productIds.size > 1) {
+    return { kind: 'multiple' };
   }
+  const product = products.find((item) => entry.productIds.has(item.id));
+  const variant = product?.variants.find((item) => entry.variantIds.has(item.id));
 
-  return products.some(
-    (product) => matches.has(product.id) && product.status === PRODUCT_STATUS.active,
-  )
-    ? 'found'
-    : 'passive';
+  return product && variant ? { kind: 'match', product, variant } : { kind: 'notFound' };
 }
 
 // Ad ve model kodunda parça eşleşme; search normalizeText'ten geçmiş olmalı

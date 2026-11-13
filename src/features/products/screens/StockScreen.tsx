@@ -69,7 +69,8 @@ export default function StockScreen() {
   const fabOffset = useTabBarInset();
   const [searchText, setSearchText] = useState("");
   // Okunan barkod arama kutusuna yazılır; eşleşme ve kartın açılması aramanın işidir
-  const openBarcodeScanner = useOpenBarcodeScanner(setSearchText);
+  const openScanner = useOpenBarcodeScanner();
+  const openBarcodeScanner = () => openScanner({ mode: "search", onScanned: setSearchText });
   // Aynı anda tek kart açık kalır; liste uzayıp karışmaz
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const {

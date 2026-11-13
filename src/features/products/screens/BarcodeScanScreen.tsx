@@ -2,17 +2,22 @@ import Button from '@/components/ui/Button';
 import StateMessage from '@/components/ui/StateMessage';
 import Text from '@/components/ui/Text';
 import { useProducts } from '@/features/products/api/products';
-import { useBarcodeScanStore } from '@/features/products/stores/barcodeScanStore';
+import { PRODUCT_STATUS } from '@/features/products/constants/products';
+import {
+  useBarcodeScanStore,
+  type BarcodeCartAddResult,
+} from '@/features/products/stores/barcodeScanStore';
 import {
   buildBarcodeIndex,
-  getBarcodeScanOutcome,
   normalizeBarcode,
-  type BarcodeScanOutcome,
+  resolveBarcode,
 } from '@/features/products/utils/productList';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useLocale } from '@/hooks/useLocale';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
+import { formatMoney, formatNumber } from '@/utils/formatter';
 import {
   CameraView,
   PermissionStatus,
@@ -28,7 +33,7 @@ import FlashlightOff from 'lucide-react-native/icons/flashlight-off';
 import X from 'lucide-react-native/icons/x';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, BackHandler, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Yalnızca ürün etiketlerinde kullanılan türler: daha hızlı okur, bakım etiketindeki QR gibi
@@ -38,8 +43,13 @@ const BARCODE_TYPES: BarcodeType[] = ['ean13', 'ean8', 'upc_a', 'upc_e', 'code12
 // Barkod bulunamazsa katalog bu süreden eskiyse bir kez yenilenir (panelden yeni eklenmiş
 // olabilir). Arka arkaya bulunamayan okutmalar dakikada en fazla bir istek atar.
 const CATALOG_RECHECK_AGE_MS = 60_000;
-// Yeşil çerçeve görünsün, sonra ekran kapansın
+// Aynı barkod kamerada durdukça tekrar işlenmez (sepete iki kez eklenmesin). Bu süre boyunca
+// hiç görülmezse, yani çerçeveden çıkarılıp geri getirilirse yeniden işlenir.
+const SAME_BARCODE_COOLDOWN_MS = 1500;
+// Arama modunda yeşil çerçeve görünsün, sonra ekran kapansın
 const FOUND_CLOSE_DELAY_MS = 400;
+// Yeşil / kırmızı çerçeve bu süre sonra turuncuya döner; mesaj yerinde kalır
+const TONE_RESET_MS = 1200;
 // Bu süre boyunca hiçbir şey okunmazsa ipucu çıkar
 const TIP_DELAY_MS = 10_000;
 const CORNER_SIZE = SPACING.xxl;
@@ -49,20 +59,30 @@ const CORNER_WIDTH = 3;
 const CORNER_RADIUS = RADIUS.sm;
 const TORCH_BUTTON_SIZE = MIN_TOUCH_SIZE + SPACING.md;
 
-type ScanStatus = 'scanning' | 'checking' | BarcodeScanOutcome;
+type FrameTone = 'idle' | 'success' | 'error';
 
-// Barkod okutma ekranı (tam ekran modal). Ürünü bulunan barkod açan ekrana verilir ve ekran
-// kapanır; bulunamazsa sebep kameranın üstünde yazılır, tarama sürer.
+type MissKind = 'notFound' | 'passive' | 'outOfStock' | 'multiple';
+
+type ScanFeedback =
+  | { kind: 'checking' }
+  | Extract<BarcodeCartAddResult, { kind: 'added' }>
+  | { kind: MissKind };
+
+// Barkod okutma ekranı (tam ekran modal). Arama modunda ürünü bulunan barkod açan ekrana
+// verilir ve ekran kapanır. Sepet modunda her okutma bedeni sepete ekler, kamera açık kalır.
+// Bulunamazsa sebep kameranın üstünde yazılır, tarama sürer.
 export default function BarcodeScanScreen() {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const locale = useLocale();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const request = useBarcodeScanStore((state) => state.request);
   const [permission, requestPermission] = useCameraPermissions();
   const { data: products, dataUpdatedAt, refetch } = useProducts();
   const barcodeIndex = useMemo(() => buildBarcodeIndex(products ?? []), [products]);
-  const [status, setStatus] = useState<ScanStatus>('scanning');
+  const [feedback, setFeedback] = useState<ScanFeedback | null>(null);
+  const [tone, setTone] = useState<FrameTone>('idle');
   const [isTorchOn, setIsTorchOn] = useState(false);
   const [hasCameraError, setHasCameraError] = useState(false);
   // Hata sonrası "Tekrar dene" kamerayı baştan kurar
@@ -70,12 +90,14 @@ export default function BarcodeScanScreen() {
   const [showTip, setShowTip] = useState(false);
   // Her okutma ipucu sayacını baştan başlatır
   const [scanCount, setScanCount] = useState(0);
-  // Barkod görüş alanında durdukça kamera onu saniyede birkaç kez bildirir. Biri işlenirken
-  // gelenler yok sayılır; yoksa ekran birden çok kez kapanır, arkasındaki sayfa da kapanabilir.
+  // Kamera aynı barkodu saniyede birkaç kez bildirir; biri işlenirken gelenler yok sayılır
   const isBusyRef = useRef(false);
-  // Bulunamayan barkod kamerada durdukça mesaj tekrar tekrar titreşmesin
-  const lastMissRef = useRef<string | null>(null);
+  const lastSeenRef = useRef<{ barcode: string; at: number } | null>(null);
+  // Sepet modunda ilk eklemeden sonra sepetteki toplam adet; "Tamamla (N)" butonu bunu gösterir,
+  // doluysa kapatınca ürün seçme penceresi de kapanır
+  const [cartCount, setCartCount] = useState<number | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toneTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isCameraOn = Boolean(permission?.granted) && !hasCameraError;
 
   // Kullanıcı ikona basarak okutmak istedi; izin hiç sorulmadıysa ayrıca butona bastırılmaz
@@ -94,49 +116,112 @@ export default function BarcodeScanScreen() {
     return () => clearTimeout(timer);
   }, [isCameraOn, scanCount]);
 
-  // Kullanıcı yeşil çerçeve sırasında kapatırsa bekleyen kapanış çalışmasın
+  // Ekran kapanırken bekleyen kapanış ve renk dönüşü çalışmasın
   useEffect(() => {
     const closeTimer = closeTimerRef;
+    const toneTimer = toneTimerRef;
 
     return () => {
       if (closeTimer.current) {
         clearTimeout(closeTimer.current);
       }
+      if (toneTimer.current) {
+        clearTimeout(toneTimer.current);
+      }
     };
   }, []);
 
+  // Sepete ekleme yapıldıysa sipariş formuna dönülür: eklenenler sepette görünür
+  const close = () => {
+    if (request?.mode === 'cart' && cartCount !== null) {
+      router.dismiss(2);
+      return;
+    }
+    router.back();
+  };
+
+  // Android geri hareketi de X gibi davranır
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      close();
+      return true;
+    });
+
+    return () => subscription.remove();
+  });
+
+  const showTone = (next: Exclude<FrameTone, 'idle'>) => {
+    setTone(next);
+    if (toneTimerRef.current) {
+      clearTimeout(toneTimerRef.current);
+    }
+    toneTimerRef.current = setTimeout(() => setTone('idle'), TONE_RESET_MS);
+  };
+
+  const showMiss = (kind: MissKind) => {
+    setFeedback({ kind });
+    showTone('error');
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+  };
+
   const handleScanned = async ({ data }: BarcodeScanningResult) => {
     const barcode = normalizeBarcode(data);
+    const now = Date.now();
+    const lastSeen = lastSeenRef.current;
+    const isRepeat =
+      lastSeen?.barcode === barcode && now - lastSeen.at < SAME_BARCODE_COOLDOWN_MS;
+    // Kamerada durduğu sürece "son görülme" ilerler; çıkarılınca süre dolar
+    lastSeenRef.current = { barcode, at: now };
 
-    if (isBusyRef.current || !barcode || barcode === lastMissRef.current) {
+    if (isBusyRef.current || !barcode || isRepeat) {
       return;
     }
     isBusyRef.current = true;
     setShowTip(false);
     setScanCount((count) => count + 1);
 
-    const activeOnly = request?.activeOnly ?? false;
-    let outcome = getBarcodeScanOutcome(products ?? [], barcodeIndex, barcode, activeOnly);
+    let resolution = resolveBarcode(products ?? [], barcodeIndex, barcode);
 
-    if (outcome === 'notFound' && Date.now() - dataUpdatedAt > CATALOG_RECHECK_AGE_MS) {
-      setStatus('checking');
+    if (resolution.kind === 'notFound' && Date.now() - dataUpdatedAt > CATALOG_RECHECK_AGE_MS) {
+      setFeedback({ kind: 'checking' });
       const { data: fresh = [] } = await refetch();
-      outcome = getBarcodeScanOutcome(fresh, buildBarcodeIndex(fresh), barcode, activeOnly);
+      resolution = resolveBarcode(fresh, buildBarcodeIndex(fresh), barcode);
     }
 
-    if (outcome === 'found') {
-      setStatus('found');
+    if (request?.mode === 'search') {
+      if (resolution.kind === 'notFound') {
+        showMiss('notFound');
+        isBusyRef.current = false;
+        return;
+      }
+      setTone('success');
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       closeTimerRef.current = setTimeout(() => {
-        request?.onScanned(barcode);
+        request.onScanned(barcode);
         router.back();
       }, FOUND_CLOSE_DELAY_MS);
       return;
     }
 
-    lastMissRef.current = barcode;
-    setStatus(outcome);
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    if (request?.mode === 'cart') {
+      if (resolution.kind !== 'match') {
+        showMiss(resolution.kind);
+      } else if (resolution.product.status !== PRODUCT_STATUS.active) {
+        // Pasif ürün panelde satışa kapalıdır
+        showMiss('passive');
+      } else {
+        const result = request.onAdd(resolution.product, resolution.variant);
+
+        if (result.kind === 'outOfStock') {
+          showMiss('outOfStock');
+        } else {
+          setCartCount(result.cartCount);
+          setFeedback(result);
+          showTone('success');
+          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+      }
+    }
     isBusyRef.current = false;
   };
 
@@ -158,7 +243,7 @@ export default function BarcodeScanScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
-            onPress={() => router.back()}
+            onPress={close}
             style={styles.closeButton}
           >
             <X size={ICON_SIZE.lg} color={colors.text} />
@@ -189,22 +274,27 @@ export default function BarcodeScanScreen() {
   }
 
   const frameColor =
-    status === 'found'
-      ? colors.success
-      : status === 'notFound' || status === 'passive'
-        ? colors.error
-        : colors.orange;
-  const message =
-    status === 'checking'
-      ? t('stock.barcodeScan.checking')
-      : status === 'notFound'
-        ? t('stock.barcodeScan.notFound')
-        : status === 'passive'
-          ? t('stock.barcodeScan.passive')
-          : // Çerçeve ne yapılacağını zaten gösteriyor; yazı yalnızca okunmazsa ipucu olarak çıkar
-            showTip
-            ? t('stock.barcodeScan.tip')
-            : '';
+    tone === 'success' ? colors.success : tone === 'error' ? colors.error : colors.orange;
+  // Çerçeve ne yapılacağını zaten gösteriyor; okuma olmazsa ipucu çıkar. İpucu son eklenen
+  // ürünün yerine geçmez, yalnızca boşken veya bir hatadan sonra görünür.
+  const isTipVisible = showTip && feedback?.kind !== 'added' && feedback?.kind !== 'checking';
+  const messageLines = isTipVisible
+    ? [t('stock.barcodeScan.tip')]
+    : !feedback
+      ? []
+      : feedback.kind === 'added'
+        ? [
+            t('stock.barcodeScan.added', {
+              product: feedback.productName,
+              size: feedback.sizeName,
+              count: formatNumber(feedback.sizeQuantity, locale),
+            }),
+            t('stock.barcodeScan.cartSummary', {
+              count: formatNumber(feedback.cartCount, locale),
+              total: formatMoney(feedback.cartTotal, locale),
+            }),
+          ]
+        : [t(`stock.barcodeScan.${feedback.kind}`)];
   const TorchIcon = isTorchOn ? Flashlight : FlashlightOff;
 
   // Kamera tüm ekranı kaplar (tablette de); çerçevenin dışı karartılır, yazılar karartmanın
@@ -230,7 +320,7 @@ export default function BarcodeScanScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('common.close')}
-              onPress={() => router.back()}
+              onPress={close}
               style={styles.closeButton}
             >
               <X size={ICON_SIZE.lg} color={colors.imageBadge} />
@@ -253,19 +343,34 @@ export default function BarcodeScanScreen() {
         <View
           style={[styles.shade, styles.bottomShade, { paddingBottom: insets.bottom + SPACING.xl }]}
         >
-          <Text style={styles.message} accessibilityLiveRegion="polite">
-            {message}
-          </Text>
-          {/* Depo gibi karanlık yerlerde etiket okunabilsin */}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t(isTorchOn ? 'stock.barcodeScan.torchOff' : 'stock.barcodeScan.torchOn')}
-            accessibilityState={{ selected: isTorchOn }}
-            onPress={() => setIsTorchOn((current) => !current)}
-            style={styles.torchButton}
-          >
-            <TorchIcon size={ICON_SIZE.lg} color={isTorchOn ? colors.orange : colors.imageBadge} />
-          </Pressable>
+          {/* Mesaj değişince alttaki fener butonu yer değiştirmesin */}
+          <View style={styles.messageBox} accessibilityLiveRegion="polite">
+            {messageLines.map((line, index) => (
+              <Text key={line} style={index === 0 ? styles.message : styles.messageDetail}>
+                {line}
+              </Text>
+            ))}
+          </View>
+          <View style={styles.controls}>
+            {/* Depo gibi karanlık yerlerde etiket okunabilsin */}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t(isTorchOn ? 'stock.barcodeScan.torchOff' : 'stock.barcodeScan.torchOn')}
+              accessibilityState={{ selected: isTorchOn }}
+              onPress={() => setIsTorchOn((current) => !current)}
+              style={styles.torchButton}
+            >
+              <TorchIcon size={ICON_SIZE.lg} color={isTorchOn ? colors.orange : colors.imageBadge} />
+            </Pressable>
+            {/* Başparmağın altında; eklenenlerin sepette kaldığını açıkça söyler (X ile aynı yere döner) */}
+            {cartCount !== null ? (
+              <Button
+                label={t('stock.barcodeScan.finish', { count: formatNumber(cartCount, locale) })}
+                onPress={close}
+                style={styles.finishButton}
+              />
+            ) : null}
+          </View>
         </View>
       </View>
     </View>
@@ -366,12 +471,31 @@ function createStyles(colors: AppColors) {
       paddingTop: SPACING.xl,
       paddingHorizontal: SPACING.xl,
     },
-    // Mesaj değişince alttaki fener butonu yer değiştirmesin
+    // İki satır (son eklenen ve sepet özeti) için yer hep ayrılır
+    messageBox: {
+      minHeight: typography.bodySmall.lineHeight * 2 + SPACING.xxs,
+      gap: SPACING.xxs,
+      alignItems: 'center',
+    },
     message: {
       ...typography.bodySmall,
-      minHeight: typography.bodySmall.lineHeight * 2,
       color: colors.imageBadge,
       textAlign: 'center',
+    },
+    messageDetail: {
+      ...typography.caption,
+      color: colors.imageBadge,
+      textAlign: 'center',
+    },
+    controls: {
+      alignSelf: 'stretch',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: SPACING.md,
+    },
+    finishButton: {
+      flex: 1,
     },
     torchButton: {
       width: TORCH_BUTTON_SIZE,

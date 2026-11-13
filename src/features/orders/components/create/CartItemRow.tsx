@@ -33,6 +33,8 @@ function CartItemRow({ index, item, control, colors, locale, onRemove }: CartIte
   const styles = useMemo(() => createStyles(colors), [colors]);
   const quantity = useWatch({ control, name: `items.${index}.quantity` });
   const price = useWatch({ control, name: `items.${index}.price` });
+  // Aynı adlı ürünün renkleri ayrı üründür; beden ve renk birlikte ayırt ettirir
+  const variantText = [item.sizeName, item.colorName].filter(Boolean).join(' · ');
 
   return (
     <View style={styles.row}>
@@ -42,11 +44,7 @@ function CartItemRow({ index, item, control, colors, locale, onRemove }: CartIte
           <Text style={styles.name} numberOfLines={2}>
             {item.name}
           </Text>
-          <Text style={styles.meta}>
-            {`${item.sizeName} · ${t('orders.create.products.stock', {
-              value: formatNumber(item.stock, locale),
-            })}`}
-          </Text>
+          <Text style={styles.meta}>{variantText}</Text>
         </View>
         <Pressable
           accessibilityRole="button"
@@ -109,7 +107,13 @@ function CartItemRow({ index, item, control, colors, locale, onRemove }: CartIte
         </View>
       </View>
 
-      <Text style={styles.lineTotal}>{formatMoney(quantity * parseMoney(price), locale)}</Text>
+      {/* Stok, üstündeki adet butonunun sınırıdır; satır toplamı karşısında */}
+      <View style={styles.footer}>
+        <Text style={styles.meta}>
+          {t('orders.create.products.stock', { value: formatNumber(item.stock, locale) })}
+        </Text>
+        <Text style={styles.lineTotal}>{formatMoney(quantity * parseMoney(price), locale)}</Text>
+      </View>
     </View>
   );
 }
@@ -118,11 +122,13 @@ export default memo(CartItemRow);
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
+    // Çizgi satırın üstünde: ilk satırınki listeyi üstteki toplam ve butondan ayırır,
+    // en alttaki satırın altında çizgi kalmaz
     row: {
       gap: SPACING.sm,
-      paddingBottom: SPACING.md,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.divider,
+      paddingTop: SPACING.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.divider,
     },
     top: {
       flexDirection: 'row',
@@ -172,9 +178,14 @@ function createStyles(colors: AppColors) {
     price: {
       flex: 1,
     },
+    footer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: SPACING.md,
+    },
     lineTotal: {
       ...typography.label,
-      alignSelf: 'flex-end',
       fontFamily: FONT_FAMILY.bold,
       color: colors.text,
     },
