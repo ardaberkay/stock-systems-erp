@@ -592,7 +592,7 @@
       "notFound": "No product found for this barcode.",
       "passive": "This product is inactive and can't be added to an order.",
       "added": "{{product}} · {{size}} added ({{count}} in cart)",
-      "finish": "Done ({{count}})",
+      "finish": "Done",
       "cartSummary": "{{count}} items in cart · {{total}}",
       "outOfStock": "Not enough stock.",
       "multiple": "More than one product matched. Pick it from the list.",

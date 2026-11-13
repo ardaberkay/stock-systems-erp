@@ -592,7 +592,7 @@
             "notFound": "Bu barkoda ait ürün bulunamadı.",
             "passive": "Bu ürün pasif, siparişe eklenemez.",
             "added": "{{product}} · {{size}} eklendi (sepette {{count}})",
-            "finish": "Tamamla ({{count}})",
+            "finish": "Tamamla",
             "cartSummary": "Sepette {{count}} ürün · {{total}}",
             "outOfStock": "Stokta yeterli ürün yok.",
             "multiple": "Birden fazla ürün eşleşti, listeden seçin.",

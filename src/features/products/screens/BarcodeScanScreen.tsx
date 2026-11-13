@@ -365,7 +365,7 @@ export default function BarcodeScanScreen() {
             {/* Başparmağın altında; eklenenlerin sepette kaldığını açıkça söyler (X ile aynı yere döner) */}
             {cartCount !== null ? (
               <Button
-                label={t('stock.barcodeScan.finish', { count: formatNumber(cartCount, locale) })}
+                label={t('stock.barcodeScan.finish')}
                 onPress={close}
                 style={styles.finishButton}
               />
