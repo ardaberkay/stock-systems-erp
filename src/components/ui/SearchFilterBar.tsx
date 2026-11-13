@@ -1,4 +1,4 @@
-import SearchBar from '@/components/ui/SearchBar';
+import SearchBar, { type SearchBarAction } from '@/components/ui/SearchBar';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
@@ -13,6 +13,8 @@ type SearchFilterBarProps = {
   filterLabel: string;
   isFilterActive: boolean;
   onFilterPress: () => void;
+  // Arama kutusunun sağ ucundaki ek buton (ör. barkod okutma)
+  searchAction?: SearchBarAction;
 };
 
 // Arama kutusu ve filtre butonu; aranan şey ekrana göre değişir, görünüm aynı kalır.
@@ -23,13 +25,19 @@ export default function SearchFilterBar({
   filterLabel,
   isFilterActive,
   onFilterPress,
+  searchAction,
 }: SearchFilterBarProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <View style={styles.row}>
-      <SearchBar value={value} onChangeText={onChangeText} placeholder={placeholder} />
+      <SearchBar
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        action={searchAction}
+      />
 
       <Pressable
         accessibilityRole="button"

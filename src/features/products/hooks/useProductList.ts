@@ -3,6 +3,7 @@ import { useProductFilterStore } from '@/features/products/stores/productFilterS
 import {
   buildBarcodeIndex,
   getBarcodeMatches,
+  getBarcodeVariantMatches,
   getSingleBarcodeMatch,
   getVisibleProducts,
   hasActiveFilters,
@@ -22,6 +23,8 @@ export function useProductList(searchText: string) {
   // Büyük katalogda her aramada tüm varyantlar gezilmesin; katalog değişince bir kez kurulur
   const barcodeIndex = useMemo(() => buildBarcodeIndex(data ?? []), [data]);
   const barcodeMatches = getBarcodeMatches(barcodeIndex, query);
+  // Okutulan barkodun bedeni kartta turuncu çerçeveyle gösterilir
+  const barcodeVariantIds = getBarcodeVariantMatches(barcodeIndex, query);
 
   const products = useMemo(
     () => getVisibleProducts(data ?? [], query, deferredFilters, barcodeMatches),
@@ -41,6 +44,8 @@ export function useProductList(searchText: string) {
     products,
     // Barkod tek ürüne denk geldiyse o ürünün kartı açık gelir
     barcodeMatchId: getSingleBarcodeMatch(barcodeMatches),
+    barcodeMatches,
+    barcodeVariantIds,
     isFiltering: isFilterActive || query.trim().length > 0,
     hasActiveFilters: isFilterActive,
     isLoading: isPending,

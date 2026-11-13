@@ -83,7 +83,7 @@ export default function ProductDetailHeader({ product }: ProductDetailHeaderProp
         <View style={[styles.sizes, styles.divided]}>
           {sizeRows.map((row) => (
             <View key={row[0].id}>
-              <SizeRow cells={row.map(toSizeCell)} variant="size" />
+              <SizeRow cells={row.map((variant) => toSizeCell(variant))} variant="size" />
               <SizeRow cells={row.map((variant) => toQuantityCell(variant, locale))} variant="quantity" />
             </View>
           ))}

@@ -19,6 +19,8 @@ type ProductPickerRowProps = {
   locale: string;
   onToggle: (productId: number) => void;
   onPick: (product: Product, variant: ProductVariant) => void;
+  // Okutulan barkodun bedenleri; yalnızca eşleşen satıra verilir
+  highlightedVariantIds?: ReadonlySet<number>;
 };
 
 const IMAGE_SIZE = 48;
@@ -32,6 +34,7 @@ function ProductPickerRow({
   locale,
   onToggle,
   onPick,
+  highlightedVariantIds,
 }: ProductPickerRowProps) {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -71,6 +74,7 @@ function ProductPickerRow({
             // Sepette olan adet düşülür; kalan yoksa beden seçilemez
             const available = variant.quantity - (cartQuantities?.get(variant.id) ?? 0);
             const isDisabled = available <= 0;
+            const isHighlighted = highlightedVariantIds?.has(variant.id) ?? false;
 
             return (
               <Pressable
@@ -80,16 +84,23 @@ function ProductPickerRow({
                   name: product.name,
                   size: variant.name,
                 })}
-                accessibilityState={{ disabled: isDisabled }}
+                accessibilityState={{ disabled: isDisabled, selected: isHighlighted }}
                 disabled={isDisabled}
                 onPress={() => onPick(product, variant)}
                 style={({ pressed }) => [
                   styles.size,
                   isDisabled && styles.sizeDisabled,
+                  isHighlighted && styles.sizeHighlighted,
                   pressed && styles.pressed,
                 ]}
               >
-                <Text style={[styles.sizeName, isDisabled && styles.sizeNameDisabled]}>
+                <Text
+                  style={[
+                    styles.sizeName,
+                    isDisabled && styles.sizeNameDisabled,
+                    isHighlighted && styles.highlightedText,
+                  ]}
+                >
                   {variant.name}
                 </Text>
                 <Text style={styles.sizeStock}>{formatNumber(Math.max(available, 0), locale)}</Text>
@@ -161,6 +172,10 @@ function createStyles(colors: AppColors) {
     sizeDisabled: {
       backgroundColor: colors.background,
     },
+    // Okutulan barkodun bedeni
+    sizeHighlighted: {
+      borderColor: colors.orange,
+    },
     sizeName: {
       ...typography.label,
       fontFamily: FONT_FAMILY.semiBold,
@@ -169,6 +184,9 @@ function createStyles(colors: AppColors) {
     sizeNameDisabled: {
       color: colors.textDisabled,
       textDecorationLine: 'line-through',
+    },
+    highlightedText: {
+      color: colors.orange,
     },
     sizeStock: {
       ...typography.caption,

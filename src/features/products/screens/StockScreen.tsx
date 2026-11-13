@@ -7,6 +7,7 @@ import SearchFilterBar from "@/components/ui/SearchFilterBar";
 import StateMessage from "@/components/ui/StateMessage";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useLocale } from "@/hooks/useLocale";
+import { useOpenBarcodeScanner } from "@/features/products/hooks/useOpenBarcodeScanner";
 import { useProductBatchWatcher } from "@/features/products/hooks/useProductBatchWatcher";
 import { useProductList } from "@/features/products/hooks/useProductList";
 import { useTabBarInset } from "@/hooks/useTabBarInset";
@@ -27,6 +28,7 @@ import {
 import FolderCog from "lucide-react-native/icons/folder-cog";
 import Menu from "lucide-react-native/icons/menu";
 import Plus from "lucide-react-native/icons/plus";
+import ScanBarcode from "lucide-react-native/icons/scan-barcode";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Text from "@/components/ui/Text";
@@ -66,11 +68,15 @@ export default function StockScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const fabOffset = useTabBarInset();
   const [searchText, setSearchText] = useState("");
+  // Okunan barkod arama kutusuna yazılır; eşleşme ve kartın açılması aramanın işidir
+  const openBarcodeScanner = useOpenBarcodeScanner(setSearchText);
   // Aynı anda tek kart açık kalır; liste uzayıp karışmaz
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const {
     products,
     barcodeMatchId,
+    barcodeMatches,
+    barcodeVariantIds,
     isFiltering,
     hasActiveFilters,
     isLoading,
@@ -115,9 +121,10 @@ export default function StockScreen() {
         onToggle={toggleProduct}
         colors={colors}
         locale={locale}
+        highlightedVariantIds={barcodeMatches.has(item.id) ? barcodeVariantIds : undefined}
       />
     ),
-    [expandedId, toggleProduct, colors, locale],
+    [expandedId, toggleProduct, colors, locale, barcodeMatches, barcodeVariantIds],
   );
 
   return (
@@ -155,6 +162,11 @@ export default function StockScreen() {
             filterLabel={t("stock.filterTitle")}
             isFilterActive={hasActiveFilters}
             onFilterPress={() => router.push("/product-filters")}
+            searchAction={{
+              icon: ScanBarcode,
+              accessibilityLabel: t("stock.barcodeScan.open"),
+              onPress: openBarcodeScanner,
+            }}
           />
         </View>
       </View>

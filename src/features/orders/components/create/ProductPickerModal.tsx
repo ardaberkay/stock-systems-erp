@@ -3,6 +3,7 @@ import ProductPickerRow from '@/features/orders/components/create/ProductPickerR
 import SearchBar from '@/components/ui/SearchBar';
 import StateMessage from '@/components/ui/StateMessage';
 import { PRODUCT_STATUS } from '@/features/products/constants/products';
+import { useOpenBarcodeScanner } from '@/features/products/hooks/useOpenBarcodeScanner';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useLocale } from '@/hooks/useLocale';
@@ -15,11 +16,13 @@ import { typography } from '@/theme/typography';
 import {
   buildBarcodeIndex,
   getBarcodeMatches,
+  getBarcodeVariantMatches,
   getSingleBarcodeMatch,
   matchesProductText,
   normalizeText,
 } from '@/features/products/utils/productList';
 import { router } from 'expo-router';
+import ScanBarcode from 'lucide-react-native/icons/scan-barcode';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Text from '@/components/ui/Text';
@@ -38,6 +41,8 @@ export default function ProductPickerModal() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const request = usePickerStore((state) => state.productRequest);
   const [query, setQuery] = useState('');
+  // Okunan barkod arama kutusuna yazılır; eşleşme ve satırın açılması aramanın işidir
+  const openBarcodeScanner = useOpenBarcodeScanner(setQuery, { activeOnly: true });
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const debouncedQuery = useDebounce(query);
   const { data: products, isPending, error, refetch } = useProducts();
@@ -47,6 +52,8 @@ export default function ProductPickerModal() {
   // Büyük katalogda her aramada tüm varyantlar gezilmesin; katalog değişince bir kez kurulur
   const barcodeIndex = useMemo(() => buildBarcodeIndex(products ?? []), [products]);
   const barcodeMatches = getBarcodeMatches(barcodeIndex, debouncedQuery);
+  // Okutulan barkodun bedeni satırda turuncu çerçeveyle gösterilir
+  const barcodeVariantIds = getBarcodeVariantMatches(barcodeIndex, debouncedQuery);
 
   // Pasif ürün panelde satışa kapalıdır; barkodla bulunsa da listede gösterilmez
   const visibleProducts = useMemo(() => {
@@ -102,10 +109,20 @@ export default function ProductPickerModal() {
           locale={locale}
           onToggle={handleToggle}
           onPick={handlePick}
+          highlightedVariantIds={barcodeMatches.has(item.id) ? barcodeVariantIds : undefined}
         />
       );
     },
-    [expandedId, cartQuantities, colors, locale, handleToggle, handlePick],
+    [
+      expandedId,
+      cartQuantities,
+      colors,
+      locale,
+      handleToggle,
+      handlePick,
+      barcodeMatches,
+      barcodeVariantIds,
+    ],
   );
 
   // Başlık ve arama listenin yapışık üst kısmıdır: native sheet kaydırılan listeyi en üste
@@ -127,6 +144,11 @@ export default function ProductPickerModal() {
               value={query}
               onChangeText={setQuery}
               placeholder={t('orders.create.products.searchPlaceholder')}
+              action={{
+                icon: ScanBarcode,
+                accessibilityLabel: t('stock.barcodeScan.open'),
+                onPress: openBarcodeScanner,
+              }}
             />
           </View>
         </View>

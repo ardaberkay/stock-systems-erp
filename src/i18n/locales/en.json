@@ -585,6 +585,22 @@
     "openDetail": "Details",
     "edit": "Edit",
     "delete": "Delete",
+    "barcodeScan": {
+      "open": "Scan barcode",
+      "title": "Scan Barcode",
+      "tip": "If it doesn't scan, try the flashlight or hold the phone a little farther away.",
+      "checking": "Checking…",
+      "notFound": "No product found for this barcode.",
+      "passive": "This product is inactive and can't be added to an order.",
+      "torchOn": "Turn on flashlight",
+      "torchOff": "Turn off flashlight",
+      "permissionTitle": "Camera access needed",
+      "permissionMessage": "Allow camera access to scan barcodes.",
+      "allow": "Allow",
+      "permissionDenied": "Camera access is off. Turn it on in Settings to scan barcodes.",
+      "openSettings": "Open Settings",
+      "cameraError": "The camera could not be opened."
+    },
     "deleteProduct": {
       "title": "Delete product?",
       "message": "\"{{name}}\" will be deleted.",

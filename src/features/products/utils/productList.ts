@@ -62,10 +62,15 @@ function compareProducts(a: Product, b: Product, sort: ProductFilters['sort']): 
   }
 }
 
-// Barkod → o barkodu taşıyan ürünlerin id'leri
-export type BarcodeIndex = ReadonlyMap<string, ReadonlySet<number>>;
+type BarcodeEntry = {
+  productIds: ReadonlySet<number>;
+  variantIds: ReadonlySet<number>;
+};
 
-const NO_BARCODE_MATCHES: ReadonlySet<number> = new Set();
+// Barkod → o barkodu taşıyan ürünler ve bedenler
+export type BarcodeIndex = ReadonlyMap<string, BarcodeEntry>;
+
+const NO_IDS: ReadonlySet<number> = new Set();
 
 // Okuyucu veya kamera barkodu eksiksiz verir; boşluk ve harf büyüklüğü fark etmez
 export function normalizeBarcode(text: string): string {
@@ -75,16 +80,17 @@ export function normalizeBarcode(text: string): string {
 // Katalog değişince bir kez kurulur; her aramada tüm varyantlar tek tek gezilmez.
 // Düzenlemede eklenen varyantın barkodu boş gelir, dizine girmez.
 export function buildBarcodeIndex(products: Product[]): BarcodeIndex {
-  const index = new Map<string, Set<number>>();
+  const index = new Map<string, { productIds: Set<number>; variantIds: Set<number> }>();
 
   for (const product of products) {
     for (const variant of product.variants) {
       const barcode = normalizeBarcode(variant.barcode ?? '');
 
       if (barcode) {
-        const ids = index.get(barcode) ?? new Set<number>();
-        ids.add(product.id);
-        index.set(barcode, ids);
+        const entry = index.get(barcode) ?? { productIds: new Set(), variantIds: new Set() };
+        entry.productIds.add(product.id);
+        entry.variantIds.add(variant.id);
+        index.set(barcode, entry);
       }
     }
   }
@@ -94,7 +100,12 @@ export function buildBarcodeIndex(products: Product[]): BarcodeIndex {
 
 // Barkod tam eşleşmeyle aranır: parça eşleşme sayı olan model kodlarıyla karışır, gürültü üretir
 export function getBarcodeMatches(index: BarcodeIndex, query: string): ReadonlySet<number> {
-  return index.get(normalizeBarcode(query)) ?? NO_BARCODE_MATCHES;
+  return index.get(normalizeBarcode(query))?.productIds ?? NO_IDS;
+}
+
+// Okutulan barkodun bedeni; kartta turuncu çerçeveyle gösterilir
+export function getBarcodeVariantMatches(index: BarcodeIndex, query: string): ReadonlySet<number> {
+  return index.get(normalizeBarcode(query))?.variantIds ?? NO_IDS;
 }
 
 // Barkod tek ürüne denk geldiyse o ürün; kartı kendiliğinden açmak için
@@ -105,6 +116,32 @@ export function getSingleBarcodeMatch(matches: ReadonlySet<number>): number | nu
   const [id] = matches;
 
   return id ?? null;
+}
+
+export type BarcodeScanOutcome = 'found' | 'notFound' | 'passive';
+
+// Okutma ekranı sonucu kendisi söyler. activeOnly: sipariş ekranı; pasif ürün panelde
+// satışa kapalıdır, bulunsa da eklenemez.
+export function getBarcodeScanOutcome(
+  products: Product[],
+  index: BarcodeIndex,
+  barcode: string,
+  activeOnly: boolean,
+): BarcodeScanOutcome {
+  const matches = getBarcodeMatches(index, barcode);
+
+  if (matches.size === 0) {
+    return 'notFound';
+  }
+  if (!activeOnly) {
+    return 'found';
+  }
+
+  return products.some(
+    (product) => matches.has(product.id) && product.status === PRODUCT_STATUS.active,
+  )
+    ? 'found'
+    : 'passive';
 }
 
 // Ad ve model kodunda parça eşleşme; search normalizeText'ten geçmiş olmalı
@@ -121,7 +158,7 @@ export function getVisibleProducts(
   products: Product[],
   query: string,
   filters: ProductFilters,
-  barcodeMatches: ReadonlySet<number> = NO_BARCODE_MATCHES,
+  barcodeMatches: ReadonlySet<number>,
 ): Product[] {
   const search = normalizeText(query);
 
@@ -178,18 +215,25 @@ export function chunkItems<T>(items: T[], size: number): T[][] {
   );
 }
 
-export function toSizeCell(variant: ProductVariant): SizeCell {
+// highlighted: okutulan barkodun bedenleri; o hücre turuncu çerçeveyle gösterilir
+export function toSizeCell(variant: ProductVariant, highlighted: ReadonlySet<number> = NO_IDS): SizeCell {
   return {
     key: String(variant.id),
     text: variant.name,
     isOutOfStock: variant.quantity <= 0,
+    isHighlighted: highlighted.has(variant.id),
   };
 }
 
-export function toQuantityCell(variant: ProductVariant, locale: string): SizeCell {
+export function toQuantityCell(
+  variant: ProductVariant,
+  locale: string,
+  highlighted: ReadonlySet<number> = NO_IDS,
+): SizeCell {
   return {
     key: String(variant.id),
     text: formatNumber(variant.quantity, locale),
     isOutOfStock: variant.quantity <= 0,
+    isHighlighted: highlighted.has(variant.id),
   };
 }

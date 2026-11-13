@@ -74,6 +74,9 @@ export const lightColors = {
     overlay: 'rgba(0, 0, 0, 0.4)',
     // Açık drawer'ın yanında kararan ekranın tonu: arka planın %50 karartılmış hali
     drawerBackdrop: '#7D7D7B',
+    // Kamera görüntüsünün üstündeki karartma (barkod okutma): görüntü temadan bağımsız olduğu
+    // için iki temada da aynı; üstündeki yazılar imageBadge ile beyaz yazılır
+    cameraOverlay: 'rgba(0, 0, 0, 0.55)',
 } as const;
 
 // Açık temadaki renk yapısından otomatik türetilir.
@@ -156,4 +159,5 @@ export const darkColors = {
     orangeWhite: '#FFFFFF',
     overlay: 'rgba(0, 0, 0, 0.6)',
     drawerBackdrop: '#0E0E0E',
+    cameraOverlay: 'rgba(0, 0, 0, 0.55)',
 } satisfies AppColors;

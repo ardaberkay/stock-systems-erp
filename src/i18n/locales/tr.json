@@ -585,6 +585,22 @@
         "openDetail": "Detay",
         "edit": "Düzenle",
         "delete": "Sil",
+        "barcodeScan": {
+            "open": "Barkod okut",
+            "title": "Barkod Okut",
+            "tip": "Okunmuyorsa feneri açmayı veya telefonu biraz uzaklaştırmayı deneyin.",
+            "checking": "Kontrol ediliyor…",
+            "notFound": "Bu barkoda ait ürün bulunamadı.",
+            "passive": "Bu ürün pasif, siparişe eklenemez.",
+            "torchOn": "Feneri aç",
+            "torchOff": "Feneri kapat",
+            "permissionTitle": "Kamera izni gerekli",
+            "permissionMessage": "Barkod okutmak için kameraya erişim izni verin.",
+            "allow": "İzin ver",
+            "permissionDenied": "Kamera izni kapalı. Barkod okutmak için ayarlardan kamera iznini açın.",
+            "openSettings": "Ayarları aç",
+            "cameraError": "Kamera açılamadı."
+        },
         "deleteProduct": {
             "title": "Ürün silinsin mi?",
             "message": "\"{{name}}\" ürünü silinecek.",

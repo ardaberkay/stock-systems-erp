@@ -1,6 +1,7 @@
 import { SIZES_PER_ROW } from '@/features/products/constants/products';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/theme/colors';
+import { RADIUS } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
 import { useMemo } from 'react';
 import Text from '@/components/ui/Text';
@@ -10,6 +11,8 @@ export type SizeCell = {
   key: string;
   text: string;
   isOutOfStock: boolean;
+  // Okutulan barkodun bedeni
+  isHighlighted?: boolean;
 };
 
 type SizeRowProps = {
@@ -36,6 +39,8 @@ export default function SizeRow({ cells, variant }: SizeRowProps) {
             styles.cell,
             variant === 'quantity' && styles.quantity,
             cell.isOutOfStock && styles.outOfStock,
+            // Beden çerçeve içinde, altındaki adet turuncu yazılır
+            cell.isHighlighted && (variant === 'size' ? styles.highlightedSize : styles.highlightedQuantity),
           ]}
           numberOfLines={1}
           adjustsFontSizeToFit={cell.text.length > LONG_TEXT_LENGTH}
@@ -66,6 +71,17 @@ function createStyles(colors: AppColors) {
     outOfStock: {
       color: colors.textDisabled,
       textDecorationLine: 'line-through',
+    },
+    highlightedSize: {
+      color: colors.orange,
+      borderWidth: 1,
+      borderColor: colors.orange,
+      borderRadius: RADIUS.sm,
+      overflow: 'hidden',
+    },
+    highlightedQuantity: {
+      color: colors.orange,
+      fontFamily: FONT_FAMILY.semiBold,
     },
   });
 }

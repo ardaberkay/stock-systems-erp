@@ -25,6 +25,8 @@ type ProductCardProps = {
   onToggle: (productId: number) => void;
   colors: AppColors;
   locale: string;
+  // Okutulan barkodun bedenleri; yalnızca eşleşen karta verilir ki diğerleri yeniden çizilmesin
+  highlightedVariantIds?: ReadonlySet<number>;
 };
 
 // Yüzlerce kart aynı stili kullanır; her kartta yeniden oluşturulmasın.
@@ -42,7 +44,14 @@ function getStyles(colors: AppColors) {
   return styles;
 }
 
-function ProductCard({ product, isExpanded, onToggle, colors, locale }: ProductCardProps) {
+function ProductCard({
+  product,
+  isExpanded,
+  onToggle,
+  colors,
+  locale,
+  highlightedVariantIds,
+}: ProductCardProps) {
   const { t } = useTranslation();
   const styles = getStyles(colors);
   const isPassive = product.status === PRODUCT_STATUS.passive;
@@ -50,16 +59,17 @@ function ProductCard({ product, isExpanded, onToggle, colors, locale }: ProductC
   const stockColor = isOutOfStock ? colors.error : colors.textSecondary;
   const firstRow = product.variants.slice(0, SIZES_PER_ROW);
   const canOpenImages = isExpanded && Boolean(product.image);
+  const toCell = (variant: Product['variants'][number]) => toSizeCell(variant, highlightedVariantIds);
 
   // Kapalıyken satıra sığmayan bedenler sayıyla özetlenir, açılınca kart tamamını gösterir
   const hiddenSizeCount = product.variants.length - SIZES_PER_ROW + 1;
   const sizeCells: SizeCell[] =
     !isExpanded && hiddenSizeCount > 1
       ? [
-          ...firstRow.slice(0, SIZES_PER_ROW - 1).map(toSizeCell),
+          ...firstRow.slice(0, SIZES_PER_ROW - 1).map(toCell),
           { key: 'more', text: `+${hiddenSizeCount}`, isOutOfStock: false },
         ]
-      : firstRow.map(toSizeCell);
+      : firstRow.map(toCell);
 
   return (
     <View style={styles.card}>
@@ -139,7 +149,12 @@ function ProductCard({ product, isExpanded, onToggle, colors, locale }: ProductC
       </Pressable>
 
       <Collapsible expanded={isExpanded}>
-        <ProductCardDetails product={product} colors={colors} locale={locale} />
+        <ProductCardDetails
+          product={product}
+          colors={colors}
+          locale={locale}
+          highlightedVariantIds={highlightedVariantIds}
+        />
       </Collapsible>
     </View>
   );

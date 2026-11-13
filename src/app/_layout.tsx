@@ -137,6 +137,9 @@ export default function RootLayout() {
               name="product-images"
               options={{ presentation: 'fullScreenModal', animation: 'fade' }}
             />
+            {/* Barkod okutma: ürün seçme sheet'inin üstünden de açılır; sheet üstüne sheet yerine
+                tam ekran açılır, kamera da daha geniş alan kullanır */}
+            <Stack.Screen name="barcode-scan" options={{ presentation: 'fullScreenModal' }} />
             {/* Marka ve tip listesi uzun olabildiği için içeriğe göre değil, sabit yükseklikte açılır */}
             <Stack.Screen
               name="product-filters"

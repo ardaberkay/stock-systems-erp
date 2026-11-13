@@ -25,10 +25,17 @@ type ProductCardDetailsProps = {
   product: Product;
   colors: AppColors;
   locale: string;
+  // Okutulan barkodun bedenleri; adetleri turuncu yazılır
+  highlightedVariantIds?: ReadonlySet<number>;
 };
 
 // Kartın perde içeriği; yalnızca kart ilk açıldığında çizilir.
-export default function ProductCardDetails({ product, colors, locale }: ProductCardDetailsProps) {
+export default function ProductCardDetails({
+  product,
+  colors,
+  locale,
+  highlightedVariantIds,
+}: ProductCardDetailsProps) {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { confirmDelete, isDeleting } = useConfirmProductDelete();
@@ -61,16 +68,19 @@ export default function ProductCardDetails({ product, colors, locale }: ProductC
     <View style={styles.container}>
       {firstRow.length > 0 && (
         <SizeRow
-          cells={firstRow.map((variant) => toQuantityCell(variant, locale))}
+          cells={firstRow.map((variant) => toQuantityCell(variant, locale, highlightedVariantIds))}
           variant="quantity"
         />
       )}
 
       {otherRows.map((row) => (
         <View key={row[0].id}>
-          <SizeRow cells={row.map(toSizeCell)} variant="size" />
           <SizeRow
-            cells={row.map((variant) => toQuantityCell(variant, locale))}
+            cells={row.map((variant) => toSizeCell(variant, highlightedVariantIds))}
+            variant="size"
+          />
+          <SizeRow
+            cells={row.map((variant) => toQuantityCell(variant, locale, highlightedVariantIds))}
             variant="quantity"
           />
         </View>
