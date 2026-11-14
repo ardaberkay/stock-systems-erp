@@ -1,3 +1,4 @@
+import AffiliateEditHeaderButton from '@/features/affiliates/components/edit/AffiliateEditHeaderButton';
 import OrderEditHeaderButton from '@/features/orders/components/edit/OrderEditHeaderButton';
 import ProductEditHeaderButton from '@/features/products/components/edit/ProductEditHeaderButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -113,6 +114,18 @@ export default function RootLayout() {
             {/* Tip, marka, renk ve kategori listeleri; başlığı ekran kendisi verir */}
             <Stack.Screen name="catalog/[kind]" options={pushedScreenOptions} />
             <Stack.Screen
+              name="affiliates"
+              options={{ ...pushedScreenOptions, title: t('affiliates.title') }}
+            />
+            <Stack.Screen
+              name="affiliate-detail/[id]"
+              options={{
+                ...pushedScreenOptions,
+                title: t('affiliates.detail.title'),
+                headerRight: () => <AffiliateEditHeaderButton />,
+              }}
+            />
+            <Stack.Screen
               name="report-detail/[id]"
               options={{ ...pushedScreenOptions, title: t('reports.title') }}
             />
@@ -145,6 +158,7 @@ export default function RootLayout() {
               name="product-filters"
               options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.8] }}
             />
+            <Stack.Screen name="affiliate-filters" options={fitToContentSheetOptions} />
             <Stack.Screen
               name="order-filters"
               options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.8] }}

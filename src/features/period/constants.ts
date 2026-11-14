@@ -17,7 +17,7 @@ export const MAX_RANGE_DAYS = 30;
 
 // Dönem seçen ekranlar. Her biri kendi seçimini tutar; seçim sheet'i tek route'tur, hangi ekran
 // için açıldığı route parametresiyle verilir (bkz. usePeriodScope).
-export const PERIOD_SCOPES = ['dashboard', 'orders', 'reports'] as const;
+export const PERIOD_SCOPES = ['dashboard', 'orders', 'reports', 'affiliates'] as const;
 
 export type PeriodScope = (typeof PERIOD_SCOPES)[number];
 

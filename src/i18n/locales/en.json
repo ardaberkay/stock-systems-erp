@@ -26,7 +26,99 @@
   },
   "drawer": {
     "open": "Open menu",
+    "affiliates": "Affiliates",
     "settings": "Settings"
+  },
+  "affiliates": {
+    "title": "Affiliates",
+    "searchPlaceholder": "Search name, boutique, phone or email",
+    "filterTitle": "Filter and Sort",
+    "resetFilters": "Reset",
+    "statusTitle": "Status",
+    "sortTitle": "Sort by",
+    "status": {
+      "all": "All",
+      "active": "Active",
+      "passive": "Passive"
+    },
+    "sort": {
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "nameAsc": "Name (A-Z)",
+      "nameDesc": "Name (Z-A)"
+    },
+    "count": "{{value}} affiliates",
+    "createdAt": "Joined: {{date}}",
+    "noPhone": "No phone",
+    "openHint": "Opens details",
+    "unnamed": "Affiliate #{{id}}",
+    "empty": "No affiliates yet.",
+    "noResults": "No affiliates match your search.",
+    "notFound": "Affiliate not found.",
+    "detail": {
+      "title": "Affiliate",
+      "tabs": {
+        "general": "Info",
+        "billing": "Payment",
+        "orders": "Orders"
+      },
+      "phone": "Phone",
+      "email": "Email",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "officeName": "Boutique name",
+      "createdAt": "Joined on",
+      "id": "Affiliate no",
+      "payments": "Payment details",
+      "addresses": "Billing addresses",
+      "paymentsEmpty": "Saved payment details can only be viewed in the web panel for now.",
+      "addressesEmpty": "Saved billing addresses can only be viewed in the web panel for now.",
+      "orderCount": "Orders",
+      "revenue": "Revenue",
+      "ordersEmpty": "No orders in this period.",
+      "whatsapp": "Message {{name}} on WhatsApp",
+      "whatsappMessage": "Hello {{name}},"
+    },
+    "edit": {
+      "title": "Edit Affiliate",
+      "sections": {
+        "contact": "Person and contact",
+        "account": "Account",
+        "sales": "Sales settings",
+        "payments": "Payment details",
+        "addresses": "Billing addresses"
+      },
+      "fields": {
+        "officeName": "Boutique name",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "phone": "Phone",
+        "email": "Email",
+        "username": "Username",
+        "password": "Password",
+        "status": "Account status",
+        "subtraction": "Deduction",
+        "basePriceChange": "Can change base price",
+        "canAddAmount": "Can add amount",
+        "productCommission": "Commission per product",
+        "deductFromAdded": "Deduct from added amount",
+        "paymentName": "Payee full name",
+        "iban": "IBAN",
+        "tc": "Payee Turkish ID no",
+        "regularPayment": "Regular payment",
+        "billingAddress": "Billing address"
+      },
+      "on": "On",
+      "off": "Off",
+      "phonePlaceholder": "5XX XXX XX XX",
+      "paymentLockedNote": "Payment details and billing addresses are kept as lists in the web panel; for now they can only be edited there.",
+      "errorCode": "Error code: {{code}}",
+      "errors": {
+        "required": "This field is required.",
+        "email": "Enter a valid email.",
+        "phone": "Enter a 10-digit mobile number starting with 5."
+      }
+    }
   },
   "language": {
     "tr": "Türkçe",

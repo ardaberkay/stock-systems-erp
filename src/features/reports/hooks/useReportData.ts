@@ -1,4 +1,4 @@
-import { useAffiliates } from '@/features/orders/api/affiliates';
+import { useAffiliates } from '@/features/affiliates/api/affiliates';
 import { useOrderPaymentTypes, useOrders, useRefreshOrders } from '@/features/orders/api/orders';
 import { useProducts } from '@/features/products/api/products';
 import type { PeriodSelection } from '@/features/period/constants';

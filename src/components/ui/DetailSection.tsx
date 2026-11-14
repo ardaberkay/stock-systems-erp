@@ -7,7 +7,8 @@ import Text from '@/components/ui/Text';
 import { StyleSheet, View } from 'react-native';
 
 type DetailSectionProps = {
-  title: string;
+  // Yoksa yalnızca kart çizilir (ör. sekme adı bölümü zaten anlatıyorsa)
+  title?: string;
   // Başlığın sağında durur (ör. özetteki "Düzenle")
   action?: ReactNode;
   children: ReactNode;
@@ -20,12 +21,16 @@ export default function DetailSection({ title, action, children }: DetailSection
 
   return (
     <View style={styles.section}>
-      <View style={styles.header}>
-        <Text style={styles.title} accessibilityRole="header">
-          {title}
-        </Text>
-        {action}
-      </View>
+      {(title || action) && (
+        <View style={styles.header}>
+          {title ? (
+            <Text style={styles.title} accessibilityRole="header">
+              {title}
+            </Text>
+          ) : null}
+          {action}
+        </View>
+      )}
       <View style={styles.card}>{children}</View>
     </View>
   );

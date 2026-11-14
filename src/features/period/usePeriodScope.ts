@@ -1,3 +1,4 @@
+import { useAffiliateFilterStore } from '@/features/affiliates/affiliateFilterStore';
 import { useDashboardFilterStore } from '@/features/dashboard/dashboardFilterStore';
 import { ORDER_PERIODS } from '@/features/orders/constants/list';
 import { useOrderFilterStore } from '@/features/orders/orderFilterStore';
@@ -12,7 +13,7 @@ type PeriodScopeState = {
 };
 
 // Dönem sheet'i hangi ekran için açıldıysa o ekranın listesini ve seçimini verir.
-// Üç store da okunur; sheet kısa ömürlü olduğu için maliyeti yok, hook sırası sabit kalır.
+// Tüm store'lar okunur; sheet kısa ömürlü olduğu için maliyeti yok, hook sırası sabit kalır.
 export function usePeriodScope(scope: PeriodScope): PeriodScopeState {
   const dashboardSelection = useDashboardFilterStore((state) => state.selection);
   const setDashboardSelection = useDashboardFilterStore((state) => state.setSelection);
@@ -20,6 +21,8 @@ export function usePeriodScope(scope: PeriodScope): PeriodScopeState {
   const setOrderSelection = useOrderFilterStore((state) => state.setSelection);
   const reportSelection = useReportFilterStore((state) => state.selection);
   const setReportSelection = useReportFilterStore((state) => state.setSelection);
+  const affiliateSelection = useAffiliateFilterStore((state) => state.selection);
+  const setAffiliateSelection = useAffiliateFilterStore((state) => state.setSelection);
 
   switch (scope) {
     case 'dashboard':
@@ -51,6 +54,16 @@ export function usePeriodScope(scope: PeriodScope): PeriodScopeState {
           if (period) setReportSelection({ kind: 'preset', period });
         },
         selectRange: (from, to) => setReportSelection({ kind: 'range', from, to }),
+      };
+    case 'affiliates':
+      return {
+        periods: PERIODS,
+        selection: affiliateSelection,
+        selectPreset: (value) => {
+          const period = PERIODS.find((item) => item === value);
+          if (period) setAffiliateSelection({ kind: 'preset', period });
+        },
+        selectRange: (from, to) => setAffiliateSelection({ kind: 'range', from, to }),
       };
   }
 }

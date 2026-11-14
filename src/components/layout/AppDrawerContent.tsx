@@ -5,6 +5,7 @@ import { FONT_FAMILY, typography } from '@/theme/typography';
 import { router } from 'expo-router';
 import { DrawerContentScrollView, type DrawerContentComponentProps } from 'expo-router/drawer';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
+import Handshake from 'lucide-react-native/icons/handshake';
 import LogOut from 'lucide-react-native/icons/log-out';
 import Settings from 'lucide-react-native/icons/settings';
 import { useMemo } from 'react';
@@ -16,6 +17,11 @@ export default function AppDrawerContent(props: DrawerContentComponentProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const openAffiliates = () => {
+    props.navigation.closeDrawer();
+    router.push('/affiliates');
+  };
 
   const openSettings = () => {
     props.navigation.closeDrawer();
@@ -39,6 +45,17 @@ export default function AppDrawerContent(props: DrawerContentComponentProps) {
     <View style={styles.panel}>
       <DrawerContentScrollView {...props} contentContainerStyle={styles.content}>
         <View style={styles.menu}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('drawer.affiliates')}
+            onPress={openAffiliates}
+            style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+          >
+            <Handshake size={ICON_SIZE.md} color={colors.icon} />
+            <Text style={styles.itemLabel}>{t('drawer.affiliates')}</Text>
+            <ChevronRight size={ICON_SIZE.md} color={colors.icon} />
+          </Pressable>
+
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('drawer.settings')}

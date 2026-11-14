@@ -26,7 +26,99 @@
     },
     "drawer": {
         "open": "Menüyü aç",
+        "affiliates": "Satış Ortakları",
         "settings": "Ayarlar"
+    },
+    "affiliates": {
+        "title": "Satış Ortakları",
+        "searchPlaceholder": "Ad, butik, telefon veya e-posta ara",
+        "filterTitle": "Filtrele ve Sırala",
+        "resetFilters": "Sıfırla",
+        "statusTitle": "Durum",
+        "sortTitle": "Sıralama",
+        "status": {
+            "all": "Tümü",
+            "active": "Aktif",
+            "passive": "Pasif"
+        },
+        "sort": {
+            "newest": "En yeni kayıt",
+            "oldest": "En eski kayıt",
+            "nameAsc": "Ada göre (A-Z)",
+            "nameDesc": "Ada göre (Z-A)"
+        },
+        "count": "{{value}} satış ortağı",
+        "createdAt": "Kayıt: {{date}}",
+        "noPhone": "Telefon yok",
+        "openHint": "Detayları açar",
+        "unnamed": "Ortak #{{id}}",
+        "empty": "Henüz satış ortağı yok.",
+        "noResults": "Aramaya uyan satış ortağı yok.",
+        "notFound": "Satış ortağı bulunamadı.",
+        "detail": {
+            "title": "Satış Ortağı",
+            "tabs": {
+                "general": "Bilgi",
+                "billing": "Ödeme",
+                "orders": "Siparişler"
+            },
+            "phone": "Telefon",
+            "email": "E-posta",
+            "firstName": "Ad",
+            "lastName": "Soyad",
+            "officeName": "Butik adı",
+            "createdAt": "Kayıt tarihi",
+            "id": "Ortak no",
+            "payments": "Ödeme bilgileri",
+            "addresses": "Fatura adresleri",
+            "paymentsEmpty": "Kayıtlı ödeme bilgileri şimdilik yalnızca panelde görüntülenebiliyor.",
+            "addressesEmpty": "Kayıtlı fatura adresleri şimdilik yalnızca panelde görüntülenebiliyor.",
+            "orderCount": "Sipariş",
+            "revenue": "Ciro",
+            "ordersEmpty": "Bu dönemde siparişi yok.",
+            "whatsapp": "{{name}} ile WhatsApp'tan yazış",
+            "whatsappMessage": "Merhaba {{name}},"
+        },
+        "edit": {
+            "title": "Satış Ortağını Düzenle",
+            "sections": {
+                "contact": "Kişi ve iletişim",
+                "account": "Hesap",
+                "sales": "Satış ayarları",
+                "payments": "Ödeme bilgileri",
+                "addresses": "Fatura adresleri"
+            },
+            "fields": {
+                "officeName": "Butik adı",
+                "firstName": "Ad",
+                "lastName": "Soyad",
+                "phone": "Telefon",
+                "email": "E-posta",
+                "username": "Kullanıcı adı",
+                "password": "Şifre",
+                "status": "Hesap durumu",
+                "subtraction": "Kesinti durumu",
+                "basePriceChange": "Dip fiyatı değiştirebilme",
+                "canAddAmount": "Ekleme yapabilme",
+                "productCommission": "Ürün başına komisyon",
+                "deductFromAdded": "Eklenen tutardan kes",
+                "paymentName": "Alıcı ad soyad",
+                "iban": "IBAN",
+                "tc": "Alıcı TC kimlik no",
+                "regularPayment": "Düzenli ödeme",
+                "billingAddress": "Fatura adresi"
+            },
+            "on": "Açık",
+            "off": "Kapalı",
+            "phonePlaceholder": "5XX XXX XX XX",
+            "paymentLockedNote": "Ödeme bilgileri ve fatura adresleri panelde liste halinde tutuluyor; şimdilik yalnızca panelden düzenlenebilir.",
+            "errorCode": "Hata kodu: {{code}}",
+            "errors": {
+                "required": "Bu alan zorunlu.",
+                "email": "Geçerli bir e-posta girin.",
+                "phone": "5 ile başlayan 10 haneli bir cep numarası girin."
+            }
+        }
     },
     "language": {
         "tr": "Türkçe",

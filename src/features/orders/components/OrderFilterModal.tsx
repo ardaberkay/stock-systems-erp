@@ -1,4 +1,4 @@
-import { useAffiliates } from '@/features/orders/api/affiliates';
+import { useAffiliates } from '@/features/affiliates/api/affiliates';
 import { useCargoCompanies } from '@/features/orders/api/cargo';
 import { useOrderCustomStatuses, useOrderPaymentTypes } from '@/features/orders/api/orders';
 import SelectField, { type SelectOption } from '@/components/ui/SelectField';
