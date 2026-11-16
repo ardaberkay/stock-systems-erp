@@ -18,7 +18,6 @@ type ReportTrendChartProps = {
   interactive: boolean;
 };
 
-const AREA_OPACITY = 0.3;
 const STROKE_WIDTH = 2;
 // 7 günde 4 etiket tam eşit aralıklı düşer; 5 etikette araları 2-1-2-1 gün olur
 const AXIS_TICKS = 4;
@@ -56,7 +55,6 @@ export default function ReportTrendChart({
           aspectRatio={width / height}
           onActiveIndexChange={(index) => setActiveIndex(index)}
         >
-          <LineChart.Area dataKey="rate" color={colors.orange} opacity={AREA_OPACITY} />
           <LineChart.Line dataKey="rate" color={colors.orange} strokeWidth={STROKE_WIDTH} />
           {interactive && <LineChart.XAxis ticks={AXIS_TICKS} />}
           {/* panelui etiketi tek satırlık; oran, iade ve iptal alt alta bizim kutuda yazılır */}

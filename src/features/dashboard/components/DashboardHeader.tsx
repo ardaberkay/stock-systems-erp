@@ -238,8 +238,10 @@ function createStyles(colors: AppColors) {
       gap: 4,
       paddingTop: 5,
     },
-    // İçerik kadar geniş; alt çizgi sütunun tamamına değil, etiket ve değerin altına yayılır
+    // İki rakam aynı genişlikte: alt çizgiler etiket uzunluğuna göre değişmez, hizalı durur.
+    // Etiket uzunsa (büyük yazı) kutu genişler, metin kesilmez.
     metricContent: {
+      minWidth: '70%',
       alignItems: 'center',
       gap: 4,
     },
