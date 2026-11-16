@@ -100,71 +100,74 @@ export default function DashboardHeader({
         </Text>
       )}
 
+      {/* Kutu yerine altı çizgili rakamlar: kutulu hali başka sayfaya giden buton gibi
+          duruyordu. Çizgi kapalıyken de gri görünür, dokunulabildiği anlaşılır; açıkken
+          grafikteki çizginin rengini alır. */}
       <View style={styles.metricsRow}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('dashboard.toggleSoldLine')}
           accessibilityState={{ selected: showSold }}
           onPress={onToggleSold}
-          style={[
-            styles.metric,
-            showSold && styles.metricActivePurple,
-          ]}
+          style={styles.metric}
         >
-          <View style={styles.metricTitleRow}>
-            <View
-              style={[
-                styles.metricDot,
-                styles.metricDotPurple,
-                !showSold && styles.metricDotInactive,
-              ]}
-            />
+          <View style={styles.metricContent}>
+            <View style={styles.metricTitleRow}>
+              <View
+                style={[
+                  styles.metricDot,
+                  styles.metricDotPurple,
+                  !showSold && styles.metricDotInactive,
+                ]}
+              />
 
-            <Text
-              style={[
-                styles.metricLabel,
-                showSold && styles.metricLabelPurple,
-              ]}
-            >
-              {t('dashboard.soldProduct')}
-            </Text>
+              <Text
+                style={[
+                  styles.metricLabel,
+                  showSold && styles.metricLabelPurple,
+                ]}
+              >
+                {t('dashboard.soldProduct')}
+              </Text>
+            </View>
+
+            {renderValue(totals?.soldCount)}
+
+            <View style={[styles.metricUnderline, showSold && styles.metricUnderlinePurple]} />
           </View>
-
-          {renderValue(totals?.soldCount)}
         </Pressable>
-
-        <View style={styles.metricDivider} />
 
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('dashboard.toggleOrdersLine')}
           accessibilityState={{ selected: showOrders }}
           onPress={onToggleOrders}
-          style={[
-            styles.metric,
-            showOrders && styles.metricActiveGreen,
-          ]}
+          style={styles.metric}
         >
-          <View style={styles.metricTitleRow}>
-            <View
-              style={[
-                styles.metricDot,
-                styles.metricDotGreen,
-                !showOrders && styles.metricDotInactive,
-              ]}
-            />
+          <View style={styles.metricContent}>
+            <View style={styles.metricTitleRow}>
+              <View
+                style={[
+                  styles.metricDot,
+                  styles.metricDotGreen,
+                  !showOrders && styles.metricDotInactive,
+                ]}
+              />
 
-            <Text
-              style={[
-                styles.metricLabel,
-                showOrders && styles.metricLabelGreen,
-              ]}
-            >
-              {t('dashboard.orders')}
-            </Text>
+              <Text
+                style={[
+                  styles.metricLabel,
+                  showOrders && styles.metricLabelGreen,
+                ]}
+              >
+                {t('dashboard.orders')}
+              </Text>
+            </View>
+
+            {renderValue(totals?.orderCount)}
+
+            <View style={[styles.metricUnderline, showOrders && styles.metricUnderlineGreen]} />
           </View>
-
-          {renderValue(totals?.orderCount)}
         </Pressable>
       </View>
     </View>
@@ -225,7 +228,7 @@ function createStyles(colors: AppColors) {
       justifyContent: 'center',
       alignItems: 'stretch',
       marginTop: SPACING.md,
-      gap: 8,
+      gap: SPACING.lg,
     },
     metric: {
       flex: 1,
@@ -233,20 +236,12 @@ function createStyles(colors: AppColors) {
       alignItems: 'center',
       justifyContent: 'center',
       gap: 4,
-      paddingVertical: 5,
-      paddingHorizontal: 4,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
+      paddingTop: 5,
     },
-    metricActivePurple: {
-      borderColor: colors.purple,
-      backgroundColor: colors.purpleLight,
-    },
-    metricActiveGreen: {
-      borderColor: colors.green,
-      backgroundColor: colors.greenLight,
+    // İçerik kadar geniş; alt çizgi sütunun tamamına değil, etiket ve değerin altına yayılır
+    metricContent: {
+      alignItems: 'center',
+      gap: 4,
     },
     metricTitleRow: {
       flexDirection: 'row',
@@ -268,10 +263,6 @@ function createStyles(colors: AppColors) {
     metricDotInactive: {
       opacity: 0.45,
     },
-    metricDivider: {
-      width: 1,
-      backgroundColor: colors.border,
-    },
     metricLabel: {
       ...typography.caption,
       color: colors.textSecondary,
@@ -288,6 +279,19 @@ function createStyles(colors: AppColors) {
       color: colors.text,
       fontSize: FONT_SIZE.sm,
       fontFamily: FONT_FAMILY.bold,
+    },
+    metricUnderline: {
+      alignSelf: 'stretch',
+      height: SPACING.xxs,
+      marginTop: SPACING.xs,
+      borderRadius: RADIUS.full,
+      backgroundColor: colors.border,
+    },
+    metricUnderlinePurple: {
+      backgroundColor: colors.purple,
+    },
+    metricUnderlineGreen: {
+      backgroundColor: colors.green,
     },
   });
 }

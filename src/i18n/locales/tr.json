@@ -60,22 +60,30 @@
             "tabs": {
                 "general": "Bilgi",
                 "billing": "Ödeme",
+                "invoices": "Fatura"
+            },
+            "createdAt": "Kayıt Tarihi: {{date}}",
+            "reportTabs": {
+                "report": "Rapor",
                 "orders": "Siparişler"
             },
-            "phone": "Telefon",
-            "email": "E-posta",
-            "firstName": "Ad",
-            "lastName": "Soyad",
-            "officeName": "Butik adı",
-            "createdAt": "Kayıt tarihi",
-            "id": "Ortak no",
-            "payments": "Ödeme bilgileri",
-            "addresses": "Fatura adresleri",
-            "paymentsEmpty": "Kayıtlı ödeme bilgileri şimdilik yalnızca panelde görüntülenebiliyor.",
-            "addressesEmpty": "Kayıtlı fatura adresleri şimdilik yalnızca panelde görüntülenebiliyor.",
+            "topProductsTitle": "En çok satan ürünler",
             "orderCount": "Sipariş",
             "revenue": "Ciro",
+            "unitCount": "Adet",
+            "metricHint": "Grafikte bu değeri gösterir",
+            "ordersOpen": "Dönemin siparişlerini açar",
+            "ordersLinkTitle": "Siparişler",
+            "ordersLinkSummary": "{{period}} · {{count}} sipariş · {{revenue}}",
             "ordersEmpty": "Bu dönemde siparişi yok.",
+            "quickActions": {
+                "call": "Ara",
+                "whatsapp": "WhatsApp",
+                "email": "E-posta"
+            },
+            "callLabel": "{{name}} kişisini ara",
+            "emailLabel": "{{name}} kişisine e-posta gönder",
+            "emailError": "E-posta uygulaması açılamadı.",
             "whatsapp": "{{name}} ile WhatsApp'tan yazış",
             "whatsappMessage": "Merhaba {{name}},"
         },

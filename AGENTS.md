@@ -190,6 +190,12 @@ State'in nerede tutulacağı şu sırayla belirlenir:
 - Her ekranın kök stiline `...SCREEN_CONTENT` yayılır: tablette içerik `CONTENT_MAX_WIDTH` genişliğinde ortalanır, telefonda etkisi yoktur.
 - Genişlikler sabit sayıyla verilmez; flex ve yüzde kullanılır. En dar telefon (360dp) ve dikey tablette kontrol edilir.
 
+### Grafikler
+- Zamana göre değişim (gün/saat bazında ciro, sipariş, adet, oran) **çizgi grafik** (`LineChart`) ile; kalemleri birbiriyle kıyaslama (ürün, şehir, ortak, durum) **çubuk grafik** ile gösterilir.
+- Şimdilik panelui'nin varsayılan davranışı kullanılır: grafik bulunduğu alanın genişliğini alır (ekranın kenar boşluğu içinde kalır), yükseklik `aspectRatio` ile verilir. Ekran kenarına taşırma, uç noktası uzatma gibi varsayılanın dışındaki çözümler yalnızca anasayfa ciro grafiğindedir; yenisi onaysız eklenmez.
+- Dolgulu (gradyanlı) büyük çizgi anasayfa grafiğine özgüdür; diğer ekranlarda dolgusuz tek çizgi kullanılır.
+- Seri renkleri anlamıyla sabittir: ciro `orange`, sipariş `green`, adet/ürün `purple`.
+
 ### Tailwind / Uniwind
 - `className` ve Tailwind sınıfları kendi kodumuzda **kullanılmaz**. `uniwind` ve `tailwindcss` yalnızca panelui-native'in ihtiyacı için kuruludur ve kaldırılmaz.
 - Inline stil yalnızca gerçekten dinamik değerler için (ör. `{ width }`).

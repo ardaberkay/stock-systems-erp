@@ -126,6 +126,11 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
+              name="affiliate-orders/[id]"
+              // Ekran açılınca başlığı ortağın butik adı yapar; o zamana kadar genel ad görünür
+              options={{ ...pushedScreenOptions, title: t('affiliates.detail.title') }}
+            />
+            <Stack.Screen
               name="report-detail/[id]"
               options={{ ...pushedScreenOptions, title: t('reports.title') }}
             />

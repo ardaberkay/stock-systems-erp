@@ -19,10 +19,11 @@ type AffiliateProfileHeaderProps = {
   colors: AppColors;
 };
 
-// Büyük avatar: dokunma alanından bir boy büyük
-const AVATAR_SIZE = MIN_TOUCH_SIZE + SPACING.xl;
+// Avatar dokunma alanından bir boy büyük; yanındaki iki satır metinle aynı hizada durur
+const AVATAR_SIZE = MIN_TOUCH_SIZE + SPACING.md;
 
-// Detayın üstü: ortada avatar ve ad, sağ üst köşede durum
+// Detayın üstü: solda avatar, yanında butik adı, ad soyad ve durum. Sola yaslı düzen ekranda
+// daha az yer kaplar; altındaki işlemler ve rakamlar ilk bakışta görünür.
 export default function AffiliateProfileHeader({ affiliate, colors }: AffiliateProfileHeaderProps) {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -33,14 +34,6 @@ export default function AffiliateProfileHeader({ affiliate, colors }: AffiliateP
 
   return (
     <View style={styles.hero}>
-      {/* Durum sağ üst köşede; ortadaki ad ve avatarın hizasını bozmaz */}
-      <View style={[styles.statusBadge, isActive ? styles.statusActive : styles.statusPassive]}>
-        <View style={[styles.statusDot, isActive ? styles.dotActive : styles.dotPassive]} />
-        <Text style={[styles.statusText, isActive ? styles.textActive : styles.textPassive]}>
-          {t(isActive ? 'affiliates.status.active' : 'affiliates.status.passive')}
-        </Text>
-      </View>
-
       <AffiliateAvatar
         id={affiliate.id}
         initials={getAffiliateInitials(affiliate)}
@@ -54,6 +47,12 @@ export default function AffiliateProfileHeader({ affiliate, colors }: AffiliateP
           {title}
         </Text>
         {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+        <View style={[styles.statusBadge, isActive ? styles.statusActive : styles.statusPassive]}>
+          <View style={[styles.statusDot, isActive ? styles.dotActive : styles.dotPassive]} />
+          <Text style={[styles.statusText, isActive ? styles.textActive : styles.textPassive]}>
+            {t(isActive ? 'affiliates.status.active' : 'affiliates.status.passive')}
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -62,33 +61,29 @@ export default function AffiliateProfileHeader({ affiliate, colors }: AffiliateP
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
     hero: {
+      flexDirection: 'row',
       alignItems: 'center',
-      gap: SPACING.md,
-      paddingTop: SPACING.lg,
+      gap: SPACING.lg,
+      paddingTop: SPACING.sm,
     },
-    // Uzun ad sağ üstteki durum etiketinin altına girmesin diye iki yandan boşluk bırakılır
     texts: {
-      alignItems: 'center',
+      flex: 1,
+      alignItems: 'flex-start',
       gap: SPACING.xxs,
-      paddingHorizontal: SPACING.xxxl,
     },
     title: {
       ...typography.h3,
-      textAlign: 'center',
       color: colors.text,
     },
     subtitle: {
       ...typography.bodySmall,
-      textAlign: 'center',
       color: colors.textSecondary,
     },
     statusBadge: {
-      position: 'absolute',
-      top: 0,
-      right: 0,
       flexDirection: 'row',
       alignItems: 'center',
       gap: SPACING.xs,
+      marginTop: SPACING.xs,
       paddingHorizontal: SPACING.md,
       paddingVertical: SPACING.xxs,
       borderRadius: RADIUS.full,

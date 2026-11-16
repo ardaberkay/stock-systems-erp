@@ -1,7 +1,12 @@
 import DetailSection from '@/components/ui/DetailSection';
 import LockedField from '@/components/ui/form/LockedField';
 import TextField from '@/components/ui/form/TextField';
-import { isAffiliateActive } from '@/features/affiliates/affiliateList';
+import {
+  isAffiliateActive,
+  isAffiliateSubtractionOn,
+  PANEL_ONLY_ACCOUNT_FIELDS,
+  PANEL_ONLY_SALE_FIELDS,
+} from '@/features/affiliates/affiliateList';
 import type { AffiliateEditForm } from '@/features/affiliates/schemas/affiliateEdit';
 import type { Affiliate } from '@/features/affiliates/schemas/affiliates';
 import { formatPhoneGroups, toTrPhoneDigits } from '@/features/orders/utils/phone';
@@ -19,18 +24,6 @@ type TextFieldName = 'firstName' | 'lastName' | 'officeName' | 'email';
 
 // "555 123 45 67" biçiminde yazılır: boşluklar dahil en fazla 13 karakter
 const PHONE_INPUT_MAX_LENGTH = 13;
-
-// subtractionStatus: 1 / 0. Paneldeki karşılığı kullanıcıdan teyit edilecek.
-const SUBTRACTION_ON = 1;
-
-// Panelde düzenlenen ama API'nin okumadığı ve yazmadığı alanlar; yerleri hazır, değerleri boş
-const PANEL_ONLY_ACCOUNT_FIELDS = ['username', 'password'] as const;
-const PANEL_ONLY_SALE_FIELDS = [
-  'basePriceChange',
-  'canAddAmount',
-  'productCommission',
-  'deductFromAdded',
-] as const;
 
 export default function AffiliateEditGeneralTab({ affiliate }: AffiliateEditGeneralTabProps) {
   const { t } = useTranslation();
@@ -103,11 +96,7 @@ export default function AffiliateEditGeneralTab({ affiliate }: AffiliateEditGene
       <DetailSection title={t('affiliates.edit.sections.sales')}>
         <LockedField
           label={t('affiliates.edit.fields.subtraction')}
-          value={t(
-            affiliate.subtractionStatus === SUBTRACTION_ON
-              ? 'affiliates.edit.on'
-              : 'affiliates.edit.off',
-          )}
+          value={t(isAffiliateSubtractionOn(affiliate) ? 'affiliates.edit.on' : 'affiliates.edit.off')}
         />
         {PANEL_ONLY_SALE_FIELDS.map((field) => (
           <LockedField key={field} label={t(`affiliates.edit.fields.${field}`)} value={null} />

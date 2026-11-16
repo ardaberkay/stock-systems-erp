@@ -39,8 +39,8 @@ type AffiliateEditViewProps = {
   onExit: () => void;
 };
 
-// Siparişler düzenlenmez; düzenlemede yalnızca bilgi ve ödeme bölümleri var
-const EDIT_TABS = ['general', 'billing'] as const;
+// Detaydaki sekmelerle aynı: Bilgi / Ödeme / Fatura
+const EDIT_TABS = ['general', 'billing', 'invoices'] as const;
 type EditTab = (typeof EDIT_TABS)[number];
 
 // İkon 24; dokunma alanı 44'e tamamlanır
@@ -206,7 +206,10 @@ export default function AffiliateEditView({ affiliate, onExit }: AffiliateEditVi
           <AffiliateEditGeneralTab affiliate={affiliate} />
         </View>
         <View style={[styles.tabContent, activeTab !== 'billing' && styles.hidden]}>
-          <AffiliateEditBillingTab />
+          <AffiliateEditBillingTab kind="payments" />
+        </View>
+        <View style={[styles.tabContent, activeTab !== 'invoices' && styles.hidden]}>
+          <AffiliateEditBillingTab kind="addresses" />
         </View>
       </ScrollView>
     </FormProvider>

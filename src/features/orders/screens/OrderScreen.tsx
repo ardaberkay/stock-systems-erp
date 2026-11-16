@@ -60,6 +60,7 @@ type TabsNavigation = NavigationProp<
 >;
 
 const SKELETON_CARD_KEYS = ['first', 'second', 'third', 'fourth'];
+// Ekleme butonunun payı: butonun alttan boşluğu + 56'lık buton + son kartla arası
 const FAB_SPACE = 88;
 const COUNT_ICON_SIZE = ICON_SIZE.sm - SPACING.xxs;
 // Liste panelin köşe yuvarlaklığı kadar altına girer; köşelerde arkadaki kartlar görünür
@@ -299,7 +300,7 @@ export default function OrderScreen() {
           extraData={selectedIds}
           keyExtractor={getOrderKey}
           renderItem={renderOrder}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: fabOffset + FAB_SPACE }]}
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
@@ -424,9 +425,8 @@ function createStyles(colors: AppColors) {
     list: {
       gap: SPACING.sm,
       paddingHorizontal: SPACING.md,
+      // Alt boşluk satır içinde: anasayfadaki gibi sekme çubuğu + ekleme butonunun payı
       paddingTop: HEADER_OVERLAP + SPACING.xs,
-      // Son kart ekleme butonunun altında kalmasın; sekme çubuğu boşluğunu iOS kendisi ekler
-      paddingBottom: FAB_SPACE,
     },
   });
 }

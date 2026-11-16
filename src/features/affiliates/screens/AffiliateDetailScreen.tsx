@@ -1,18 +1,20 @@
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import Skeleton from '@/components/ui/Skeleton';
 import StateMessage from '@/components/ui/StateMessage';
+import {
+  AFFILIATE_DEFAULT_SELECTION,
+  useAffiliateFilterStore,
+} from '@/features/affiliates/affiliateFilterStore';
+import { getAffiliateTitle } from '@/features/affiliates/affiliateList';
 import { useAffiliates } from '@/features/affiliates/api/affiliates';
 import AffiliateBillingSection from '@/features/affiliates/components/AffiliateBillingSection';
 import AffiliateGeneralSection from '@/features/affiliates/components/AffiliateGeneralSection';
-import AffiliateOrdersHeader from '@/features/affiliates/components/AffiliateOrdersHeader';
+import AffiliateOrdersLink from '@/features/affiliates/components/AffiliateOrdersLink';
 import AffiliateProfileHeader from '@/features/affiliates/components/AffiliateProfileHeader';
+import AffiliateQuickActions from '@/features/affiliates/components/AffiliateQuickActions';
 import AffiliateEditView from '@/features/affiliates/components/edit/AffiliateEditView';
 import type { Affiliate } from '@/features/affiliates/schemas/affiliates';
 import { useAffiliateOrders } from '@/features/affiliates/useAffiliateOrders';
-import OrderCardSkeleton from '@/features/orders/components/OrderCardSkeleton';
-import { useOrderLookups } from '@/features/orders/hooks/useOrderLookups';
-import type { Order } from '@/features/orders/schemas/orders';
-import ReportOrderCard from '@/features/reports/components/ReportOrderCard';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useLocale } from '@/hooks/useLocale';
 import { getErrorMessageKey } from '@/lib/apiError';
@@ -21,20 +23,12 @@ import { RADIUS, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, RefreshControl, StyleSheet, View, type ListRenderItem } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const AFFILIATE_DETAIL_TABS = ['general', 'billing', 'orders'] as const;
+// Siparişler ayrı sayfadadır (sipariş satırı açar); sekmeler ortağın kendi kayıtlarıdır
+const AFFILIATE_DETAIL_TABS = ['general', 'billing', 'invoices'] as const;
 type AffiliateDetailTab = (typeof AFFILIATE_DETAIL_TABS)[number];
-
-// Listenin satırları: sekme çubuğu, seçili sekmenin içeriği; siparişlerde her kart ayrı satır
-type DetailRow =
-  | { kind: 'tabs' }
-  | { kind: 'general' }
-  | { kind: 'billing' }
-  | { kind: 'ordersHeader' }
-  | { kind: 'ordersState' }
-  | { kind: 'order'; order: Order };
 
 type AffiliateDetailContentProps = {
   affiliate: Affiliate;
@@ -43,13 +37,8 @@ type AffiliateDetailContentProps = {
 
 const SKELETON_HEADER_HEIGHT = 160;
 const SKELETON_SECTION_HEIGHT = 220;
-const ORDER_SKELETON_KEYS = ['first', 'second'];
-// Liste başlığı (profil) 0. çocuk; sekme çubuğu ilk satır olduğu için 1. çocuk
+// Üst kısım (profil, işlemler, sipariş satırı) 0. çocuk; sekme çubuğu 1. çocuk
 const STICKY_TAB_INDICES = [1];
-
-function getRowKey(row: DetailRow) {
-  return row.kind === 'order' ? `order-${row.order.id}` : row.kind;
-}
 
 // Satış ortağı detayı (affiliate-detail/[id]). Ortak bilgisi ortak listesinden gelir; API tek
 // ortak için ayrı alan döndürmüyor, liste zaten önbellekte.
@@ -92,7 +81,8 @@ export default function AffiliateDetailScreen() {
   return <AffiliateDetailContent affiliate={affiliate} refetchAffiliates={refetch} />;
 }
 
-// Profil hep üstte; altında yapışık sekme çubuğu ve seçili sekme.
+// Üstte profil, hızlı işlemler ve sipariş satırı; altında yapışık sekme çubuğu ve seçili sekme.
+// İçerik kısa ve sabit sayıda olduğu için FlatList yerine ScrollView yeterli.
 function AffiliateDetailContent({ affiliate, refetchAffiliates }: AffiliateDetailContentProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -100,28 +90,14 @@ function AffiliateDetailContent({ affiliate, refetchAffiliates }: AffiliateDetai
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [activeTab, setActiveTab] = useState<AffiliateDetailTab>('general');
-  const { selection, orders, revenue, hasData, isPending, error, refetch } = useAffiliateOrders(
+  // Satır hep son 7 günü gösterir: önbellekteki veridir, detayda dönem seçici yoktur
+  const { selection, orders, revenue, hasData, refetch } = useAffiliateOrders(
     affiliate.id,
+    AFFILIATE_DEFAULT_SELECTION,
   );
-  const lookups = useOrderLookups(orders);
+  const setOrdersSelection = useAffiliateFilterStore((state) => state.setSelection);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const rows = useMemo<DetailRow[]>(() => {
-    switch (activeTab) {
-      case 'general':
-        return [{ kind: 'tabs' }, { kind: 'general' }];
-      case 'billing':
-        return [{ kind: 'tabs' }, { kind: 'billing' }];
-      case 'orders':
-        return [
-          { kind: 'tabs' },
-          { kind: 'ordersHeader' },
-          ...(hasData && orders.length > 0
-            ? orders.map((order): DetailRow => ({ kind: 'order', order }))
-            : [{ kind: 'ordersState' } as const]),
-        ];
-    }
-  }, [activeTab, hasData, orders]);
+  const title = getAffiliateTitle(affiliate) || t('affiliates.unnamed', { id: affiliate.id });
 
   // Sessiz yenilemede gösterge dönmesin; yalnızca kullanıcı aşağı çekince görünür.
   // İstekler zaten sırayla gider.
@@ -131,68 +107,17 @@ function AffiliateDetailContent({ affiliate, refetchAffiliates }: AffiliateDetai
     setIsRefreshing(false);
   };
 
-  const renderRow: ListRenderItem<DetailRow> = ({ item }) => {
-    switch (item.kind) {
-      case 'tabs':
-        return (
-          <View style={styles.tabBar}>
-            <SegmentedControl
-              options={AFFILIATE_DETAIL_TABS.map((tab) => ({
-                value: tab,
-                label: t(`affiliates.detail.tabs.${tab}`),
-              }))}
-              value={activeTab}
-              onChange={setActiveTab}
-            />
-          </View>
-        );
-      case 'general':
-        return <AffiliateGeneralSection affiliate={affiliate} locale={locale} />;
-      case 'billing':
-        return <AffiliateBillingSection colors={colors} />;
-      case 'ordersHeader':
-        return (
-          <AffiliateOrdersHeader
-            selection={selection}
-            orderCount={orders.length}
-            revenue={revenue}
-            isLoading={!hasData}
-            colors={colors}
-            locale={locale}
-          />
-        );
-      case 'ordersState':
-        if (error && !hasData) {
-          return (
-            <StateMessage message={t(getErrorMessageKey(error))} onRetry={() => void refetch()} />
-          );
-        }
-        if (isPending) {
-          return (
-            <View style={styles.orderSkeletons}>
-              {ORDER_SKELETON_KEYS.map((key) => (
-                <OrderCardSkeleton key={key} />
-              ))}
-            </View>
-          );
-        }
-        return <StateMessage message={t('affiliates.detail.ordersEmpty')} />;
-      case 'order':
-        return (
-          <ReportOrderCard order={item.order} lookups={lookups} colors={colors} locale={locale} />
-        );
-    }
+  // Siparişler sayfası satırdaki dönemle açılır; rakamlar iki sayfada aynı görünür
+  const openOrders = () => {
+    setOrdersSelection(AFFILIATE_DEFAULT_SELECTION);
+    router.push({ pathname: '/affiliate-orders/[id]', params: { id: String(affiliate.id) } });
   };
 
   return (
-    <FlatList
+    <ScrollView
       style={styles.screen}
       contentContainerStyle={[styles.content, { paddingBottom: SPACING.xxl + insets.bottom }]}
-      data={rows}
-      keyExtractor={getRowKey}
-      renderItem={renderRow}
       stickyHeaderIndices={STICKY_TAB_INDICES}
-      ListHeaderComponent={<AffiliateProfileHeader affiliate={affiliate} colors={colors} />}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
@@ -202,7 +127,46 @@ function AffiliateDetailContent({ affiliate, refetchAffiliates }: AffiliateDetai
           progressBackgroundColor={colors.surface}
         />
       }
-    />
+    >
+      <View style={styles.top}>
+        <AffiliateProfileHeader affiliate={affiliate} colors={colors} />
+        <AffiliateQuickActions
+          name={title}
+          phone={affiliate.phone}
+          email={affiliate.email}
+          greetingName={affiliate.firstName || title}
+          colors={colors}
+        />
+        <AffiliateOrdersLink
+          selection={selection}
+          orderCount={orders.length}
+          revenue={revenue}
+          isLoading={!hasData}
+          onPress={openOrders}
+          colors={colors}
+          locale={locale}
+        />
+      </View>
+
+      <View style={styles.tabBar}>
+        <SegmentedControl
+          options={AFFILIATE_DETAIL_TABS.map((tab) => ({
+            value: tab,
+            label: t(`affiliates.detail.tabs.${tab}`),
+          }))}
+          value={activeTab}
+          onChange={setActiveTab}
+        />
+      </View>
+
+      <View style={styles.tabContent}>
+        {activeTab === 'general' && (
+          <AffiliateGeneralSection affiliate={affiliate} colors={colors} locale={locale} />
+        )}
+        {activeTab === 'billing' && <AffiliateBillingSection kind="payments" />}
+        {activeTab === 'invoices' && <AffiliateBillingSection kind="addresses" />}
+      </View>
+    </ScrollView>
   );
 }
 
@@ -214,18 +178,22 @@ function createStyles(colors: AppColors) {
     },
     content: {
       ...SCREEN_CONTENT,
-      gap: SPACING.sm,
       paddingHorizontal: SPACING.xl,
       paddingTop: SPACING.md,
     },
+    top: {
+      gap: SPACING.lg,
+    },
     // Yapışık kalınca altından geçen kartlar görünmesin diye zemin rengi verilir
     tabBar: {
-      paddingTop: SPACING.lg,
+      paddingTop: SPACING.xl,
       paddingBottom: SPACING.sm,
       backgroundColor: colors.background,
     },
-    orderSkeletons: {
-      gap: SPACING.sm,
+    // Başlıklı kartlar arası boşluk düzenleme ekranıyla aynı
+    tabContent: {
+      gap: SPACING.xl,
+      paddingTop: SPACING.sm,
     },
     skeleton: {
       ...SCREEN_CONTENT,

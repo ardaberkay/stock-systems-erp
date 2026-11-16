@@ -1,40 +1,32 @@
+import DetailRow from '@/components/ui/DetailRow';
 import DetailSection from '@/components/ui/DetailSection';
-import Text from '@/components/ui/Text';
-import type { AppColors } from '@/theme/colors';
-import { typography } from '@/theme/typography';
-import { useMemo } from 'react';
+import { PAYMENT_FIELDS } from '@/features/affiliates/affiliateList';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet } from 'react-native';
 
 type AffiliateBillingSectionProps = {
-  colors: AppColors;
+  // Ödeme sekmesi ödeme bilgilerini, Fatura sekmesi fatura adreslerini gösterir
+  kind: 'payments' | 'addresses';
 };
 
-// Ödeme sekmesi. Panelde ödeme bilgileri (IBAN, alıcı, TC) ve fatura adresleri liste halinde;
-// API listeyi döndürmüyor (update tek kayıt alanı yazıyor, get hiçbirini okumuyor), fatura
-// adresi alanı hiç yok. Bölümler yerini korur; API listeyi verince kayıtlar kart kart buraya
-// gelir (backend listesinde).
-export default function AffiliateBillingSection({ colors }: AffiliateBillingSectionProps) {
+// Panelde ödeme bilgileri (IBAN, alıcı, TC) ve fatura adresleri (vergi dairesi vb.) "ekle"
+// ile büyüyen listelerdir. API listeyi döndürmüyor (update tek kayıt alanı yazıyor, get
+// hiçbirini okumuyor), fatura adresi alanı hiç yok. Şimdilik bir kaydın alanları boş ("—")
+// görünür; API listeyi verince her kayıt böyle bir kart olur (backend listesinde).
+export default function AffiliateBillingSection({ kind }: AffiliateBillingSectionProps) {
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const isPayments = kind === 'payments';
 
   return (
-    <>
-      <DetailSection title={t('affiliates.detail.payments')}>
-        <Text style={styles.empty}>{t('affiliates.detail.paymentsEmpty')}</Text>
-      </DetailSection>
-      <DetailSection title={t('affiliates.detail.addresses')}>
-        <Text style={styles.empty}>{t('affiliates.detail.addressesEmpty')}</Text>
-      </DetailSection>
-    </>
+    <DetailSection
+      title={t(isPayments ? 'affiliates.edit.sections.payments' : 'affiliates.edit.sections.addresses')}
+    >
+      {isPayments ? (
+        PAYMENT_FIELDS.map((field) => (
+          <DetailRow key={field} label={t(`affiliates.edit.fields.${field}`)} value={null} />
+        ))
+      ) : (
+        <DetailRow label={t('affiliates.edit.fields.billingAddress')} value={null} />
+      )}
+    </DetailSection>
   );
-}
-
-function createStyles(colors: AppColors) {
-  return StyleSheet.create({
-    empty: {
-      ...typography.bodySmall,
-      color: colors.textSecondary,
-    },
-  });
 }

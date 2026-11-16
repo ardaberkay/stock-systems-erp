@@ -60,22 +60,30 @@
       "tabs": {
         "general": "Info",
         "billing": "Payment",
+        "invoices": "Invoice"
+      },
+      "createdAt": "Joined On: {{date}}",
+      "reportTabs": {
+        "report": "Report",
         "orders": "Orders"
       },
-      "phone": "Phone",
-      "email": "Email",
-      "firstName": "First name",
-      "lastName": "Last name",
-      "officeName": "Boutique name",
-      "createdAt": "Joined on",
-      "id": "Affiliate no",
-      "payments": "Payment details",
-      "addresses": "Billing addresses",
-      "paymentsEmpty": "Saved payment details can only be viewed in the web panel for now.",
-      "addressesEmpty": "Saved billing addresses can only be viewed in the web panel for now.",
+      "topProductsTitle": "Best-selling products",
       "orderCount": "Orders",
       "revenue": "Revenue",
+      "unitCount": "Units",
+      "metricHint": "Shows this value on the chart",
+      "ordersOpen": "Opens the orders of this period",
+      "ordersLinkTitle": "Orders",
+      "ordersLinkSummary": "{{period}} · {{count}} orders · {{revenue}}",
       "ordersEmpty": "No orders in this period.",
+      "quickActions": {
+        "call": "Call",
+        "whatsapp": "WhatsApp",
+        "email": "Email"
+      },
+      "callLabel": "Call {{name}}",
+      "emailLabel": "Send an email to {{name}}",
+      "emailError": "Could not open the email app.",
       "whatsapp": "Message {{name}} on WhatsApp",
       "whatsappMessage": "Hello {{name}},"
     },

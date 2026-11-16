@@ -45,6 +45,25 @@ export function isAffiliateActive(affiliate: Affiliate): boolean {
   return affiliate.status === AFFILIATE_STATUS.active;
 }
 
+// subtractionStatus: 1 / 0. Paneldeki karşılığı kullanıcıdan teyit edilecek.
+const SUBTRACTION_ON = 1;
+
+export function isAffiliateSubtractionOn(affiliate: Affiliate): boolean {
+  return affiliate.subtractionStatus === SUBTRACTION_ON;
+}
+
+// Panelde düzenlenen ama API'nin okumadığı alanlar; detayda ve düzenlemede yerleri hazır,
+// değerleri boş ("—") görünür. Etiketler affiliates.edit.fields.<alan>.
+export const PANEL_ONLY_ACCOUNT_FIELDS = ['username', 'password'] as const;
+export const PANEL_ONLY_SALE_FIELDS = [
+  'basePriceChange',
+  'canAddAmount',
+  'productCommission',
+  'deductFromAdded',
+] as const;
+// Panelde "Ödeme ekle" ile eklenen her kaydın alanları
+export const PAYMENT_FIELDS = ['paymentName', 'iban', 'tc', 'regularPayment'] as const;
+
 // 'YYYY-MM-DD HH:MM:SS' → yerel Date; gün kaymasın diye parçalardan kurulur.
 export function parseAffiliateCreateDay(createTime: string | null | undefined): Date | null {
   const [year, month, day] = (createTime ?? '').slice(0, 10).split('-').map(Number);

@@ -1,17 +1,16 @@
 import { ICON_SIZE } from '@/theme/spacing';
 import { Image } from 'expo-image';
-import { StyleSheet } from 'react-native';
 
 const WHATSAPP_LOGO = require('@/assets/images/wapp.png');
 
-// Marka kuralı gereği resmi logo renk ve şekil değiştirilmeden gösterilir.
-export default function WhatsAppIcon() {
-  return <Image source={WHATSAPP_LOGO} style={styles.icon} contentFit="contain" />;
-}
+type WhatsAppIconProps = {
+  // Satır içinde küçük; hızlı işlem butonlarında diğer ikonlarla aynı boyda
+  size?: number;
+};
 
-const styles = StyleSheet.create({
-  icon: {
-    width: ICON_SIZE.sm,
-    height: ICON_SIZE.sm,
-  },
-});
+// Marka kuralı gereği resmi logo renk ve şekil değiştirilmeden gösterilir.
+export default function WhatsAppIcon({ size = ICON_SIZE.sm }: WhatsAppIconProps) {
+  return (
+    <Image source={WHATSAPP_LOGO} style={{ width: size, height: size }} contentFit="contain" />
+  );
+}
