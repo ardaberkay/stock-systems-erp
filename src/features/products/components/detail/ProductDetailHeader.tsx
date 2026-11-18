@@ -1,141 +1,129 @@
 import Text from '@/components/ui/Text';
-import ProductColor from '@/features/products/components/ProductColor';
-import SizeRow from '@/features/products/components/SizeRow';
-import { PRODUCT_STATUS, SIZES_PER_ROW } from '@/features/products/constants/products';
+import { PRODUCT_STATUS } from '@/features/products/constants/products';
 import type { Product } from '@/features/products/schemas/products';
-import { chunkItems, toQuantityCell, toSizeCell } from '@/features/products/utils/productList';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useLocale } from '@/hooks/useLocale';
 import type { AppColors } from '@/theme/colors';
-import { ICON_SIZE, RADIUS, SPACING } from '@/theme/spacing';
-import { FONT_FAMILY, FONT_SIZE, typography } from '@/theme/typography';
+import { ICON_SIZE, RADIUS, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
+import { FONT_FAMILY, typography } from '@/theme/typography';
 import { formatMoney, formatNumber } from '@/utils/formatter';
+import { LinearGradient } from 'expo-linear-gradient';
 import Package from 'lucide-react-native/icons/package';
-// Tag başka ekranlarda satılan ürün adedi anlamında; tür için ayrı ikon
+// Tag başka ekranlarda satılan ürün adedi anlamında; tip için ayrı ikon
 import Shapes from 'lucide-react-native/icons/shapes';
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 type ProductDetailHeaderProps = {
   product: Product;
+  // En altta duran bölüm seçimi (sekmeler)
+  children?: ReactNode;
 };
 
-// Detay sayfasının bölümden bağımsız özeti; kayıtlı hali gösterir, düzenlemede de değişmez.
-// Bedenler ürün kartının açık halindeki gibi: üstte beden, altında adet, tükenen soluk.
-export default function ProductDetailHeader({ product }: ProductDetailHeaderProps) {
+// Alt köşelerin yuvarlaklığı; düz köşeyi denemek için 0 yapmak yeter
+const HEADER_RADIUS = RADIUS.xl;
+// Gradyan dikey açılır: üst kenar app bar'ın rengiyle aynı olduğu için ikisi tek parça görünür
+const GRADIENT_START = { x: 0, y: 0 };
+const GRADIENT_END = { x: 0, y: 1 };
+const META_SEPARATOR = ' · ';
+
+// Ürün detayının app bar'la birleşik mor başlığı. Kayıtlı hali gösterir, düzenlemede de değişmez;
+// sayfa altında kayar, başlık yerinde durur. Bedenler burada değil, kartta ve Varyantlar'da.
+export default function ProductDetailHeader({ product, children }: ProductDetailHeaderProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const locale = useLocale();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const isPassive = product.status === PRODUCT_STATUS.passive;
-  const stockColor = product.stock <= 0 ? colors.error : colors.textSecondary;
-  const sizeRows = chunkItems(product.variants, SIZES_PER_ROW);
+  const isOutOfStock = product.stock <= 0;
+  const meta = [product.modelCode, product.colorName].filter(Boolean).join(META_SEPARATOR);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.top}>
-        <Text style={styles.name}>{product.name}</Text>
-
-        <View style={styles.spacedRow}>
-          <Text style={styles.modelCode} selectable>
-            {product.modelCode}
+    <LinearGradient
+      colors={[colors.productHeaderStart, colors.productHeaderEnd]}
+      start={GRADIENT_START}
+      end={GRADIENT_END}
+      style={styles.gradient}
+    >
+      <View style={styles.content}>
+        <View style={styles.identity}>
+          <Text style={styles.name} numberOfLines={2}>
+            {product.name}
           </Text>
-          {isPassive ? (
-            <View style={styles.passiveBadge}>
-              <Text style={styles.passiveText}>{t('stock.statusFilter.passive')}</Text>
-            </View>
-          ) : null}
-        </View>
-
-        <View style={styles.spacedRow}>
-          <ProductColor colorName={product.colorName} />
-          {product.typeName ? (
-            <View
-              accessible
-              accessibilityLabel={`${t('stock.type')}: ${product.typeName}`}
-              style={styles.type}
-            >
-              <Shapes size={ICON_SIZE.sm - SPACING.xxs} color={colors.icon} />
-              <Text style={styles.typeText} numberOfLines={1}>
-                {product.typeName}
+          {/* Tip sağda, fiyatın tam üstünde durur */}
+          <View style={styles.spacedRow}>
+            <View style={styles.metaLeft}>
+              <Text style={styles.meta} numberOfLines={1} selectable>
+                {meta}
               </Text>
+              {isPassive ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{t('stock.statusFilter.passive')}</Text>
+                </View>
+              ) : null}
             </View>
-          ) : null}
+            {product.typeName ? (
+              <View
+                accessible
+                accessibilityLabel={`${t('stock.type')}: ${product.typeName}`}
+                style={styles.type}
+              >
+                <Shapes size={ICON_SIZE.sm - SPACING.xxs} color={colors.onHeaderMuted} />
+                <Text style={styles.meta} numberOfLines={1}>
+                  {product.typeName}
+                </Text>
+              </View>
+            ) : null}
+          </View>
         </View>
-      </View>
 
-      <View style={[styles.spacedRow, styles.divided]}>
-        <View
-          accessible
-          accessibilityLabel={t('stock.stockValue', { value: formatNumber(product.stock, locale) })}
-          style={styles.stock}
-        >
-          <Package size={ICON_SIZE.sm} color={stockColor} />
-          <Text style={[styles.stockText, { color: stockColor }]}>
-            {formatNumber(product.stock, locale)}
-          </Text>
+        <View style={styles.spacedRow}>
+          <View
+            accessible
+            accessibilityLabel={t('stock.stockValue', { value: formatNumber(product.stock, locale) })}
+            style={styles.stock}
+          >
+            <Package size={ICON_SIZE.sm} color={colors.onHeaderMuted} />
+            <Text style={styles.stockText}>{formatNumber(product.stock, locale)}</Text>
+            {/* Kırmızı yazı mor zeminde okunmaz; uyarı kendi zemini olan rozetle verilir */}
+            {isOutOfStock ? (
+              <View style={[styles.badge, styles.outOfStockBadge]}>
+                <Text style={[styles.badgeText, styles.outOfStockText]}>
+                  {t('stock.stockFilter.outOfStock')}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+          <Text style={styles.price}>{formatMoney(product.price, locale)}</Text>
         </View>
-        <Text style={styles.price}>{formatMoney(product.price, locale)}</Text>
-      </View>
 
-      {sizeRows.length > 0 ? (
-        <View style={[styles.sizes, styles.divided]}>
-          {sizeRows.map((row) => (
-            <View key={row[0].id}>
-              <SizeRow cells={row.map((variant) => toSizeCell(variant))} variant="size" />
-              <SizeRow cells={row.map((variant) => toQuantityCell(variant, locale))} variant="quantity" />
-            </View>
-          ))}
-        </View>
-      ) : null}
-    </View>
+        {children}
+      </View>
+    </LinearGradient>
   );
 }
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
-    container: {
-      gap: SPACING.md,
+    gradient: {
+      borderBottomLeftRadius: HEADER_RADIUS,
+      borderBottomRightRadius: HEADER_RADIUS,
     },
-    top: {
-      gap: SPACING.sm,
+    // Tablette içerik ortalanır, mor zemin ise ekranın tamamını kaplar
+    content: {
+      ...SCREEN_CONTENT,
+      gap: SPACING.md,
+      paddingHorizontal: SPACING.xl,
+      paddingTop: SPACING.xs,
+      paddingBottom: SPACING.lg,
+    },
+    identity: {
+      gap: SPACING.xs,
     },
     name: {
-      ...typography.body,
-      fontFamily: FONT_FAMILY.bold,
-      color: colors.text,
-    },
-    modelCode: {
-      ...typography.caption,
-      flexShrink: 1,
-      fontFamily: FONT_FAMILY.italic,
-      color: colors.textSecondary,
-    },
-    type: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: SPACING.xs,
-      flexShrink: 1,
-      minWidth: 0,
-    },
-    typeText: {
-      ...typography.caption,
-      flexShrink: 1,
-      color: colors.textSecondary,
-    },
-    passiveBadge: {
-      flexShrink: 0,
-      paddingHorizontal: SPACING.xs,
-      borderRadius: RADIUS.sm,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.background,
-    },
-    passiveText: {
-      ...typography.caption,
-      color: colors.textSecondary,
-      fontFamily: FONT_FAMILY.semiBold,
+      ...typography.h3,
+      color: colors.onHeader,
     },
     spacedRow: {
       flexDirection: 'row',
@@ -144,11 +132,41 @@ function createStyles(colors: AppColors) {
       gap: SPACING.sm,
       minWidth: 0,
     },
-    // Bölümler ince çizgiyle ayrılır; kart tek blok gibi durmaz
-    divided: {
-      paddingTop: SPACING.md,
-      borderTopWidth: 1,
-      borderTopColor: colors.divider,
+    metaLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.sm,
+      flexShrink: 1,
+      minWidth: 0,
+    },
+    meta: {
+      ...typography.caption,
+      flexShrink: 1,
+      color: colors.onHeaderMuted,
+    },
+    type: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.xs,
+      flexShrink: 1,
+      minWidth: 0,
+    },
+    badge: {
+      flexShrink: 0,
+      paddingHorizontal: SPACING.xs,
+      borderRadius: RADIUS.sm,
+      backgroundColor: colors.onHeaderSurface,
+    },
+    badgeText: {
+      ...typography.caption,
+      fontFamily: FONT_FAMILY.semiBold,
+      color: colors.onHeader,
+    },
+    outOfStockBadge: {
+      backgroundColor: colors.errorBackground,
+    },
+    outOfStockText: {
+      color: colors.error,
     },
     stock: {
       flexDirection: 'row',
@@ -157,18 +175,15 @@ function createStyles(colors: AppColors) {
       flexShrink: 1,
     },
     stockText: {
-      ...typography.caption,
+      ...typography.label,
       fontFamily: FONT_FAMILY.semiBold,
+      color: colors.onHeader,
     },
     price: {
-      ...typography.label,
-      color: colors.orangeWhite,
-      fontSize: FONT_SIZE.md,
+      ...typography.h3,
       fontFamily: FONT_FAMILY.bold,
       flexShrink: 0,
-    },
-    sizes: {
-      gap: SPACING.xs,
+      color: colors.onHeader,
     },
   });
 }

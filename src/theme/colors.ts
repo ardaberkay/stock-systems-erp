@@ -77,6 +77,18 @@ export const lightColors = {
     // Kamera görüntüsünün üstündeki karartma (barkod okutma): görüntü temadan bağımsız olduğu
     // için iki temada da aynı; üstündeki yazılar imageBadge ile beyaz yazılır
     cameraOverlay: 'rgba(0, 0, 0, 0.55)',
+
+    // Ürün detayının mor başlığı (app bar ile birleşik gradyan). Mor, uygulamada ürün/adet
+    // rengidir. Başlangıç tonu, beyaz yazı okunsun diye grafik morundan koyudur; app bar da bu
+    // tonla boyanır, gradyan oradan aşağı açılır. Koyu temada koyu zeminde göze batmasın diye
+    // daha koyu tonlar kullanılır.
+    productHeaderStart: '#6B4FBB',
+    productHeaderEnd: '#9277D8',
+    // Renkli başlığın üstündeki yazı ve ikonlar
+    onHeader: '#FFFFFF',
+    onHeaderMuted: 'rgba(255, 255, 255, 0.72)',
+    // Renkli başlığın içindeki zeminler (sekme çubuğu, rozet)
+    onHeaderSurface: 'rgba(255, 255, 255, 0.18)',
 } as const;
 
 // Açık temadaki renk yapısından otomatik türetilir.
@@ -160,4 +172,10 @@ export const darkColors = {
     overlay: 'rgba(0, 0, 0, 0.6)',
     drawerBackdrop: '#0E0E0E',
     cameraOverlay: 'rgba(0, 0, 0, 0.55)',
+
+    productHeaderStart: '#4A3880',
+    productHeaderEnd: '#62509E',
+    onHeader: '#FFFFFF',
+    onHeaderMuted: 'rgba(255, 255, 255, 0.72)',
+    onHeaderSurface: 'rgba(255, 255, 255, 0.18)',
 } satisfies AppColors;

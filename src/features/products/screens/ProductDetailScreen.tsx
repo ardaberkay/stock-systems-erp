@@ -13,6 +13,7 @@ import { getErrorMessageKey } from '@/lib/apiError';
 import type { AppColors } from '@/theme/colors';
 import { RADIUS, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
 import { router, useLocalSearchParams } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
@@ -48,9 +49,11 @@ export default function ProductDetailScreen() {
   };
 
   // Başlıktaki kalem rota tanımında (src/app/_layout.tsx); sayfa başlığa hiçbir şey eklemez.
+  // App bar mor olduğu için durum çubuğu iki temada da açık renkli.
   if (!product) {
     return (
       <View style={styles.screen}>
+        <StatusBar style="light" />
         {isPending ? (
           <View style={styles.content}>
             {SKELETON_BLOCK_HEIGHTS.map((height, index) => (
@@ -68,36 +71,23 @@ export default function ProductDetailScreen() {
 
   if (isEditing) {
     return (
-      <ProductEditView
-        product={product}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onExit={() => router.setParams({ edit: undefined })}
-      />
+      <>
+        <StatusBar style="light" />
+        <ProductEditView
+          product={product}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onExit={() => router.setParams({ edit: undefined })}
+        />
+      </>
     );
   }
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={() => void refresh()}
-          tintColor={colors.orange}
-          colors={[colors.orange]}
-        />
-      }
-      // 1. çocuk bölüm seçimi; kaydırınca üstte yapışık kalır
-      stickyHeaderIndices={[1]}
-    >
-      {/* Bölümden bağımsız hep görünen özet */}
-      <View style={styles.summaryCard}>
-        <ProductDetailHeader product={product} />
-      </View>
-
-      <View style={styles.tabBar}>
+    <View style={styles.screen}>
+      <StatusBar style="light" />
+      {/* Mor başlık kaydırılan alanın dışında; sayfa onun altında kayar, sekmeler hep görünür */}
+      <ProductDetailHeader product={product}>
         <SegmentedControl
           options={PRODUCT_DETAIL_TABS.map((tab) => ({
             value: tab,
@@ -105,39 +95,45 @@ export default function ProductDetailScreen() {
           }))}
           value={activeTab}
           onChange={setActiveTab}
+          onColor={colors.productHeaderStart}
         />
-      </View>
+      </ProductDetailHeader>
 
-      {activeTab === 'info' ? <ProductInfoTab product={product} /> : null}
-      {activeTab === 'price' ? <ProductPriceTab product={product} /> : null}
-      {activeTab === 'variants' ? <ProductVariantsTab product={product} /> : null}
-    </ScrollView>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={() => void refresh()}
+            tintColor={colors.orange}
+            colors={[colors.orange]}
+          />
+        }
+      >
+        {activeTab === 'info' ? <ProductInfoTab product={product} /> : null}
+        {activeTab === 'price' ? <ProductPriceTab product={product} /> : null}
+        {activeTab === 'variants' ? <ProductVariantsTab product={product} /> : null}
+      </ScrollView>
+    </View>
   );
 }
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
+    // Mor başlık ekranın tamamını kaplasın diye kök tam genişlik; tablette ortalanan yalnızca içerik
     screen: {
-      ...SCREEN_CONTENT,
       flex: 1,
       backgroundColor: colors.background,
     },
+    scroll: {
+      flex: 1,
+    },
     content: {
+      ...SCREEN_CONTENT,
       gap: SPACING.xl,
       paddingHorizontal: SPACING.xl,
-      paddingTop: SPACING.md,
-    },
-    summaryCard: {
-      padding: SPACING.md,
-      borderRadius: RADIUS.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-    },
-    // Yapışık kalınca alttan kayan kartları örtsün diye zemin rengi ve dikey boşluk taşır
-    tabBar: {
-      paddingVertical: SPACING.sm,
-      backgroundColor: colors.background,
+      paddingTop: SPACING.xl,
     },
   });
 }

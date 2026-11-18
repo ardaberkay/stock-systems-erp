@@ -33,6 +33,7 @@ Her ihtiyaç için **yalnızca** aşağıdaki araç kullanılır. Listede olmaya
 | Kamera / barkod okutma | `expo-camera` `CameraView` (yalnızca `features/products/screens/BarcodeScanScreen.tsx` üzerinden; okutma isteği `useOpenBarcodeScanner` ile açılır) | Başka kamera veya barkod kütüphanesi, `launchScanner` (Android'de Google Play Hizmetleri gerektirir) |
 | Titreşim (dokunsal geri bildirim) | `expo-haptics` | React Native `Vibration` API |
 | Animasyon | `react-native-reanimated` | `Animated` API |
+| Gradyan | `expo-linear-gradient` (şimdilik yalnızca detay sayfalarının modül renkli başlığı, tek renk tonlarıyla) | Başka gradyan kütüphanesi, iki farklı renk arası gradyan |
 | Fontlar | `@expo-google-fonts/inter` (`FONT_FAMILY` üzerinden) | Sistem fontuna bırakmak |
 | İkonlar | `lucide-react-native`, **her ikon kendi yolundan** import edilir: `import Menu from 'lucide-react-native/icons/menu'` (sekme çubuğunda native `sf` / `md` ikonları) | `import { Menu } from 'lucide-react-native'` (geliştirmede ~2000 ikonun hepsini bundle'a yükler, açılışı yavaşlatır), panelui ikonları, `@expo/vector-icons`, emoji/karakterle ikon (`☀`, `›`, `⌄`) |
 | Kod formatı | Editör (Cursor) formatlayıcı + `npx expo lint` | Prettier vb. ek paket |

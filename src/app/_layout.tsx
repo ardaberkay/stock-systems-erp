@@ -103,10 +103,13 @@ export default function RootLayout() {
               name="product-new"
               options={{ ...pushedScreenOptions, title: t('stock.create.title') }}
             />
+            {/* App bar, sayfadaki mor başlıkla tek parça görünsün diye gradyanın başlangıç tonunda */}
             <Stack.Screen
               name="product-detail/[id]"
               options={{
                 ...pushedScreenOptions,
+                headerStyle: { backgroundColor: colors.productHeaderStart },
+                headerTintColor: colors.onHeader,
                 title: t('stock.detail.title'),
                 headerRight: () => <ProductEditHeaderButton />,
               }}

@@ -7,6 +7,7 @@ import ProductDetailHeader from '@/features/products/components/detail/ProductDe
 import ProductEditHeaderButton from '@/features/products/components/edit/ProductEditHeaderButton';
 import ProductEditVariantsTab from '@/features/products/components/edit/ProductEditVariantsTab';
 import { PRODUCT_DETAIL_TABS, type ProductDetailTab } from '@/features/products/constants/productEdit';
+import { useAppBarIconColors } from '@/features/products/hooks/useAppBarIconColors';
 import { useConfirmProductDelete } from '@/features/products/hooks/useConfirmProductDelete';
 import {
   createProductEditSchema,
@@ -25,7 +26,7 @@ import {
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { getErrorDetail, getErrorMessageKey } from '@/lib/apiError';
 import type { AppColors } from '@/theme/colors';
-import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
+import { ICON_SIZE, MIN_TOUCH_SIZE, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router, Stack, useFocusEffect, useNavigation, usePreventRemove } from 'expo-router';
 import type { TFunction } from 'i18next';
@@ -73,6 +74,7 @@ export default function ProductEditView({
 }: ProductEditViewProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const appBarIcon = useAppBarIconColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -266,12 +268,13 @@ export default function ProductEditView({
               disabled={isBusy}
               onPress={cancel}
             >
-              <X size={ICON_SIZE.lg} color={isBusy ? colors.iconDisabled : colors.text} />
+              {/* Geri okuyla aynı renk (bkz. useAppBarIconColors) */}
+              <X size={ICON_SIZE.lg} color={isBusy ? appBarIcon.iconDisabled : appBarIcon.icon} />
             </Pressable>
           ),
           headerRight: () =>
             isSaving ? (
-              <ActivityIndicator color={colors.orange} />
+              <ActivityIndicator color={appBarIcon.icon} />
             ) : (
               <Pressable
                 accessibilityRole="button"
@@ -282,27 +285,15 @@ export default function ProductEditView({
               >
                 <Check
                   size={ICON_SIZE.lg}
-                  color={isDeleting ? colors.iconDisabled : colors.orange}
+                  color={isDeleting ? appBarIcon.iconDisabled : appBarIcon.icon}
                 />
               </Pressable>
             ),
         }}
       />
-      <ScrollView
-        style={styles.screen}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="interactive"
-        // iOS'ta klavye açılınca odaktaki alan görünür kalır
-        automaticallyAdjustKeyboardInsets
-        // 1. çocuk bölüm seçimi; kaydırınca üstte yapışık kalır
-        stickyHeaderIndices={[1]}
-      >
-        <View style={styles.summaryCard}>
-          <ProductDetailHeader product={product} />
-        </View>
-
-        <View style={styles.tabBar}>
+      <View style={styles.screen}>
+        {/* Okuma halindeki mor başlığın aynısı; sayfa altında kayar, sekmeler hep görünür */}
+        <ProductDetailHeader product={product}>
           <SegmentedControl
             options={PRODUCT_DETAIL_TABS.map((tab) => ({
               value: tab,
@@ -312,56 +303,58 @@ export default function ProductEditView({
             value={activeTab}
             onChange={onTabChange}
             markedHint={t('orders.editMode.tabHasErrors')}
+            onColor={colors.productHeaderStart}
           />
-        </View>
+        </ProductDetailHeader>
 
-        {PRODUCT_DETAIL_TABS.filter((tab) => visitedTabs.includes(tab)).map((tab) => (
-          <View key={tab} style={[styles.tabContent, tab !== activeTab && styles.hidden]}>
-            {tab === 'info' ? (
-              <>
-                <ProductInfoStep />
-                {/* Satış durumunun altında: çoğu zaman pasife çekmek yeterli, önce o görünür */}
-                <Button
-                  label={t('stock.deleteProduct.button')}
-                  variant="destructive"
-                  onPress={deleteProduct}
-                  loading={isDeleting}
-                  disabled={isSaving}
-                />
-              </>
-            ) : null}
-            {tab === 'price' ? <ProductPriceStep /> : null}
-            {tab === 'variants' ? <ProductEditVariantsTab product={product} /> : null}
-          </View>
-        ))}
-      </ScrollView>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          // iOS'ta klavye açılınca odaktaki alan görünür kalır
+          automaticallyAdjustKeyboardInsets
+        >
+          {PRODUCT_DETAIL_TABS.filter((tab) => visitedTabs.includes(tab)).map((tab) => (
+            <View key={tab} style={[styles.tabContent, tab !== activeTab && styles.hidden]}>
+              {tab === 'info' ? (
+                <>
+                  <ProductInfoStep />
+                  {/* Satış durumunun altında: çoğu zaman pasife çekmek yeterli, önce o görünür */}
+                  <Button
+                    label={t('stock.deleteProduct.button')}
+                    variant="destructive"
+                    onPress={deleteProduct}
+                    loading={isDeleting}
+                    disabled={isSaving}
+                  />
+                </>
+              ) : null}
+              {tab === 'price' ? <ProductPriceStep /> : null}
+              {tab === 'variants' ? <ProductEditVariantsTab product={product} /> : null}
+            </View>
+          ))}
+        </ScrollView>
+      </View>
     </FormProvider>
   );
 }
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
+    // Mor başlık ekranın tamamını kaplasın diye kök tam genişlik; tablette ortalanan yalnızca içerik
     screen: {
-      ...SCREEN_CONTENT,
       flex: 1,
       backgroundColor: colors.background,
     },
+    scroll: {
+      flex: 1,
+    },
     content: {
+      ...SCREEN_CONTENT,
       gap: SPACING.xl,
       paddingHorizontal: SPACING.xl,
-      paddingTop: SPACING.md,
-    },
-    summaryCard: {
-      padding: SPACING.md,
-      borderRadius: RADIUS.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-    },
-    // Yapışık kalınca alttan kayan kartları örtsün diye zemin rengi ve dikey boşluk taşır
-    tabBar: {
-      paddingVertical: SPACING.sm,
-      backgroundColor: colors.background,
+      paddingTop: SPACING.xl,
     },
     // Bölümler arası boşluk, sayfanın içerik boşluğuyla aynı
     tabContent: {

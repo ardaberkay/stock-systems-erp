@@ -20,6 +20,9 @@ type SegmentedControlProps<T extends string> = {
   onChange: (value: T) => void;
   // Noktanın ekran okuyucudaki karşılığı (çevrilmiş)
   markedHint?: string;
+  // Renkli bir başlığın içindeyse o zeminin rengi: çubuk saydam beyaz, seçili parça beyaz,
+  // seçili yazı bu renkte olur (ör. ürün detayının mor başlığı)
+  onColor?: string;
 };
 
 const TRACK_PADDING = SPACING.xxs;
@@ -32,9 +35,10 @@ export default function SegmentedControl<T extends string>({
   value,
   onChange,
   markedHint,
+  onColor,
 }: SegmentedControlProps<T>) {
   const { colors } = useAppTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(colors, onColor), [colors, onColor]);
   const [trackWidth, setTrackWidth] = useState(0);
   const translateX = useSharedValue(0);
 
@@ -90,15 +94,32 @@ export default function SegmentedControl<T extends string>({
   );
 }
 
-function createStyles(colors: AppColors) {
+function createStyles(colors: AppColors, onColor?: string) {
+  // Renkli zeminde kenarlık da aynı saydam beyazdır; kenarda hafif bir çizgi gibi görünür
+  const palette = onColor
+    ? {
+        trackBorder: colors.onHeaderSurface,
+        track: colors.onHeaderSurface,
+        thumb: colors.onHeader,
+        label: colors.onHeaderMuted,
+        labelSelected: onColor,
+      }
+    : {
+        trackBorder: colors.chipBorder,
+        track: colors.chipInactive,
+        thumb: colors.chipActive,
+        label: colors.chipInactiveText,
+        labelSelected: colors.chipActiveText,
+      };
+
   return StyleSheet.create({
     track: {
       flexDirection: 'row',
       padding: TRACK_PADDING,
       borderRadius: RADIUS.full,
       borderWidth: TRACK_BORDER_WIDTH,
-      borderColor: colors.chipBorder,
-      backgroundColor: colors.chipInactive,
+      borderColor: palette.trackBorder,
+      backgroundColor: palette.track,
     },
     thumb: {
       position: 'absolute',
@@ -106,7 +127,7 @@ function createStyles(colors: AppColors) {
       bottom: TRACK_PADDING,
       left: TRACK_PADDING,
       borderRadius: RADIUS.full,
-      backgroundColor: colors.chipActive,
+      backgroundColor: palette.thumb,
     },
     segment: {
       flex: 1,
@@ -123,7 +144,7 @@ function createStyles(colors: AppColors) {
     label: {
       ...typography.label,
       flexShrink: 1,
-      color: colors.chipInactiveText,
+      color: palette.label,
     },
     dot: {
       width: SPACING.sm,
@@ -133,7 +154,7 @@ function createStyles(colors: AppColors) {
     },
     labelSelected: {
       fontFamily: FONT_FAMILY.semiBold,
-      color: colors.chipActiveText,
+      color: palette.labelSelected,
     },
   });
 }
