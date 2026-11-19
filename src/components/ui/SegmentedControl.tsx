@@ -2,7 +2,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Text from '@/components/ui/Text';
 import { type LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -50,8 +50,22 @@ export default function SegmentedControl<T extends string>({
   const innerWidth = trackWidth - (TRACK_PADDING + TRACK_BORDER_WIDTH) * 2;
   const segmentWidth = trackWidth > 0 ? innerWidth / Math.max(options.length, 1) : 0;
 
+  // İlk ölçümde seçili parçaya animasyonsuz yerleşir; kayma yalnızca seçim değişince oynar.
+  // Yoksa ikinci/üçüncü bölüm seçiliyken açılan ekranda (ör. düzenleme moduna geçiş) kutu
+  // ilk parçadan kayarak gelir, sekme yeniden açılmış gibi görünür.
+  const hasPositioned = useRef(false);
   useEffect(() => {
-    translateX.set(withTiming(selectedIndex * segmentWidth, { duration: SLIDE_DURATION_MS }));
+    if (segmentWidth <= 0) {
+      return;
+    }
+    const target = selectedIndex * segmentWidth;
+
+    if (hasPositioned.current) {
+      translateX.set(withTiming(target, { duration: SLIDE_DURATION_MS }));
+    } else {
+      translateX.set(target);
+      hasPositioned.current = true;
+    }
   }, [selectedIndex, segmentWidth, translateX]);
 
   const thumbStyle = useAnimatedStyle(() => ({

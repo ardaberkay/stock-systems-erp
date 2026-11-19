@@ -939,6 +939,11 @@
                 "info": "Bilgi",
                 "price": "Fiyat",
                 "variants": "Varyantlar"
+            },
+            "sales": {
+                "title": "Satışlar",
+                "sold": "{{value}} adet",
+                "empty": "Bu dönemde satış yok."
             }
         },
         "editMode": {

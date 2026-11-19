@@ -3,6 +3,7 @@ import { useDashboardFilterStore } from '@/features/dashboard/dashboardFilterSto
 import { ORDER_PERIODS } from '@/features/orders/constants/list';
 import { useOrderFilterStore } from '@/features/orders/orderFilterStore';
 import { PERIODS, type PeriodScope, type PeriodSelection } from '@/features/period/constants';
+import { useProductSalesStore } from '@/features/products/stores/productSalesStore';
 import { useReportFilterStore } from '@/features/reports/reportFilterStore';
 
 type PeriodScopeState = {
@@ -23,6 +24,8 @@ export function usePeriodScope(scope: PeriodScope): PeriodScopeState {
   const setReportSelection = useReportFilterStore((state) => state.setSelection);
   const affiliateSelection = useAffiliateFilterStore((state) => state.selection);
   const setAffiliateSelection = useAffiliateFilterStore((state) => state.setSelection);
+  const productSelection = useProductSalesStore((state) => state.selection);
+  const setProductSelection = useProductSalesStore((state) => state.setSelection);
 
   switch (scope) {
     case 'dashboard':
@@ -64,6 +67,16 @@ export function usePeriodScope(scope: PeriodScope): PeriodScopeState {
           if (period) setAffiliateSelection({ kind: 'preset', period });
         },
         selectRange: (from, to) => setAffiliateSelection({ kind: 'range', from, to }),
+      };
+    case 'product':
+      return {
+        periods: PERIODS,
+        selection: productSelection,
+        selectPreset: (value) => {
+          const period = PERIODS.find((item) => item === value);
+          if (period) setProductSelection({ kind: 'preset', period });
+        },
+        selectRange: (from, to) => setProductSelection({ kind: 'range', from, to }),
       };
   }
 }

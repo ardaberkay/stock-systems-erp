@@ -939,6 +939,11 @@
         "info": "Info",
         "price": "Price",
         "variants": "Variants"
+      },
+      "sales": {
+        "title": "Sales",
+        "sold": "{{value}} sold",
+        "empty": "No sales in this period."
       }
     },
     "editMode": {

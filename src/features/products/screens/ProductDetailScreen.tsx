@@ -8,13 +8,15 @@ import ProductPriceTab from '@/features/products/components/detail/ProductPriceT
 import ProductVariantsTab from '@/features/products/components/detail/ProductVariantsTab';
 import ProductEditView from '@/features/products/components/edit/ProductEditView';
 import { PRODUCT_DETAIL_TABS, type ProductDetailTab } from '@/features/products/constants/productEdit';
+import { useProductSalesStore } from '@/features/products/stores/productSalesStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useKeptScroll } from '@/hooks/useKeptScroll';
 import { getErrorMessageKey } from '@/lib/apiError';
 import type { AppColors } from '@/theme/colors';
 import { RADIUS, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,7 +39,21 @@ export default function ProductDetailScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   // Sayfa her açılışta Bilgi bölümüyle başlar
   const [activeTab, setActiveTab] = useState<ProductDetailTab>('info');
+  // Açılan bölüm sonra gizlenir ama kaldırılmaz: Bilgi'ye dönünce grafik çizilme animasyonunu
+  // baştan oynatmasın (düzenleme halindeki gibi)
+  const [visitedTabs, setVisitedTabs] = useState<ProductDetailTab[]>([activeTab]);
+  if (!visitedTabs.includes(activeTab)) {
+    setVisitedTabs([...visitedTabs, activeTab]);
+  }
   const { data: product, isPending, error, refetch } = useProduct(productId);
+  const resetSalesPeriod = useProductSalesStore((state) => state.reset);
+  // Okuma ve düzenleme hali aynı kaydırma konumunu paylaşır: Düzenle'ye basınca ya da
+  // düzenlemeden çıkınca sayfa başa dönmez
+  const scrollPosition = useRef(0);
+  const keptScroll = useKeptScroll(scrollPosition);
+
+  // Grafik her açılışta Son 7 gün ile başlar; bu ürünün dönemi sonra açılan ürüne taşınmaz
+  useEffect(() => resetSalesPeriod, [resetSalesPeriod]);
 
   const refresh = async () => {
     setIsRefreshing(true);
@@ -78,6 +94,7 @@ export default function ProductDetailScreen() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           onExit={() => router.setParams({ edit: undefined })}
+          scrollPosition={scrollPosition}
         />
       </>
     );
@@ -100,6 +117,7 @@ export default function ProductDetailScreen() {
       </ProductDetailHeader>
 
       <ScrollView
+        {...keptScroll}
         style={styles.scroll}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
         refreshControl={
@@ -111,9 +129,13 @@ export default function ProductDetailScreen() {
           />
         }
       >
-        {activeTab === 'info' ? <ProductInfoTab product={product} /> : null}
-        {activeTab === 'price' ? <ProductPriceTab product={product} /> : null}
-        {activeTab === 'variants' ? <ProductVariantsTab product={product} /> : null}
+        {PRODUCT_DETAIL_TABS.filter((tab) => visitedTabs.includes(tab)).map((tab) => (
+          <View key={tab} style={[styles.tabContent, tab !== activeTab && styles.hidden]}>
+            {tab === 'info' ? <ProductInfoTab product={product} /> : null}
+            {tab === 'price' ? <ProductPriceTab product={product} /> : null}
+            {tab === 'variants' ? <ProductVariantsTab product={product} /> : null}
+          </View>
+        ))}
       </ScrollView>
     </View>
   );
@@ -129,11 +151,19 @@ function createStyles(colors: AppColors) {
     scroll: {
       flex: 1,
     },
+    // Yan boşluk raporlardaki kartlar gibi SPACING.md (AGENTS.md'deki istisna)
     content: {
       ...SCREEN_CONTENT,
       gap: SPACING.xl,
-      paddingHorizontal: SPACING.xl,
+      paddingHorizontal: SPACING.md,
       paddingTop: SPACING.xl,
+    },
+    // Bölümler arası boşluk, sayfanın içerik boşluğuyla aynı
+    tabContent: {
+      gap: SPACING.xl,
+    },
+    hidden: {
+      display: 'none',
     },
   });
 }

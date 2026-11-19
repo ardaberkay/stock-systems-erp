@@ -150,6 +150,42 @@ export function getChartPoints(
   return [...points.values()];
 }
 
+// Tek ürünün satış noktaları (ürün detayındaki grafik). Kurallar çok satanlarla aynı: iade ve
+// iptal edilen satırlar sayılmaz, ciro satır fiyatı × adettir (sipariş tutarı ürüne bölünemez).
+export function getProductChartPoints(
+  revenueOrders: Order[],
+  productId: number,
+  window: PeriodWindow,
+): ChartPoint[] {
+  const points = new Map<string, ChartPoint>(
+    getAxisKeys(window.range, window.granularity).map((time, index) => {
+      const isComingHour = window.granularity === 'hour' && index > window.lastHour;
+      const value = isComingHour ? null : 0;
+
+      return [time, { time, revenue: value, sold: value, orders: value, previousRevenue: null }];
+    }),
+  );
+
+  for (const order of revenueOrders) {
+    const point = points.get(getBucketKey(order.orderDateTime, window.granularity));
+    const items = order.items.filter(
+      (item) => item.productId === productId && !NOT_SOLD_ITEM_STATUSES.includes(item.statusId),
+    );
+
+    if (!point || point.revenue === null || items.length === 0) {
+      continue;
+    }
+
+    point.orders = (point.orders ?? 0) + 1;
+    for (const item of items) {
+      point.sold = (point.sold ?? 0) + item.qty;
+      point.revenue = roundMoney(point.revenue + item.price * item.qty);
+    }
+  }
+
+  return [...points.values()];
+}
+
 function getTrendKeys(window: PeriodWindow): string[] {
   if (window.granularity === 'day') {
     return getAxisKeys(window.range, 'day');

@@ -24,6 +24,7 @@ import {
   type ProductEditPlan,
 } from '@/features/products/utils/productEdit';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useKeptScroll } from '@/hooks/useKeptScroll';
 import { getErrorDetail, getErrorMessageKey } from '@/lib/apiError';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
@@ -32,7 +33,7 @@ import { router, Stack, useFocusEffect, useNavigation, usePreventRemove } from '
 import type { TFunction } from 'i18next';
 import Check from 'lucide-react-native/icons/check';
 import X from 'lucide-react-native/icons/x';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type RefObject } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import {
@@ -52,6 +53,8 @@ type ProductEditViewProps = {
   onTabChange: (tab: ProductDetailTab) => void;
   // Düzenlemeden çıkar, sayfa okuma haline döner
   onExit: () => void;
+  // Okuma haliyle paylaşılan kaydırma konumu; mod değişince sayfa başa dönmez
+  scrollPosition: RefObject<number>;
 };
 
 // İkon 24; dokunma alanı 44'e tamamlanır
@@ -71,9 +74,11 @@ export default function ProductEditView({
   activeTab,
   onTabChange,
   onExit,
+  scrollPosition,
 }: ProductEditViewProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const keptScroll = useKeptScroll(scrollPosition);
   const appBarIcon = useAppBarIconColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -308,6 +313,7 @@ export default function ProductEditView({
         </ProductDetailHeader>
 
         <ScrollView
+          {...keptScroll}
           style={styles.scroll}
           contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
           keyboardShouldPersistTaps="handled"
@@ -350,10 +356,11 @@ function createStyles(colors: AppColors) {
     scroll: {
       flex: 1,
     },
+    // Yan boşluk raporlardaki kartlar gibi SPACING.md (AGENTS.md'deki istisna)
     content: {
       ...SCREEN_CONTENT,
       gap: SPACING.xl,
-      paddingHorizontal: SPACING.xl,
+      paddingHorizontal: SPACING.md,
       paddingTop: SPACING.xl,
     },
     // Bölümler arası boşluk, sayfanın içerik boşluğuyla aynı
