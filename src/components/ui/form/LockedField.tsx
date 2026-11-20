@@ -1,3 +1,4 @@
+import FormFieldLayout, { type FieldLayout } from '@/components/ui/form/FormFieldLayout';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
@@ -11,19 +12,20 @@ import { StyleSheet, View } from 'react-native';
 type LockedFieldProps = {
   label: string;
   value: string | null | undefined;
+  // inline: etiket solda, kilitli değer sağda (bkz. FormFieldLayout)
+  layout?: FieldLayout;
 };
 
 const EMPTY_VALUE = '—';
 
 // Düzenleme formunda API'nin henüz değiştiremediği alan: giriş kutusu gibi görünür ama kilitlidir
-export default function LockedField({ label, value }: LockedFieldProps) {
+export default function LockedField({ label, value, layout = 'stacked' }: LockedFieldProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
+    <FormFieldLayout label={label} layout={layout}>
       <View
         style={styles.box}
         accessible
@@ -37,19 +39,12 @@ export default function LockedField({ label, value }: LockedFieldProps) {
         </Text>
         <Lock size={ICON_SIZE.sm} color={colors.iconDisabled} />
       </View>
-    </View>
+    </FormFieldLayout>
   );
 }
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
-    field: {
-      gap: SPACING.xs,
-    },
-    label: {
-      ...typography.label,
-      color: colors.textSecondary,
-    },
     box: {
       minHeight: MIN_TOUCH_SIZE,
       flexDirection: 'row',

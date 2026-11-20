@@ -1,9 +1,4 @@
-import type { DetailSectionVariant } from "@/components/ui/DetailSection";
 import type { ProductEditFormInput } from "@/features/products/schemas/productEdit";
-
-// Ürün detayının okuma halindeki bölümler: çerçevesiz beyaz gruplar. Düzenleme hali çerçeveli
-// kart (DetailSection varsayılanı) kullanır.
-export const PRODUCT_DETAIL_SECTION_VARIANT: DetailSectionVariant = "plain";
 
 // Detay ve düzenleme sayfasının bölümleri; ürün eklemenin adımlarıyla aynı sırada.
 // Görünen adlar `stock.detail.tabs.<bölüm>` çevirisinden gelir.

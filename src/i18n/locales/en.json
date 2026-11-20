@@ -517,7 +517,7 @@
     },
     "detail": {
       "notFound": "Order not found.",
-      "externalId": "External no",
+      "status": "Status",
       "tabs": {
         "order": "Order",
         "customer": "Customer",
@@ -543,7 +543,6 @@
         "pending": "pending"
       },
       "cargoSteps": "Shipment tracking",
-      "cargoStepsEmpty": "No tracking information yet.",
       "openProduct": "Open product details for {{name}}",
       "city": "Province",
       "district": "District",
@@ -608,7 +607,6 @@
       "increaseQty": "Increase quantity",
       "decreaseQty": "Decrease quantity",
       "removeItem": "Remove product",
-      "comingSoon": "Coming soon",
       "errors": {
         "phone": "Enter a 10-digit mobile number starting with 5.",
         "taxOffice": "Tax office must contain letters only.",

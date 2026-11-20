@@ -21,7 +21,7 @@ type ProductDetailHeaderProps = {
   children?: ReactNode;
 };
 
-// Alt köşelerin yuvarlaklığı; düz köşeyi denemek için 0 yapmak yeter
+// Alt köşelerin yuvarlaklığı
 const HEADER_RADIUS = RADIUS.xl;
 // Gradyan dikey açılır: üst kenar app bar'ın rengiyle aynı olduğu için ikisi tek parça görünür
 const GRADIENT_START = { x: 0, y: 0 };

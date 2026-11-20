@@ -1,4 +1,4 @@
-import { useAppTheme } from '@/hooks/useAppTheme';
+import { useAppBarIconColors } from '@/hooks/useAppBarIconColors';
 import { ICON_SIZE, MIN_TOUCH_SIZE } from '@/theme/spacing';
 import { router } from 'expo-router';
 import Pencil from 'lucide-react-native/icons/pencil';
@@ -12,7 +12,7 @@ const EDIT_HIT_SLOP = (MIN_TOUCH_SIZE - ICON_SIZE.md) / 2;
 // Düzenleme modu sayfa parametresiyle açılır (listedeki kalemler de edit=1 ile gelir).
 export default function OrderEditHeaderButton() {
   const { t } = useTranslation();
-  const { colors } = useAppTheme();
+  const { icon } = useAppBarIconColors();
 
   return (
     <Pressable
@@ -21,8 +21,8 @@ export default function OrderEditHeaderButton() {
       hitSlop={EDIT_HIT_SLOP}
       onPress={() => router.setParams({ edit: '1' })}
     >
-      {/* Başlık çubuğundaki geri oku ve başlıkla aynı renk (headerTintColor) */}
-      <Pencil size={ICON_SIZE.md} color={colors.text} />
+      {/* Geri okuyla aynı renk (bkz. useAppBarIconColors) */}
+      <Pencil size={ICON_SIZE.md} color={icon} />
     </Pressable>
   );
 }

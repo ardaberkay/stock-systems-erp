@@ -47,10 +47,23 @@ export default function ProductDetailScreen() {
   }
   const { data: product, isPending, error, refetch } = useProduct(productId);
   const resetSalesPeriod = useProductSalesStore((state) => state.reset);
-  // Okuma ve düzenleme hali aynı kaydırma konumunu paylaşır: Düzenle'ye basınca ya da
+  // Okuma ve düzenleme hali aynı kaydırma oranını paylaşır: Düzenle'ye basınca ya da
   // düzenlemeden çıkınca sayfa başa dönmez
-  const scrollPosition = useRef(0);
-  const keptScroll = useKeptScroll(scrollPosition);
+  const scrollRatio = useRef(0);
+  const keptScroll = useKeptScroll(scrollRatio);
+  // Düzenlemede hatalı alanı olan bölümler (sekmedeki kırmızı nokta); form düzenleme görünümünde
+  const [errorTabs, setErrorTabs] = useState<ProductDetailTab[]>([]);
+  // Liste aynıysa önceki değer kalır; düzenleme görünümü her çizimde iletse de döngü olmaz
+  const updateErrorTabs = (tabs: ProductDetailTab[]) =>
+    setErrorTabs((current) =>
+      current.length === tabs.length && current.every((tab) => tabs.includes(tab)) ? current : tabs,
+    );
+
+  // Bir sonraki düzenleme eski noktalarla açılmasın
+  const exitEditing = () => {
+    setErrorTabs([]);
+    router.setParams({ edit: undefined });
+  };
 
   // Grafik her açılışta Son 7 gün ile başlar; bu ürünün dönemi sonra açılan ürüne taşınmaz
   useEffect(() => resetSalesPeriod, [resetSalesPeriod]);
@@ -85,58 +98,57 @@ export default function ProductDetailScreen() {
     );
   }
 
-  if (isEditing) {
-    return (
-      <>
-        <StatusBar style="light" />
-        <ProductEditView
-          product={product}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          onExit={() => router.setParams({ edit: undefined })}
-          scrollPosition={scrollPosition}
-        />
-      </>
-    );
-  }
-
   return (
     <View style={styles.screen}>
       <StatusBar style="light" />
-      {/* Mor başlık kaydırılan alanın dışında; sayfa onun altında kayar, sekmeler hep görünür */}
+      {/* Mor başlık ve sekmeler iki modda da aynı yerde, yeniden oluşmaz; moda göre yalnızca
+          altındaki içerik değişir. Sayfa başlığın altında kayar, sekmeler hep görünür. */}
       <ProductDetailHeader product={product}>
         <SegmentedControl
           options={PRODUCT_DETAIL_TABS.map((tab) => ({
             value: tab,
             label: t(`stock.detail.tabs.${tab}`),
+            marked: isEditing && errorTabs.includes(tab),
           }))}
           value={activeTab}
           onChange={setActiveTab}
+          markedHint={t('orders.editMode.tabHasErrors')}
           onColor={colors.productHeaderStart}
         />
       </ProductDetailHeader>
 
-      <ScrollView
-        {...keptScroll}
-        style={styles.scroll}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={() => void refresh()}
-            tintColor={colors.orange}
-            colors={[colors.orange]}
-          />
-        }
-      >
-        {PRODUCT_DETAIL_TABS.filter((tab) => visitedTabs.includes(tab)).map((tab) => (
-          <View key={tab} style={[styles.tabContent, tab !== activeTab && styles.hidden]}>
-            {tab === 'info' ? <ProductInfoTab product={product} /> : null}
-            {tab === 'price' ? <ProductPriceTab product={product} /> : null}
-            {tab === 'variants' ? <ProductVariantsTab product={product} /> : null}
-          </View>
-        ))}
-      </ScrollView>
+      {isEditing ? (
+        <ProductEditView
+          product={product}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onExit={exitEditing}
+          scrollRatio={scrollRatio}
+          onErrorTabsChange={updateErrorTabs}
+        />
+      ) : (
+        <ScrollView
+          {...keptScroll}
+          style={styles.scroll}
+          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => void refresh()}
+              tintColor={colors.orange}
+              colors={[colors.orange]}
+            />
+          }
+        >
+          {PRODUCT_DETAIL_TABS.filter((tab) => visitedTabs.includes(tab)).map((tab) => (
+            <View key={tab} style={[styles.tabContent, tab !== activeTab && styles.hidden]}>
+              {tab === 'info' ? <ProductInfoTab product={product} /> : null}
+              {tab === 'price' ? <ProductPriceTab product={product} /> : null}
+              {tab === 'variants' ? <ProductVariantsTab product={product} /> : null}
+            </View>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 }

@@ -517,7 +517,7 @@
         },
         "detail": {
             "notFound": "Sipariş bulunamadı.",
-            "externalId": "Dış no",
+            "status": "Durum",
             "tabs": {
                 "order": "Sipariş",
                 "customer": "Müşteri",
@@ -543,7 +543,6 @@
                 "pending": "bekliyor"
             },
             "cargoSteps": "Kargo hareketleri",
-            "cargoStepsEmpty": "Kargo takip bilgisi henüz yok.",
             "openProduct": "{{name}} ürün detayını aç",
             "city": "İl",
             "district": "İlçe",
@@ -608,7 +607,6 @@
             "increaseQty": "Adedi artır",
             "decreaseQty": "Adedi azalt",
             "removeItem": "Ürünü çıkar",
-            "comingSoon": "Yakında",
             "errors": {
                 "phone": "5 ile başlayan 10 haneli bir cep numarası girin.",
                 "taxOffice": "Vergi dairesi yalnızca harflerden oluşmalı.",

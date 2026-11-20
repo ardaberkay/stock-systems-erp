@@ -1,4 +1,4 @@
-import FieldLabel from '@/components/ui/form/FieldLabel';
+import FormFieldLayout, { type FieldLayout } from '@/components/ui/form/FormFieldLayout';
 import type { PickerOption } from '@/features/picker/components/PickerField';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { usePickerSheet } from '@/features/picker/usePickerSheet';
@@ -10,7 +10,7 @@ import ChevronDown from 'lucide-react-native/icons/chevron-down';
 import { useEffect, useId, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import Text from '@/components/ui/Text';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 
 type MultiPickerFieldProps = {
   label: string;
@@ -25,6 +25,8 @@ type MultiPickerFieldProps = {
   isLoading?: boolean;
   loadError?: unknown;
   onRetry?: () => void;
+  // inline: etiket solda, seçilenler sağda (bkz. FormFieldLayout)
+  layout?: FieldLayout;
 };
 
 // Birden fazla seçilebilen alan (ör. kategoriler). Seçilenler alanda virgülle yazılır;
@@ -42,6 +44,7 @@ export default function MultiPickerField({
   isLoading = false,
   loadError,
   onRetry,
+  layout = 'stacked',
 }: MultiPickerFieldProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -75,8 +78,18 @@ export default function MultiPickerField({
   });
 
   return (
-    <View style={styles.field}>
-      <FieldLabel label={label} required={required} />
+    <FormFieldLayout
+      label={label}
+      required={required}
+      layout={layout}
+      message={
+        error ? (
+          <Text style={styles.error}>{error}</Text>
+        ) : hint ? (
+          <Text style={styles.hint}>{hint}</Text>
+        ) : null
+      }
+    >
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={required ? `${label}, ${t('common.required')}` : label}
@@ -90,20 +103,12 @@ export default function MultiPickerField({
         </Text>
         <ChevronDown size={ICON_SIZE.md} color={colors.icon} />
       </Pressable>
-      {error ? (
-        <Text style={styles.error}>{error}</Text>
-      ) : hint ? (
-        <Text style={styles.hint}>{hint}</Text>
-      ) : null}
-    </View>
+    </FormFieldLayout>
   );
 }
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
-    field: {
-      gap: SPACING.xs,
-    },
     control: {
       minHeight: MIN_TOUCH_SIZE,
       flexDirection: 'row',

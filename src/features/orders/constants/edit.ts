@@ -28,9 +28,16 @@ export const LOCKED_ORDER_STATUSES: readonly number[] = [
   ORDER_STATUS.partiallyCancelled,
 ];
 
-// Hatalı alanın hangi bölümde olduğu; durum özet kartında olduğu için bölümü yok
+// Hatalı alanın hangi bölümde olduğu; bölüm başlığındaki nokta ve "Kaydet"teki geçiş için
 export const ORDER_EDIT_TAB_FIELDS: Record<OrderDetailTab, (keyof OrderEditForm)[]> = {
-  order: ['paymentTypeId', 'shippingFee', 'description', 'description2'],
+  order: [
+    'statusId',
+    'customStatusId',
+    'paymentTypeId',
+    'shippingFee',
+    'description',
+    'description2',
+  ],
   customer: ['delivery', 'billing'],
   cargo: ['cargoCompanyId', 'whoPaysShipping'],
 };

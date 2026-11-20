@@ -13,6 +13,7 @@ import { Controller, useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 // 1. adım: ürünün tüm renklerinde ortak kalan bilgiler. Düzenlemenin Bilgi bölümü de budur.
+// Alanlar okuma halindeki gibi yan yana; yalnızca açıklama alt alta.
 export default function ProductInfoStep() {
   const { t } = useTranslation();
   const { control } = useFormContext<ProductBaseFormInput>();
@@ -43,6 +44,7 @@ export default function ProductInfoStep() {
               autoCapitalize="sentences"
               required
               error={translateError(error?.message)}
+              layout="inline"
             />
           )}
         />
@@ -62,9 +64,11 @@ export default function ProductInfoStep() {
               onChange={(option) => onChange(option.value)}
               required
               error={translateError(error?.message)}
+              layout="inline"
             />
           )}
         />
+        {/* Okuma halindeki gibi alt alta: uzun metin yarım genişliğe sığmaz */}
         <Controller
           control={control}
           name="description"
@@ -75,6 +79,7 @@ export default function ProductInfoStep() {
               onChangeText={onChange}
               onBlur={onBlur}
               multiline
+              minLines={2}
               autoCapitalize="sentences"
             />
           )}
@@ -98,6 +103,7 @@ export default function ProductInfoStep() {
               onChange={(option) => onChange(option.value)}
               required
               error={translateError(error?.message)}
+              layout="inline"
             />
           )}
         />
@@ -115,6 +121,7 @@ export default function ProductInfoStep() {
               loadError={categoryQuery.error}
               onRetry={() => void categoryQuery.refetch()}
               onChange={onChange}
+              layout="inline"
             />
           )}
         />

@@ -1,27 +1,16 @@
-import { useOrderCustomStatuses, useUpdateOrder } from '@/features/orders/api/orders';
-import OrderDetailHeader from '@/features/orders/components/detail/OrderDetailHeader';
+import { useUpdateOrder } from '@/features/orders/api/orders';
 import OrderEditHeaderButton from '@/features/orders/components/edit/OrderEditHeaderButton';
 import OrderEditCargoTab from '@/features/orders/components/edit/OrderEditCargoTab';
 import OrderEditCustomerTab from '@/features/orders/components/edit/OrderEditCustomerTab';
 import OrderEditOrderTab from '@/features/orders/components/edit/OrderEditOrderTab';
-import OrderStatusBadge from '@/features/orders/components/OrderStatusBadge';
-import SegmentedControl from '@/components/ui/SegmentedControl';
 import { ORDER_DETAIL_TABS, type OrderDetailTab } from '@/features/orders/constants/detail';
-import {
-  ACTIVE_CUSTOM_STATUS,
-  LOCKED_ORDER_STATUSES,
-  NO_CUSTOM_STATUS,
-  ORDER_EDIT_STATUSES,
-} from '@/features/orders/constants/edit';
-import { getOrderStatusDisplay } from '@/features/orders/constants/status';
-import { useAppTheme } from '@/hooks/useAppTheme';
-import { usePickerSheet } from '@/features/picker/usePickerSheet';
+import { useAppBarIconColors } from '@/hooks/useAppBarIconColors';
+import { useKeptScroll } from '@/hooks/useKeptScroll';
 import { getErrorDetail, getErrorMessageKey } from '@/lib/apiError';
 import { createOrderEditSchema, type OrderEditForm } from '@/features/orders/schemas/orderEdit';
 import type { Order } from '@/features/orders/schemas/orders';
 import type { Product } from '@/features/products/schemas/products';
-import type { AppColors } from '@/theme/colors';
-import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
+import { ICON_SIZE, MIN_TOUCH_SIZE, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
 import {
   buildOrderUpdatePayload,
   getApiErrorField,
@@ -34,18 +23,10 @@ import { Stack, useFocusEffect, useNavigation, usePreventRemove } from 'expo-rou
 import type { TFunction } from 'i18next';
 import Check from 'lucide-react-native/icons/check';
 import X from 'lucide-react-native/icons/x';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FormProvider, useForm, useWatch } from 'react-hook-form';
+import { useCallback, useEffect, useMemo, useState, type RefObject } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Alert,
-  BackHandler,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, BackHandler, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type OrderEditViewProps = {
@@ -58,6 +39,10 @@ type OrderEditViewProps = {
   onTabChange: (tab: OrderDetailTab) => void;
   // Düzenlemeden çıkar, sayfa okuma haline döner
   onExit: () => void;
+  // Okuma haliyle paylaşılan kaydırma oranı; mod değişince sayfa başa dönmez
+  scrollRatio: RefObject<number>;
+  // Sekmeler ekranda; hatalı bölümlerin noktası oraya iletilir
+  onErrorTabsChange: (tabs: OrderDetailTab[]) => void;
 };
 
 // İkon 24; dokunma alanı 44'e tamamlanır
@@ -81,12 +66,14 @@ export default function OrderEditView({
   activeTab,
   onTabChange,
   onExit,
+  scrollRatio,
+  onErrorTabsChange,
 }: OrderEditViewProps) {
   const { t } = useTranslation();
-  const { colors } = useAppTheme();
+  const keptScroll = useKeptScroll(scrollRatio);
+  const appBarIcon = useAppBarIconColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   // Başlangıç düzenleme açıldığı anki halidir; arkadan gelen yenileme formu değiştirmez
   const [original] = useState(() => getOrderEditDefaults(order));
   const schema = useMemo(() => createOrderEditSchema(original), [original]);
@@ -97,65 +84,18 @@ export default function OrderEditView({
     mode: 'onTouched',
   });
   const { isDirty, errors } = form.formState;
-  const statusId = useWatch({ control: form.control, name: 'statusId' });
-  const customStatusId = useWatch({ control: form.control, name: 'customStatusId' });
-  const { openPicker } = usePickerSheet();
-  const { data: customStatuses } = useOrderCustomStatuses();
   const updateOrder = useUpdateOrder();
   const isSaving = updateOrder.isPending;
   const tabsWithErrors = getTabsWithErrors(errors);
-  // Liste gelmeden kayıtlı ad gösterilir; pasif bir özel durum seçiliyse de adı kaybolmaz
-  const selectedCustomStatusName =
-    customStatusId === null
-      ? undefined
-      : (customStatuses?.find((status) => status.id === customStatusId)?.name ??
-        (customStatusId === original.customStatusId ? customStatusName : undefined));
-
-  // 13, 14 ve 15 listede görünür ama seçilemez; durum değişikliği stoğa dokunmaz
-  const openStatusPicker = () => {
-    openPicker({
-      title: t('orders.statusTitle'),
-      note: t('orders.editMode.statusStockNote'),
-      items: ORDER_EDIT_STATUSES.map((id) => {
-        const locked = LOCKED_ORDER_STATUSES.includes(id);
-
-        return {
-          value: id,
-          label: t(`orders.status.${getOrderStatusDisplay(id).key}`),
-          content: <OrderStatusBadge statusId={id} colors={colors} />,
-          disabled: locked,
-          badge: locked ? t('orders.editMode.statusLocked') : undefined,
-        };
-      }),
-      value: statusId,
-      onSelect: (next) => {
-        if (typeof next === 'number') {
-          form.setValue('statusId', next, { shouldDirty: true });
-        }
-      },
-    });
-  };
-
-  // "Özel durum yok" API'de 0 ile özel durumu kaldırır
-  const openCustomStatusPicker = () => {
-    openPicker({
-      title: t('orders.customStatusTitle'),
-      items: [
-        { value: NO_CUSTOM_STATUS, label: t('orders.editMode.noCustomStatus') },
-        ...(customStatuses ?? [])
-          .filter((status) => status.status === ACTIVE_CUSTOM_STATUS || status.id === customStatusId)
-          .map((status) => ({ value: status.id, label: status.name })),
-      ],
-      value: customStatusId ?? NO_CUSTOM_STATUS,
-      onSelect: (next) => {
-        if (typeof next === 'number') {
-          form.setValue('customStatusId', next === NO_CUSTOM_STATUS ? null : next, {
-            shouldDirty: true,
-          });
-        }
-      },
-    });
-  };
+  // Her çizimde iletilir; ekran liste aynıysa state'i değiştirmez, döngü olmaz
+  useEffect(() => {
+    onErrorTabsChange(tabsWithErrors);
+  });
+  // Açılan bölüm sonra gizlenir ama kaldırılmaz: geri dönünce alanlar baştan çizilmesin
+  const [visitedTabs, setVisitedTabs] = useState<OrderDetailTab[]>([activeTab]);
+  if (!visitedTabs.includes(activeTab)) {
+    setVisitedTabs([...visitedTabs, activeTab]);
+  }
 
   // Moddan çıkınca başlık okuma haline döner: geri oku, sayfa adı, kalem ve kaydırarak geri dönme
   // (rota tanımındakiyle aynı)
@@ -259,12 +199,13 @@ export default function OrderEditView({
               disabled={isSaving}
               onPress={cancel}
             >
-              <X size={ICON_SIZE.lg} color={isSaving ? colors.iconDisabled : colors.text} />
+              {/* Geri okuyla aynı renk (bkz. useAppBarIconColors) */}
+              <X size={ICON_SIZE.lg} color={isSaving ? appBarIcon.iconDisabled : appBarIcon.icon} />
             </Pressable>
           ),
           headerRight: () =>
             isSaving ? (
-              <ActivityIndicator color={colors.orange} />
+              <ActivityIndicator color={appBarIcon.icon} />
             ) : (
               <Pressable
                 accessibilityRole="button"
@@ -272,81 +213,57 @@ export default function OrderEditView({
                 hitSlop={HEADER_BUTTON_HIT_SLOP}
                 onPress={() => void save()}
               >
-                <Check size={ICON_SIZE.lg} color={colors.orange} />
+                <Check size={ICON_SIZE.lg} color={appBarIcon.icon} />
               </Pressable>
             ),
         }}
       />
+      {/* Yeşil başlık ve sekmeler ekranda kalır (bkz. OrderDetailScreen); burada yalnızca içerik */}
       <ScrollView
-        style={styles.screen}
+        {...keptScroll}
+        style={styles.scroll}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
         // iOS'ta klavye açılınca odaktaki alan görünür kalır
         automaticallyAdjustKeyboardInsets
-        // 1. çocuk bölüm seçimi; kaydırınca üstte yapışık kalır
-        stickyHeaderIndices={[1]}
       >
-        <View style={styles.summaryCard}>
-          <OrderDetailHeader
-            order={order}
-            customStatusName={selectedCustomStatusName}
-            statusId={statusId}
-            onStatusPress={openStatusPicker}
-            onCustomStatusPress={openCustomStatusPicker}
-          />
-        </View>
-
-        <View style={styles.tabBar}>
-          <SegmentedControl
-            options={ORDER_DETAIL_TABS.map((tab) => ({
-              value: tab,
-              label: t(`orders.detail.tabs.${tab}`),
-              marked: tabsWithErrors.includes(tab),
-            }))}
-            value={activeTab}
-            onChange={onTabChange}
-            markedHint={t('orders.editMode.tabHasErrors')}
-          />
-        </View>
-
-        {activeTab === 'order' ? (
-          <OrderEditOrderTab
-            order={order}
-            productsById={productsById}
-            isProductsPending={isProductsPending}
-            partnerName={partnerName}
-          />
-        ) : null}
-        {activeTab === 'customer' ? <OrderEditCustomerTab order={order} /> : null}
-        {activeTab === 'cargo' ? <OrderEditCargoTab order={order} /> : null}
+        {ORDER_DETAIL_TABS.filter((tab) => visitedTabs.includes(tab)).map((tab) => (
+          <View key={tab} style={[styles.tabContent, tab !== activeTab && styles.hidden]}>
+            {tab === 'order' ? (
+              <OrderEditOrderTab
+                order={order}
+                productsById={productsById}
+                isProductsPending={isProductsPending}
+                partnerName={partnerName}
+                customStatusName={customStatusName}
+              />
+            ) : null}
+            {tab === 'customer' ? <OrderEditCustomerTab order={order} /> : null}
+            {tab === 'cargo' ? <OrderEditCargoTab order={order} /> : null}
+          </View>
+        ))}
       </ScrollView>
     </FormProvider>
   );
 }
 
-function createStyles(colors: AppColors) {
-  return StyleSheet.create({
-    screen: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    content: {
-      gap: SPACING.xl,
-      paddingHorizontal: SPACING.xl,
-      paddingTop: SPACING.md,
-    },
-    summaryCard: {
-      padding: SPACING.md,
-      borderRadius: RADIUS.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-    },
-    // Yapışık kalınca alttan kayan kartları örtsün diye zemin rengi ve dikey boşluk taşır
-    tabBar: {
-      paddingVertical: SPACING.sm,
-      backgroundColor: colors.background,
-    },
-  });
-}
+const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+  },
+  // Yan boşluk ürün detayı gibi SPACING.md (AGENTS.md'deki istisna)
+  content: {
+    ...SCREEN_CONTENT,
+    gap: SPACING.xl,
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.xl,
+  },
+  // Bölümler arası boşluk, sayfanın içerik boşluğuyla aynı
+  tabContent: {
+    gap: SPACING.xl,
+  },
+  hidden: {
+    display: 'none',
+  },
+});

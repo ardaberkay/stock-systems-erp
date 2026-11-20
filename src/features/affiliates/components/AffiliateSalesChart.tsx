@@ -20,6 +20,8 @@ type AffiliateSalesChartProps = {
   metric: AffiliateSalesMetric;
   // Basılı tutunca kutuda ana değerin altında yazan ikinci değer (ör. ürün detayında ciro)
   secondaryMetric?: AffiliateSalesMetric;
+  // Çizginin altı aşağı doğru solan dolguyla boyanır (yalnızca ürün detayı, AGENTS.md)
+  filled?: boolean;
   isLoading: boolean;
   colors: AppColors;
   locale: string;
@@ -39,8 +41,10 @@ const AXIS_TICKS = 4;
 // En yüksek nokta grafiğin tepesine yapışmasın
 const Y_DOMAIN_HEADROOM = 1.15;
 const LOADING_ROWS = [{ label: '' }, { label: ' ' }];
+// Anasayfa grafiğinden (0,6) daha soluk; büyük dolgulu grafik anasayfanın kalsın
+const FILL_OPACITY = 0.35;
 
-// İade/iptal raporundaki gibi tek çizgi: dolgu yok (dolgulu büyük grafik anasayfaya özgü).
+// İade/iptal raporundaki gibi tek çizgi; ürün detayında altı dolgulu (filled).
 // Noktalar (showMarkers) kapalı: panelui çizgiyi grafik alanının kenarında kırptığı için ilk
 // ve son nokta yarım görünüyor. Basılı tutunca gün ve değer parmağın karşı tarafında üstte yazar.
 export default function AffiliateSalesChart({
@@ -48,6 +52,7 @@ export default function AffiliateSalesChart({
   granularity,
   metric,
   secondaryMetric,
+  filled = false,
   isLoading,
   colors,
   locale,
@@ -85,6 +90,7 @@ export default function AffiliateSalesChart({
         onActiveIndexChange={(index) => setActiveIndex(index)}
       >
         <LineChart.Skeleton color={colors.chartGrid} />
+        {filled ? <LineChart.Area dataKey="value" color={color} opacity={FILL_OPACITY} /> : null}
         <LineChart.Line dataKey="value" color={color} strokeWidth={STROKE_WIDTH} />
         <LineChart.XAxis ticks={AXIS_TICKS} />
         <LineChart.Tooltip showLabel={false} />

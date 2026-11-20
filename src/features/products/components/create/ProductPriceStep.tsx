@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 type MoneyFieldName = 'salePrice' | 'listPrice' | 'costPrice' | 'costPrice2';
 
 // 2. adım: fiyat, maliyet ve vergi. Varyanta özel fiyat 3. adımda, varyant satırındadır.
-// Düzenlemenin Fiyat bölümü de budur.
+// Düzenlemenin Fiyat bölümü de budur. Alanlar okuma halindeki gibi yan yana (etiket solda).
 export default function ProductPriceStep() {
   const { t } = useTranslation();
   const { control } = useFormContext<ProductBaseFormInput>();
@@ -32,6 +32,7 @@ export default function ProductPriceStep() {
           onBlur={onBlur}
           required={required}
           error={translateError(error?.message)}
+          layout="inline"
         />
       )}
     />
@@ -57,6 +58,7 @@ export default function ProductPriceStep() {
               searchable={false}
               required
               error={translateError(error?.message)}
+              layout="inline"
             />
           )}
         />

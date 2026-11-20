@@ -2,7 +2,6 @@ import DetailNote from '@/components/ui/DetailNote';
 import DetailRow from '@/components/ui/DetailRow';
 import DetailSection from '@/components/ui/DetailSection';
 import ProductSalesSection from '@/features/products/components/detail/ProductSalesSection';
-import { PRODUCT_DETAIL_SECTION_VARIANT } from '@/features/products/constants/productEdit';
 import { PRODUCT_STATUS } from '@/features/products/constants/products';
 import type { Product } from '@/features/products/schemas/products';
 import { useTranslation } from 'react-i18next';
@@ -21,16 +20,13 @@ export default function ProductInfoTab({ product }: ProductInfoTabProps) {
     <>
       <ProductSalesSection productId={product.id} />
 
-      <DetailSection title={t('stock.create.sections.general')} variant={PRODUCT_DETAIL_SECTION_VARIANT}>
+      <DetailSection title={t('stock.create.sections.general')} variant="plain">
         <DetailRow label={t('stock.create.fields.name')} value={product.name} selectable />
         <DetailRow label={t('stock.create.fields.brand')} value={product.brandName} />
         <DetailNote label={t('stock.create.fields.description')} value={product.details} />
       </DetailSection>
 
-      <DetailSection
-        title={t('stock.create.sections.classification')}
-        variant={PRODUCT_DETAIL_SECTION_VARIANT}
-      >
+      <DetailSection title={t('stock.create.sections.classification')} variant="plain">
         <DetailRow label={t('stock.create.fields.type')} value={product.typeName} />
         <DetailRow
           label={t('stock.create.fields.categories')}
@@ -38,7 +34,7 @@ export default function ProductInfoTab({ product }: ProductInfoTabProps) {
         />
       </DetailSection>
 
-      <DetailSection title={t('stock.create.sections.status')} variant={PRODUCT_DETAIL_SECTION_VARIANT}>
+      <DetailSection title={t('stock.create.sections.status')} variant="plain">
         <DetailRow
           label={t('stock.status')}
           value={t(isActive ? 'stock.statusFilter.active' : 'stock.statusFilter.passive')}

@@ -23,7 +23,7 @@ type ProductSalesSectionProps = {
 const TITLE_SEPARATOR = ' · ';
 
 // Ürün detayının başındaki satış grafiği. Kutusuz: grafik görsel içeriktir, çerçeve bir şey
-// katmaz. Tek mor çizgi (adet); sipariş ve ciro çizgisi tek üründe adetle aynı şekli çizdiği
+// katmaz. Altı dolgulu tek mor çizgi (adet); sipariş ve ciro çizgisi tek üründe adetle aynı şekli çizdiği
 // için yok. Dönemin adedi başlığın yanında; ciro yalnızca basılı tutunca o günün kutusunda.
 export default function ProductSalesSection({ productId }: ProductSalesSectionProps) {
   const { t } = useTranslation();
@@ -47,6 +47,7 @@ export default function ProductSalesSection({ productId }: ProductSalesSectionPr
         granularity={window.granularity}
         metric="sold"
         secondaryMetric="revenue"
+        filled
         isLoading={!hasData}
         colors={colors}
         locale={locale}

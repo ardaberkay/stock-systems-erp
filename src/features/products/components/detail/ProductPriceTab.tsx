@@ -1,6 +1,5 @@
 import DetailRow from '@/components/ui/DetailRow';
 import DetailSection from '@/components/ui/DetailSection';
-import { PRODUCT_DETAIL_SECTION_VARIANT } from '@/features/products/constants/productEdit';
 import type { Product } from '@/features/products/schemas/products';
 import { useLocale } from '@/hooks/useLocale';
 import { formatMoney } from '@/utils/formatter';
@@ -22,7 +21,7 @@ export default function ProductPriceTab({ product }: ProductPriceTabProps) {
 
   return (
     <>
-      <DetailSection title={t('stock.create.sections.pricing')} variant={PRODUCT_DETAIL_SECTION_VARIANT}>
+      <DetailSection title={t('stock.create.sections.pricing')} variant="plain">
         <DetailRow
           label={t('stock.create.fields.salePrice')}
           value={formatMoney(product.price, locale)}
@@ -42,7 +41,7 @@ export default function ProductPriceTab({ product }: ProductPriceTabProps) {
         />
       </DetailSection>
 
-      <DetailSection title={t('stock.create.sections.costs')} variant={PRODUCT_DETAIL_SECTION_VARIANT}>
+      <DetailSection title={t('stock.create.sections.costs')} variant="plain">
         <DetailRow
           label={t('stock.create.fields.costPrice')}
           value={optionalMoney(product.costPrice, locale)}

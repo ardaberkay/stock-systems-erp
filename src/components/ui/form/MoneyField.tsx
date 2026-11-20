@@ -1,3 +1,4 @@
+import type { FieldLayout } from '@/components/ui/form/FormFieldLayout';
 import TextField from '@/components/ui/form/TextField';
 import { useLocale } from '@/hooks/useLocale';
 import { formatMoneyInput, parseMoneyInput } from '@/utils/formatter';
@@ -12,6 +13,7 @@ type MoneyFieldProps = {
   hint?: string;
   placeholder?: string;
   required?: boolean;
+  layout?: FieldLayout;
 };
 
 // Tutar alanı: yazarken binlik ayırıcı eklenir ("1500" → "1.500"). Form ham değeri tutar,
@@ -25,6 +27,7 @@ export default function MoneyField({
   hint,
   placeholder,
   required,
+  layout,
 }: MoneyFieldProps) {
   const locale = useLocale();
 
@@ -47,6 +50,9 @@ export default function MoneyField({
       hint={hint}
       placeholder={placeholder}
       required={required}
+      layout={layout}
+      // Yan yana düzende tutarlar sağa yaslı: basamaklar alt alta hizalanır
+      textAlign={layout === 'inline' ? 'right' : 'left'}
     />
   );
 }

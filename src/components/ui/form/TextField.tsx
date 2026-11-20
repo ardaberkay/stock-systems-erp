@@ -1,4 +1,4 @@
-import FieldLabel from '@/components/ui/form/FieldLabel';
+import FormFieldLayout, { type FieldLayout } from '@/components/ui/form/FormFieldLayout';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
@@ -7,7 +7,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import Text from '@/components/ui/Text';
 import TextInput from '@/components/ui/TextInput';
-import { StyleSheet, View, type TextInputProps } from 'react-native';
+import { StyleSheet, type TextInputProps } from 'react-native';
 
 type TextFieldProps = {
   label: string;
@@ -20,14 +20,20 @@ type TextFieldProps = {
   required?: boolean;
   placeholder?: string;
   multiline?: boolean;
+  // Çok satırlı alan boşken kaç satır yer kaplar; yazdıkça büyür
+  minLines?: number;
   editable?: boolean;
   keyboardType?: TextInputProps['keyboardType'];
   autoCapitalize?: TextInputProps['autoCapitalize'];
   autoComplete?: TextInputProps['autoComplete'];
   maxLength?: number;
+  // inline: etiket solda, alan sağda (bkz. FormFieldLayout)
+  layout?: FieldLayout;
+  // Tutarlar sağa yaslanır (bkz. MoneyField); metin sola yaslı yazılır ve kayar
+  textAlign?: 'left' | 'right';
 };
 
-// Çok satırlı alan en az bu kadar satır yüksekliğinde açılır; yazdıkça büyümez, ekran zıplamaz
+// Çok satırlı alan varsayılan olarak en az bu kadar satır yüksekliğinde açılır
 const MULTILINE_LINES = 3;
 
 export default function TextField({
@@ -40,19 +46,32 @@ export default function TextField({
   required = false,
   placeholder,
   multiline = false,
+  minLines = MULTILINE_LINES,
   editable = true,
   keyboardType,
   autoCapitalize,
   autoComplete,
   maxLength,
+  layout = 'stacked',
+  textAlign = 'left',
 }: TextFieldProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
-    <View style={styles.field}>
-      <FieldLabel label={label} required={required} />
+    <FormFieldLayout
+      label={label}
+      required={required}
+      layout={layout}
+      message={
+        error ? (
+          <Text style={styles.error}>{error}</Text>
+        ) : hint ? (
+          <Text style={styles.hint}>{hint}</Text>
+        ) : null
+      }
+    >
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -71,25 +90,21 @@ export default function TextField({
         textAlignVertical={multiline ? 'top' : 'center'}
         style={[
           styles.input,
-          multiline && styles.multiline,
+          multiline && [
+            styles.multiline,
+            { minHeight: typography.body.lineHeight * minLines + SPACING.sm * 2 },
+          ],
+          textAlign === 'right' && styles.alignRight,
           !editable && styles.disabled,
           error ? styles.inputError : null,
         ]}
       />
-      {error ? (
-        <Text style={styles.error}>{error}</Text>
-      ) : hint ? (
-        <Text style={styles.hint}>{hint}</Text>
-      ) : null}
-    </View>
+    </FormFieldLayout>
   );
 }
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
-    field: {
-      gap: SPACING.xs,
-    },
     // lineHeight verilmez: iOS'ta tek satırlı alanda yazmaya başlayınca metni aşağı kaydırıyor
     input: {
       fontFamily: typography.body.fontFamily,
@@ -105,7 +120,9 @@ function createStyles(colors: AppColors) {
     },
     multiline: {
       lineHeight: typography.body.lineHeight,
-      minHeight: typography.body.lineHeight * MULTILINE_LINES + SPACING.sm * 2,
+    },
+    alignRight: {
+      textAlign: 'right',
     },
     disabled: {
       color: colors.textDisabled,

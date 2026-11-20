@@ -1,4 +1,4 @@
-import { useAppBarIconColors } from '@/features/products/hooks/useAppBarIconColors';
+import { useAppBarIconColors } from '@/hooks/useAppBarIconColors';
 import { ICON_SIZE, MIN_TOUCH_SIZE } from '@/theme/spacing';
 import { router } from 'expo-router';
 import Pencil from 'lucide-react-native/icons/pencil';

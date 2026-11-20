@@ -45,7 +45,13 @@ export default function DetailRow({
         >
           {hasValue ? value : EMPTY_VALUE}
         </Text>
-        {actions}
+        {actions ? (
+          <>
+            {/* Değer ile butonlar ince dikey çizgiyle ayrılır; ikon metnin parçası gibi durmaz */}
+            <View style={styles.actionsDivider} />
+            {actions}
+          </>
+        ) : null}
       </View>
     </View>
   );
@@ -69,9 +75,15 @@ function createStyles(colors: AppColors) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'flex-end',
-      // Değer ile butonlar arası, butonların kendi arasındaki boşlukla aynı (ContactActions)
-      gap: SPACING.xxxl,
+      // Çizginin iki yanı lg; butonların kendi arasındaki çizgi ve boşlukla aynı (ContactActions)
+      gap: SPACING.lg,
       minWidth: 0,
+    },
+    // Satır yüksekliği kadar uzar
+    actionsDivider: {
+      width: 1,
+      alignSelf: 'stretch',
+      backgroundColor: colors.divider,
     },
     value: {
       ...typography.label,

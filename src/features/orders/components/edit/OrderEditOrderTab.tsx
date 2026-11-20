@@ -1,4 +1,12 @@
-import { useOrderPaymentTypes } from '@/features/orders/api/orders';
+import { useOrderCustomStatuses, useOrderPaymentTypes } from '@/features/orders/api/orders';
+import OrderStatusBadge from '@/features/orders/components/OrderStatusBadge';
+import {
+  ACTIVE_CUSTOM_STATUS,
+  LOCKED_ORDER_STATUSES,
+  NO_CUSTOM_STATUS,
+  ORDER_EDIT_STATUSES,
+} from '@/features/orders/constants/edit';
+import { getOrderStatusDisplay } from '@/features/orders/constants/status';
 import LockedField from '@/components/ui/form/LockedField';
 import PickerField, { type PickerOption } from '@/features/picker/components/PickerField';
 import TextField from '@/components/ui/form/TextField';
@@ -24,6 +32,8 @@ type OrderEditOrderTabProps = {
   productsById: Map<number, Product>;
   isProductsPending: boolean;
   partnerName: string | undefined;
+  // Kayıtlı özel durumun adı; liste gelmeden ya da pasif bir durum seçiliyken de görünür
+  customStatusName: string | undefined;
 };
 
 // Pasif butonlar için; basılamadıkları için hiç çağrılmaz
@@ -35,6 +45,7 @@ export default function OrderEditOrderTab({
   productsById,
   isProductsPending,
   partnerName,
+  customStatusName,
 }: OrderEditOrderTabProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -43,6 +54,8 @@ export default function OrderEditOrderTab({
   const { control } = useFormContext<OrderEditForm>();
   const shippingFee = useWatch({ control, name: 'shippingFee' });
   const paymentQuery = useOrderPaymentTypes();
+  const customStatusQuery = useOrderCustomStatuses();
+  const savedCustomStatusId = order.orderCustomStatusId;
   const translateError = (message: string | undefined) => (message ? t(message) : undefined);
   const itemCount = order.items.reduce((total, item) => total + item.qty, 0);
   // Kargo ücreti değiştikçe toplam canlı güncellenir; API de kayıtta aynı hesabı yapıyor
@@ -52,10 +65,87 @@ export default function OrderEditOrderTab({
     () => (paymentQuery.data ?? []).map((type) => ({ value: type.id, label: type.name })),
     [paymentQuery.data],
   );
+  // 13, 14 ve 15 listede görünür ama seçilemez; listede durumlar rozetiyle görünür
+  const statusOptions = useMemo<PickerOption[]>(
+    () =>
+      ORDER_EDIT_STATUSES.map((id) => {
+        const locked = LOCKED_ORDER_STATUSES.includes(id);
+
+        return {
+          value: id,
+          label: t(`orders.status.${getOrderStatusDisplay(id).key}`),
+          content: <OrderStatusBadge statusId={id} colors={colors} />,
+          disabled: locked,
+          badge: locked ? t('orders.editMode.statusLocked') : undefined,
+        };
+      }),
+    [colors, t],
+  );
+  // "Özel durum yok" API'de 0 ile özel durumu kaldırır. Pasif durumlar listede yok; kayıtlı
+  // durum pasifse yine görünür ki seçim kaybolmasın.
+  const customStatusOptions = useMemo<PickerOption[]>(
+    () => [
+      { value: NO_CUSTOM_STATUS, label: t('orders.editMode.noCustomStatus') },
+      ...(customStatusQuery.data ?? [])
+        .filter(
+          (status) => status.status === ACTIVE_CUSTOM_STATUS || status.id === savedCustomStatusId,
+        )
+        .map((status) => ({ value: status.id, label: status.name })),
+    ],
+    [customStatusQuery.data, savedCustomStatusId, t],
+  );
 
   return (
     <>
-      {/* Sipariş durumu çizelgesi düzenlenemediği için bu modda gösterilmez */}
+      {/* Okumadaki çizelgenin yeri. Çizelge düzenlenemediği için burada durum ve özel durum
+          seçilir; başlık kayıtlı durumu gösterir */}
+      <DetailSection title={t('orders.detail.sections.timeline')}>
+        <Controller
+          control={control}
+          name="statusId"
+          render={({ field: { value, onChange }, fieldState: { error } }) => (
+            <PickerField
+              label={t('orders.detail.status')}
+              placeholder=""
+              searchPlaceholder=""
+              value={value}
+              // Düzenlenebilen listede olmayan bir durumdaysa da adı görünür
+              selectedLabel={t(`orders.status.${getOrderStatusDisplay(value).key}`)}
+              options={statusOptions}
+              onChange={(option) => onChange(option.value)}
+              searchable={false}
+              note={t('orders.editMode.statusStockNote')}
+              error={translateError(error?.message)}
+              layout="inline"
+            />
+          )}
+        />
+        <Controller
+          control={control}
+          name="customStatusId"
+          render={({ field: { value, onChange }, fieldState: { error } }) => (
+            <PickerField
+              label={t('orders.customStatusTitle')}
+              placeholder={t('orders.editMode.noCustomStatus')}
+              searchPlaceholder=""
+              value={value ?? NO_CUSTOM_STATUS}
+              selectedLabel={value === savedCustomStatusId ? customStatusName : undefined}
+              options={customStatusOptions}
+              isLoading={customStatusQuery.isPending}
+              loadError={customStatusQuery.error}
+              onRetry={() => void customStatusQuery.refetch()}
+              onChange={(option) =>
+                onChange(option.value === NO_CUSTOM_STATUS ? null : option.value)
+              }
+              searchable={false}
+              // Sunucu reddederse (bkz. showSaveError) alan işaretlenir
+              error={translateError(error?.message)}
+              layout="inline"
+            />
+          )}
+        />
+      </DetailSection>
+
       <DetailSection
         title={`${t('orders.detail.sections.items')} · ${t('orders.itemCount', {
           value: formatNumber(itemCount, locale),
@@ -91,6 +181,9 @@ export default function OrderEditOrderTab({
               onBlur={onBlur}
               keyboardType="decimal-pad"
               error={translateError(error?.message)}
+              layout="inline"
+              // Tutar: ürün fiyat alanları gibi sağa yaslı
+              textAlign="right"
             />
           )}
         />
@@ -111,6 +204,7 @@ export default function OrderEditOrderTab({
               onRetry={() => void paymentQuery.refetch()}
               onChange={(option) => onChange(option.value)}
               searchable={false}
+              layout="inline"
             />
           )}
         />
@@ -118,13 +212,10 @@ export default function OrderEditOrderTab({
           label={t('orders.detail.paymentConfirm')}
           value={order.orderPaymentConfirm === 1 ? t('orders.detail.paymentConfirmed') : null}
         />
-        <LockedField label={t('orders.detail.partner')} value={partnerName} />
+        <LockedField label={t('orders.detail.partner')} value={partnerName} layout="inline" />
       </DetailSection>
 
       <DetailSection title={t('orders.detail.sections.notes')}>
-        {/* Dış no hiçbir zaman değiştirilemez; kilit işareti gerekmez */}
-        <DetailRow label={t('orders.detail.externalId')} value={order.customOrderId} selectable />
-        <View style={styles.divider} />
         <Controller
           control={control}
           name="description"
@@ -135,6 +226,7 @@ export default function OrderEditOrderTab({
               onChangeText={onChange}
               onBlur={onBlur}
               multiline
+              minLines={2}
               autoCapitalize="sentences"
             />
           )}
@@ -149,6 +241,7 @@ export default function OrderEditOrderTab({
               onChangeText={onChange}
               onBlur={onBlur}
               multiline
+              minLines={2}
               autoCapitalize="sentences"
             />
           )}

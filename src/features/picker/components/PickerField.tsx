@@ -1,4 +1,4 @@
-import FieldLabel from '@/components/ui/form/FieldLabel';
+import FormFieldLayout, { type FieldLayout } from '@/components/ui/form/FormFieldLayout';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { usePickerSheet } from '@/features/picker/usePickerSheet';
 import { usePickerStore, type PickerRequest } from '@/features/picker/pickerStore';
@@ -6,14 +6,19 @@ import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import ChevronDown from 'lucide-react-native/icons/chevron-down';
-import { useEffect, useId, useMemo } from 'react';
+import { useEffect, useId, useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import Text from '@/components/ui/Text';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 
 export type PickerOption = {
   value: number;
   label: string;
+  // Listede görünür ama seçilemez; nedeni sağda küçük yazıyla (ör. sipariş durumu 13–15)
+  disabled?: boolean;
+  badge?: string;
+  // Listede yazı yerine özel görünüm (ör. durum rozeti); alanda yine `label` yazar
+  content?: ReactNode;
 };
 
 type PickerFieldProps = {
@@ -36,6 +41,10 @@ type PickerFieldProps = {
   // Uzun listelerde (il, ilçe) arama kutulu, neredeyse tam boy pencere; kısa listeler
   // (ödeme tipi, kargo firması) aramasız, içerik kadar açılır
   searchable?: boolean;
+  // Pencerede listenin üstünde kısa açıklama (ör. durum değişikliğinin stoğa dokunmadığı)
+  note?: string;
+  // inline: etiket solda, seçim sağda (bkz. FormFieldLayout)
+  layout?: FieldLayout;
 };
 
 // Satıra basınca native seçim penceresi açılır (bkz. PickerModal). Liste yüklenirken de açılır;
@@ -56,6 +65,8 @@ export default function PickerField({
   loadError,
   onRetry,
   searchable = true,
+  note,
+  layout = 'stacked',
 }: PickerFieldProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -72,6 +83,7 @@ export default function PickerField({
     title: label,
     items: options,
     value,
+    note,
     searchPlaceholder,
     isLoading,
     loadError,
@@ -79,7 +91,7 @@ export default function PickerField({
     onSelect: (selected) => {
       const option = options.find((item) => item.value === selected);
 
-      if (option) {
+      if (option && !option.disabled) {
         onChange(option);
       }
     },
@@ -93,8 +105,12 @@ export default function PickerField({
   });
 
   return (
-    <View style={styles.field}>
-      <FieldLabel label={label} required={required} />
+    <FormFieldLayout
+      label={label}
+      required={required}
+      layout={layout}
+      message={error ? <Text style={styles.error}>{error}</Text> : null}
+    >
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={required ? `${label}, ${t('common.required')}` : label}
@@ -110,16 +126,12 @@ export default function PickerField({
         </Text>
         <ChevronDown size={ICON_SIZE.md} color={disabled ? colors.iconDisabled : colors.icon} />
       </Pressable>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-    </View>
+    </FormFieldLayout>
   );
 }
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
-    field: {
-      gap: SPACING.xs,
-    },
     control: {
       minHeight: MIN_TOUCH_SIZE,
       flexDirection: 'row',

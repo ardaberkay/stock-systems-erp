@@ -84,6 +84,10 @@ export const lightColors = {
     // daha koyu tonlar kullanılır.
     productHeaderStart: '#6B4FBB',
     productHeaderEnd: '#9277D8',
+    // Sipariş detayının yeşil başlığı; mor başlıkla aynı mantık. Grafik yeşili (#43A889) beyaz
+    // yazıyla yalnızca 2.9:1 okunduğu için başlangıç tonu koyudur (beyazla 5:1).
+    orderHeaderStart: '#2B7D63',
+    orderHeaderEnd: '#3A9A7C',
     // Renkli başlığın üstündeki yazı ve ikonlar
     onHeader: '#FFFFFF',
     onHeaderMuted: 'rgba(255, 255, 255, 0.72)',
@@ -175,6 +179,8 @@ export const darkColors = {
 
     productHeaderStart: '#4A3880',
     productHeaderEnd: '#62509E',
+    orderHeaderStart: '#1F5E4A',
+    orderHeaderEnd: '#2E7660',
     onHeader: '#FFFFFF',
     onHeaderMuted: 'rgba(255, 255, 255, 0.72)',
     onHeaderSurface: 'rgba(255, 255, 255, 0.18)',

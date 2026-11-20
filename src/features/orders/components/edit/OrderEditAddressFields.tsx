@@ -2,11 +2,9 @@ import { useCities, useDistricts } from '@/features/orders/api/address';
 import PickerField, { type PickerOption } from '@/features/picker/components/PickerField';
 import TextField from '@/components/ui/form/TextField';
 import type { OrderEditForm } from '@/features/orders/schemas/orderEdit';
-import { SPACING } from '@/theme/spacing';
 import { useMemo } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
 
 type OrderEditAddressFieldsProps = {
   // Teslimat ve fatura aynı alanları kullanır
@@ -18,7 +16,8 @@ function sameName(a: string, b: string) {
   return a.toLocaleUpperCase('tr') === b.toLocaleUpperCase('tr');
 }
 
-// Adres metni, altında yan yana il ve ilçe seçimi
+// Adres metni alt alta (uzun metin yarım genişliğe sığmaz), altında il ve ilçe satırları
+// diğer alanlar gibi yan yana (etiket solda)
 export default function OrderEditAddressFields({ prefix }: OrderEditAddressFieldsProps) {
   const { t } = useTranslation();
   const { control, setValue } = useFormContext<OrderEditForm>();
@@ -57,73 +56,60 @@ export default function OrderEditAddressFields({ prefix }: OrderEditAddressField
             onChangeText={onChange}
             onBlur={onBlur}
             multiline
+            minLines={2}
             autoCapitalize="sentences"
             error={translateError(error?.message)}
           />
         )}
       />
 
-      <View style={styles.row}>
-        <View style={styles.half}>
-          <Controller
-            control={control}
-            name={`${prefix}.cityName`}
-            render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <PickerField
-                label={t('orders.create.customer.city')}
-                placeholder={t('orders.create.customer.selectCity')}
-                searchPlaceholder={t('orders.create.customer.searchCity')}
-                value={cityId}
-                selectedLabel={value}
-                options={cityOptions}
-                isLoading={citiesQuery.isPending}
-                loadError={citiesQuery.error}
-                onRetry={() => void citiesQuery.refetch()}
-                onChange={(option) => {
-                  if (sameName(option.label, value)) return;
-                  onChange(option.label);
-                  // İl değişince eski ilçe geçersizdir; ilçe seçilene kadar kayıt engellenir
-                  setValue(`${prefix}.districtName`, '', { shouldDirty: true });
-                }}
-                error={translateError(error?.message)}
-              />
-            )}
+      <Controller
+        control={control}
+        name={`${prefix}.cityName`}
+        render={({ field: { value, onChange }, fieldState: { error } }) => (
+          <PickerField
+            label={t('orders.create.customer.city')}
+            placeholder={t('orders.create.customer.selectCity')}
+            searchPlaceholder={t('orders.create.customer.searchCity')}
+            value={cityId}
+            selectedLabel={value}
+            options={cityOptions}
+            isLoading={citiesQuery.isPending}
+            loadError={citiesQuery.error}
+            onRetry={() => void citiesQuery.refetch()}
+            onChange={(option) => {
+              if (sameName(option.label, value)) return;
+              onChange(option.label);
+              // İl değişince eski ilçe geçersizdir; ilçe seçilene kadar kayıt engellenir
+              setValue(`${prefix}.districtName`, '', { shouldDirty: true });
+            }}
+            error={translateError(error?.message)}
+            layout="inline"
           />
-        </View>
-        <View style={styles.half}>
-          <Controller
-            control={control}
-            name={`${prefix}.districtName`}
-            render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <PickerField
-                label={t('orders.create.customer.district')}
-                placeholder={t('orders.create.customer.selectDistrict')}
-                searchPlaceholder={t('orders.create.customer.searchDistrict')}
-                value={districtOptions.find((option) => sameName(option.label, value))?.value ?? null}
-                selectedLabel={value}
-                options={districtOptions}
-                disabled={cityId === null}
-                disabledHint={t('orders.create.customer.selectCityFirst')}
-                isLoading={districtsQuery.isPending}
-                loadError={districtsQuery.error}
-                onRetry={() => void districtsQuery.refetch()}
-                onChange={(option) => onChange(option.label)}
-                error={translateError(error?.message)}
-              />
-            )}
+        )}
+      />
+      <Controller
+        control={control}
+        name={`${prefix}.districtName`}
+        render={({ field: { value, onChange }, fieldState: { error } }) => (
+          <PickerField
+            label={t('orders.create.customer.district')}
+            placeholder={t('orders.create.customer.selectDistrict')}
+            searchPlaceholder={t('orders.create.customer.searchDistrict')}
+            value={districtOptions.find((option) => sameName(option.label, value))?.value ?? null}
+            selectedLabel={value}
+            options={districtOptions}
+            disabled={cityId === null}
+            disabledHint={t('orders.create.customer.selectCityFirst')}
+            isLoading={districtsQuery.isPending}
+            loadError={districtsQuery.error}
+            onRetry={() => void districtsQuery.refetch()}
+            onChange={(option) => onChange(option.label)}
+            error={translateError(error?.message)}
+            layout="inline"
           />
-        </View>
-      </View>
+        )}
+      />
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-  },
-  half: {
-    flex: 1,
-  },
-});

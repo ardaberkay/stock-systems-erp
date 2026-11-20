@@ -1,13 +1,11 @@
 import Button from '@/components/ui/Button';
-import SegmentedControl from '@/components/ui/SegmentedControl';
 import { useSaveProductEdit, type ProductSaveResult } from '@/features/products/api/products';
 import ProductInfoStep from '@/features/products/components/create/ProductInfoStep';
 import ProductPriceStep from '@/features/products/components/create/ProductPriceStep';
-import ProductDetailHeader from '@/features/products/components/detail/ProductDetailHeader';
 import ProductEditHeaderButton from '@/features/products/components/edit/ProductEditHeaderButton';
 import ProductEditVariantsTab from '@/features/products/components/edit/ProductEditVariantsTab';
 import { PRODUCT_DETAIL_TABS, type ProductDetailTab } from '@/features/products/constants/productEdit';
-import { useAppBarIconColors } from '@/features/products/hooks/useAppBarIconColors';
+import { useAppBarIconColors } from '@/hooks/useAppBarIconColors';
 import { useConfirmProductDelete } from '@/features/products/hooks/useConfirmProductDelete';
 import {
   createProductEditSchema,
@@ -23,10 +21,8 @@ import {
   getTabsWithErrors,
   type ProductEditPlan,
 } from '@/features/products/utils/productEdit';
-import { useAppTheme } from '@/hooks/useAppTheme';
 import { useKeptScroll } from '@/hooks/useKeptScroll';
 import { getErrorDetail, getErrorMessageKey } from '@/lib/apiError';
-import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router, Stack, useFocusEffect, useNavigation, usePreventRemove } from 'expo-router';
@@ -36,15 +32,7 @@ import X from 'lucide-react-native/icons/x';
 import { useCallback, useEffect, useMemo, useState, type RefObject } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Alert,
-  BackHandler,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, BackHandler, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ProductEditViewProps = {
@@ -53,8 +41,10 @@ type ProductEditViewProps = {
   onTabChange: (tab: ProductDetailTab) => void;
   // Düzenlemeden çıkar, sayfa okuma haline döner
   onExit: () => void;
-  // Okuma haliyle paylaşılan kaydırma konumu; mod değişince sayfa başa dönmez
-  scrollPosition: RefObject<number>;
+  // Okuma haliyle paylaşılan kaydırma oranı; mod değişince sayfa başa dönmez
+  scrollRatio: RefObject<number>;
+  // Mor başlık ve sekmeler ekranda (iki modda ortak); hatalı bölümlerin noktası oraya iletilir
+  onErrorTabsChange: (tabs: ProductDetailTab[]) => void;
 };
 
 // İkon 24; dokunma alanı 44'e tamamlanır
@@ -74,15 +64,14 @@ export default function ProductEditView({
   activeTab,
   onTabChange,
   onExit,
-  scrollPosition,
+  scrollRatio,
+  onErrorTabsChange,
 }: ProductEditViewProps) {
   const { t } = useTranslation();
-  const { colors } = useAppTheme();
-  const keptScroll = useKeptScroll(scrollPosition);
+  const keptScroll = useKeptScroll(scrollRatio);
   const appBarIcon = useAppBarIconColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   // Başlangıç düzenleme açıldığı anki halidir; arkadan gelen yenileme formu değiştirmez.
   // Kayıt yarıda kalırsa uygulanan adımlar kadar ilerletilir (bkz. handleSaveResult).
   const [original, setOriginal] = useState(() => getProductEditDefaults(product));
@@ -103,6 +92,10 @@ export default function ProductEditView({
   // Ürün silindi; sayfa kapanırken kaydedilmemiş değişiklik sorulmaz (onay zaten söyledi)
   const [isRemoved, setIsRemoved] = useState(false);
   const tabsWithErrors = getTabsWithErrors(errors);
+  // Her çizimde iletilir; ekran liste aynıysa state'i değiştirmez, döngü olmaz
+  useEffect(() => {
+    onErrorTabsChange(tabsWithErrors);
+  });
   // Açılan bölüm sonra gizlenir ama kaldırılmaz: varyant satırları her geçişte baştan
   // çizilmesin (düzenlemede gecikme yapıyordu), açık satırlar da kapanmasın
   const [visitedTabs, setVisitedTabs] = useState<ProductDetailTab[]>([activeTab]);
@@ -296,79 +289,56 @@ export default function ProductEditView({
             ),
         }}
       />
-      <View style={styles.screen}>
-        {/* Okuma halindeki mor başlığın aynısı; sayfa altında kayar, sekmeler hep görünür */}
-        <ProductDetailHeader product={product}>
-          <SegmentedControl
-            options={PRODUCT_DETAIL_TABS.map((tab) => ({
-              value: tab,
-              label: t(`stock.detail.tabs.${tab}`),
-              marked: tabsWithErrors.includes(tab),
-            }))}
-            value={activeTab}
-            onChange={onTabChange}
-            markedHint={t('orders.editMode.tabHasErrors')}
-            onColor={colors.productHeaderStart}
-          />
-        </ProductDetailHeader>
-
-        <ScrollView
-          {...keptScroll}
-          style={styles.scroll}
-          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
-          // iOS'ta klavye açılınca odaktaki alan görünür kalır
-          automaticallyAdjustKeyboardInsets
-        >
-          {PRODUCT_DETAIL_TABS.filter((tab) => visitedTabs.includes(tab)).map((tab) => (
-            <View key={tab} style={[styles.tabContent, tab !== activeTab && styles.hidden]}>
-              {tab === 'info' ? (
-                <>
-                  <ProductInfoStep />
-                  {/* Satış durumunun altında: çoğu zaman pasife çekmek yeterli, önce o görünür */}
-                  <Button
-                    label={t('stock.deleteProduct.button')}
-                    variant="destructive"
-                    onPress={deleteProduct}
-                    loading={isDeleting}
-                    disabled={isSaving}
-                  />
-                </>
-              ) : null}
-              {tab === 'price' ? <ProductPriceStep /> : null}
-              {tab === 'variants' ? <ProductEditVariantsTab product={product} /> : null}
-            </View>
-          ))}
-        </ScrollView>
-      </View>
+      {/* Mor başlık ve sekmeler ekranda kalır (bkz. ProductDetailScreen); burada yalnızca içerik */}
+      <ScrollView
+        {...keptScroll}
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        // iOS'ta klavye açılınca odaktaki alan görünür kalır
+        automaticallyAdjustKeyboardInsets
+      >
+        {PRODUCT_DETAIL_TABS.filter((tab) => visitedTabs.includes(tab)).map((tab) => (
+          <View key={tab} style={[styles.tabContent, tab !== activeTab && styles.hidden]}>
+            {tab === 'info' ? (
+              <>
+                <ProductInfoStep />
+                {/* Satış durumunun altında: çoğu zaman pasife çekmek yeterli, önce o görünür */}
+                <Button
+                  label={t('stock.deleteProduct.button')}
+                  variant="destructive"
+                  onPress={deleteProduct}
+                  loading={isDeleting}
+                  disabled={isSaving}
+                />
+              </>
+            ) : null}
+            {tab === 'price' ? <ProductPriceStep /> : null}
+            {tab === 'variants' ? <ProductEditVariantsTab product={product} /> : null}
+          </View>
+        ))}
+      </ScrollView>
     </FormProvider>
   );
 }
 
-function createStyles(colors: AppColors) {
-  return StyleSheet.create({
-    // Mor başlık ekranın tamamını kaplasın diye kök tam genişlik; tablette ortalanan yalnızca içerik
-    screen: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    scroll: {
-      flex: 1,
-    },
-    // Yan boşluk raporlardaki kartlar gibi SPACING.md (AGENTS.md'deki istisna)
-    content: {
-      ...SCREEN_CONTENT,
-      gap: SPACING.xl,
-      paddingHorizontal: SPACING.md,
-      paddingTop: SPACING.xl,
-    },
-    // Bölümler arası boşluk, sayfanın içerik boşluğuyla aynı
-    tabContent: {
-      gap: SPACING.xl,
-    },
-    hidden: {
-      display: 'none',
-    },
-  });
-}
+const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+  },
+  // Yan boşluk raporlardaki kartlar gibi SPACING.md (AGENTS.md'deki istisna)
+  content: {
+    ...SCREEN_CONTENT,
+    gap: SPACING.xl,
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.xl,
+  },
+  // Bölümler arası boşluk, sayfanın içerik boşluğuyla aynı
+  tabContent: {
+    gap: SPACING.xl,
+  },
+  hidden: {
+    display: 'none',
+  },
+});

@@ -6,12 +6,10 @@ import DetailSection from '@/components/ui/DetailSection';
 import { DELIVERY_PLACES } from '@/features/orders/constants/detail';
 import type { OrderEditForm } from '@/features/orders/schemas/orderEdit';
 import type { Order } from '@/features/orders/schemas/orders';
-import { SPACING } from '@/theme/spacing';
 import { formatPhone } from '@/utils/formatter';
 import { formatPhoneGroups, toTrPhoneDigits } from '@/features/orders/utils/phone';
 import { Controller, useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
 
 type OrderEditCustomerTabProps = {
   // Kilitli alanlar kayıtlı haliyle gösterilir
@@ -23,6 +21,7 @@ const PHONE_INPUT_MAX_LENGTH = 13;
 // TC 11, vergi no 10 hane
 const TAX_NUMBER_MAX_LENGTH = 11;
 
+// Alanlar okuma halindeki gibi yan yana (etiket solda); adres ve teslimat yeri alt alta
 export default function OrderEditCustomerTab({ order }: OrderEditCustomerTabProps) {
   const { t } = useTranslation();
   const { control } = useFormContext<OrderEditForm>();
@@ -35,44 +34,41 @@ export default function OrderEditCustomerTab({ order }: OrderEditCustomerTabProp
   return (
     <>
       <DetailSection title={t('orders.detail.sections.customer')}>
-        <View style={styles.row}>
-          <View style={styles.half}>
-            <Controller
-              control={control}
-              name="delivery.firstName"
-              render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
-                <TextField
-                  label={t('orders.create.customer.firstName')}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  autoCapitalize="words"
-                  error={translateError(error?.message)}
-                />
-              )}
+        <Controller
+          control={control}
+          name="delivery.firstName"
+          render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
+            <TextField
+              label={t('orders.create.customer.firstName')}
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              autoCapitalize="words"
+              error={translateError(error?.message)}
+              layout="inline"
             />
-          </View>
-          <View style={styles.half}>
-            <Controller
-              control={control}
-              name="delivery.lastName"
-              render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
-                <TextField
-                  label={t('orders.create.customer.lastName')}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  autoCapitalize="words"
-                  error={translateError(error?.message)}
-                />
-              )}
+          )}
+        />
+        <Controller
+          control={control}
+          name="delivery.lastName"
+          render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
+            <TextField
+              label={t('orders.create.customer.lastName')}
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              autoCapitalize="words"
+              error={translateError(error?.message)}
+              layout="inline"
             />
-          </View>
-        </View>
+          )}
+        />
         {/* API teslimat telefonunu fatura telefonuna yazıyor; düzelene kadar kilitli */}
         <LockedField
           label={t('orders.detail.phone')}
           value={order.deliveryPhone ? formatPhone(order.deliveryPhone) : null}
+          layout="inline"
         />
         <Controller
           control={control}
@@ -87,10 +83,12 @@ export default function OrderEditCustomerTab({ order }: OrderEditCustomerTabProp
               autoCapitalize="none"
               autoComplete="email"
               error={translateError(error?.message)}
+              layout="inline"
             />
           )}
         />
         <OrderEditAddressFields prefix="delivery" />
+        {/* Seçenekler yan yana sığmadığı için alt alta */}
         <Controller
           control={control}
           name="delivery.place"
@@ -106,28 +104,27 @@ export default function OrderEditCustomerTab({ order }: OrderEditCustomerTabProp
       </DetailSection>
 
       <DetailSection title={t('orders.detail.sections.billing')}>
-        <View style={styles.row}>
-          <View style={styles.half}>
-            <Controller
-              control={control}
-              name="billing.firstName"
-              render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
-                <TextField
-                  label={t('orders.create.customer.firstName')}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  autoCapitalize="words"
-                  error={translateError(error?.message)}
-                />
-              )}
+        <Controller
+          control={control}
+          name="billing.firstName"
+          render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
+            <TextField
+              label={t('orders.create.customer.firstName')}
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              autoCapitalize="words"
+              error={translateError(error?.message)}
+              layout="inline"
             />
-          </View>
-          <View style={styles.half}>
-            {/* API fatura soyadını telefona yazıyor; düzelene kadar kilitli */}
-            <LockedField label={t('orders.create.customer.lastName')} value={order.billingLastName} />
-          </View>
-        </View>
+          )}
+        />
+        {/* API fatura soyadını telefona yazıyor; düzelene kadar kilitli */}
+        <LockedField
+          label={t('orders.create.customer.lastName')}
+          value={order.billingLastName}
+          layout="inline"
+        />
         {/* Okuma halindeki sırayla aynı: vergi bilgileri, adres, telefon, e-posta */}
         <Controller
           control={control}
@@ -141,6 +138,7 @@ export default function OrderEditCustomerTab({ order }: OrderEditCustomerTabProp
               keyboardType="number-pad"
               maxLength={TAX_NUMBER_MAX_LENGTH}
               error={translateError(error?.message)}
+              layout="inline"
             />
           )}
         />
@@ -155,6 +153,7 @@ export default function OrderEditCustomerTab({ order }: OrderEditCustomerTabProp
               onBlur={onBlur}
               autoCapitalize="words"
               error={translateError(error?.message)}
+              layout="inline"
             />
           )}
         />
@@ -173,22 +172,17 @@ export default function OrderEditCustomerTab({ order }: OrderEditCustomerTabProp
               autoComplete="tel"
               maxLength={PHONE_INPUT_MAX_LENGTH}
               error={translateError(error?.message)}
+              layout="inline"
             />
           )}
         />
         {/* API fatura e-postasını kabul etmiyor */}
-        <LockedField label={t('orders.create.customer.email')} value={order.billingMail} />
+        <LockedField
+          label={t('orders.create.customer.email')}
+          value={order.billingMail}
+          layout="inline"
+        />
       </DetailSection>
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-  },
-  half: {
-    flex: 1,
-  },
-});

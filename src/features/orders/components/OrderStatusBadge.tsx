@@ -10,18 +10,30 @@ import { StyleSheet, View } from 'react-native';
 type OrderStatusBadgeProps = {
   statusId: number;
   colors: AppColors;
+  // Yanlarda daha geniş iç boşluk (ör. detayın yeşil başlığı); listede dar alan için varsayılan
+  spacious?: boolean;
 };
 
 const BADGE_ICON_SIZE = ICON_SIZE.sm - SPACING.xxs;
 
 // Durum adı hep tam okunsun diye rozet küçülmez; yer darsa satırın diğer tarafı kısalır.
-export default function OrderStatusBadge({ statusId, colors }: OrderStatusBadgeProps) {
+export default function OrderStatusBadge({
+  statusId,
+  colors,
+  spacious = false,
+}: OrderStatusBadgeProps) {
   const { t } = useTranslation();
   const { key, icon: Icon, tone } = getOrderStatusDisplay(statusId);
   const toneColors = getOrderStatusToneColors(tone, colors);
 
   return (
-    <View style={[styles.badge, { backgroundColor: toneColors.background }]}>
+    <View
+      style={[
+        styles.badge,
+        spacious && styles.spacious,
+        { backgroundColor: toneColors.background },
+      ]}
+    >
       <Icon size={BADGE_ICON_SIZE} color={toneColors.text} />
       <Text style={[styles.label, { color: toneColors.text }]} numberOfLines={1}>
         {t(`orders.status.${key}`)}
@@ -39,6 +51,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.xs,
     paddingVertical: SPACING.xxs,
     borderRadius: RADIUS.sm,
+  },
+  spacious: {
+    paddingHorizontal: SPACING.sm,
   },
   label: {
     ...typography.caption,

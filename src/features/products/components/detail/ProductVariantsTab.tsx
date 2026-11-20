@@ -2,7 +2,6 @@ import DetailRow from '@/components/ui/DetailRow';
 import DetailSection from '@/components/ui/DetailSection';
 import Text from '@/components/ui/Text';
 import ProductImagesRow from '@/features/products/components/detail/ProductImagesRow';
-import { PRODUCT_DETAIL_SECTION_VARIANT } from '@/features/products/constants/productEdit';
 import type { Product } from '@/features/products/schemas/products';
 import { getProductImages } from '@/features/products/utils/productList';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -31,7 +30,7 @@ export default function ProductVariantsTab({ product }: ProductVariantsTabProps)
 
   return (
     <>
-      <DetailSection title={t('stock.create.sections.color')} variant={PRODUCT_DETAIL_SECTION_VARIANT}>
+      <DetailSection title={t('stock.create.sections.color')} variant="plain">
         <DetailRow label={t('stock.create.fields.color')} value={product.colorName} />
         <DetailRow label={t('stock.create.fields.modelCode')} value={product.modelCode} selectable />
         <View style={styles.divider} />
@@ -43,10 +42,7 @@ export default function ProductVariantsTab({ product }: ProductVariantsTabProps)
         />
       </DetailSection>
 
-      <DetailSection
-        title={t('stock.create.sections.variants')}
-        variant={PRODUCT_DETAIL_SECTION_VARIANT}
-      >
+      <DetailSection title={t('stock.create.sections.variants')} variant="plain">
         {product.variants.length === 0 ? (
           <Text style={styles.empty}>{t('stock.detail.noVariants')}</Text>
         ) : (

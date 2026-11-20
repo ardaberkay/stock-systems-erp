@@ -38,6 +38,8 @@ export default function ContactActions({
       >
         <WhatsAppIcon />
       </Pressable>
+      {/* Değerle butonlar arasındaki gibi ince dikey çizgi (bkz. DetailRow) */}
+      <View style={[styles.divider, { backgroundColor: colors.divider }]} />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('orders.detail.call')}
@@ -54,7 +56,13 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
-    // Yan yana iki dokunma alanı birbirine binmesin: iki yanın payından (2 × 14) büyük
-    gap: SPACING.xxxl,
+    // Çizginin iki yanı birlikte (2 × lg) iki dokunma alanının payından (2 × 14) büyük;
+    // alanlar birbirine binmez. DetailRow'daki değer–buton boşluğuyla aynı.
+    gap: SPACING.lg,
+  },
+  // Satır yüksekliği kadar uzar
+  divider: {
+    width: 1,
+    alignSelf: 'stretch',
   },
 });

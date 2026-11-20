@@ -8,16 +8,14 @@ import { Children, Fragment, isValidElement, useMemo, type ReactNode } from 'rea
 import Text from '@/components/ui/Text';
 import { StyleSheet, View } from 'react-native';
 
-// card: çerçeveli kutu (varsayılan). plain: beyaz zemin, çerçeve yok. open: kutu yok, satırlar
-// doğrudan sayfada. plain ve open'da art arda gelen satırlar ince çizgiyle ayrılır.
-export type DetailSectionVariant = 'card' | 'plain' | 'open';
-
 type DetailSectionProps = {
   // Yoksa yalnızca kart çizilir (ör. sekme adı bölümü zaten anlatıyorsa)
   title?: string;
   // Başlığın sağında durur (ör. özetteki "Düzenle")
   action?: ReactNode;
-  variant?: DetailSectionVariant;
+  // card: çerçeveli kutu (varsayılan; düzenleme ve diğer detaylar). plain: çerçevesiz beyaz grup,
+  // art arda gelen satırlar ince çizgiyle ayrılır (ürün detayının okuma hali).
+  variant?: 'card' | 'plain';
   children: ReactNode;
 };
 
@@ -101,9 +99,6 @@ function createStyles(colors: AppColors) {
       shadowOpacity: 0.06,
       shadowRadius: 6,
       elevation: 1,
-    },
-    open: {
-      gap: SPACING.md,
     },
     divider: {
       height: 1,

@@ -79,8 +79,16 @@ export default function ProductEditVariantsTab({ product }: ProductEditVariantsT
   return (
     <>
       <DetailSection title={t('stock.create.sections.color')}>
-        <LockedField label={t('stock.create.fields.color')} value={product.colorName} />
-        <LockedField label={t('stock.create.fields.modelCode')} value={product.modelCode} />
+        <LockedField
+          label={t('stock.create.fields.color')}
+          value={product.colorName}
+          layout="inline"
+        />
+        <LockedField
+          label={t('stock.create.fields.modelCode')}
+          value={product.modelCode}
+          layout="inline"
+        />
         <View style={styles.divider} />
         {/* Ekleme başlıkta durur: görsel çoğalınca satır kaysa da hep görünür */}
         <View style={styles.imagesHeader}>

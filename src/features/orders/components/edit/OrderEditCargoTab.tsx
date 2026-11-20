@@ -61,6 +61,7 @@ export default function OrderEditCargoTab({ order }: OrderEditCargoTabProps) {
             onRetry={() => void cargoQuery.refetch()}
             onChange={(option) => onChange(option.value)}
             searchable={false}
+            layout="inline"
           />
         )}
       />
@@ -76,6 +77,7 @@ export default function OrderEditCargoTab({ order }: OrderEditCargoTabProps) {
             : formatNumber(order.shippingPackageDeciValue, locale)
         }
       />
+      {/* Seçenekler yan yana sığmadığı için alt alta */}
       <Controller
         control={control}
         name="whoPaysShipping"

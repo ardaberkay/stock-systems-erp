@@ -183,7 +183,8 @@ State'in nerede tutulacağı şu sırayla belirlenir:
 
 ### Boşluk, köşe ve boyutlar
 - `padding`, `margin`, `gap` değerleri yalnızca `SPACING`, `borderRadius` değerleri yalnızca `RADIUS`, ikon boyutları yalnızca `ICON_SIZE` sabitlerinden alınır (`src/theme/spacing.ts`). Bileşenlerde bu alanlar için sayı yazılmaz.
-- Ekranın yatay kenar boşluğu her ekranda `SPACING.xl`'dir. İstisna: raporlar ve ürün detayı (okuma ve düzenleme) `SPACING.md` kullanır; kartlar/gruplar daha geniş durur. Ürün detayının okuma halindeki bölümleri çerçevesiz (`DetailSection variant="plain"`), düzenleme hali çerçevelidir.
+- Ekranın yatay kenar boşluğu her ekranda `SPACING.xl`'dir. İstisna: raporlar, ürün detayı ve sipariş detayı (okuma ve düzenleme) `SPACING.md` kullanır; kartlar/gruplar daha geniş durur. Bu iki detayın okuma halindeki bölümleri çerçevesiz (`DetailSection variant="plain"`), düzenleme hali çerçevelidir; düzenlemede alanlar `layout="inline"` ile yan yana (etiket solda), yalnızca çok satırlı metin ve seçenek çipleri alt alta.
+- Ürün ve sipariş detayında modül renginde sabit başlık vardır (ürün mor, sipariş yeşil; `ProductDetailHeader` / `OrderDetailHeader`): app bar aynı tonla boyanır, sekmeler başlığın içindedir, başlık okuma ve düzenlemede aynı yerde kalır, yalnızca altındaki içerik değişir.
 - Yeni bir değer gerekiyorsa renklerde olduğu gibi birlikte kararlaştırılıp dosyaya eklenir.
 
 ### Ekran boyutları (telefon ve dikey tablet)
@@ -193,7 +194,8 @@ State'in nerede tutulacağı şu sırayla belirlenir:
 
 ### Grafikler
 - Zamana göre değişim (gün/saat bazında ciro, sipariş, adet, oran) **çizgi grafik** (`LineChart`) ile; kalemleri birbiriyle kıyaslama (ürün, şehir, ortak, durum) **çubuk grafik** ile gösterilir.
-- Şimdilik panelui'nin varsayılan davranışı kullanılır: grafik bulunduğu alanın genişliğini alır (ekranın kenar boşluğu içinde kalır), yükseklik `aspectRatio` ile verilir. Ekran kenarına taşırma, uç noktası uzatma gibi varsayılanın dışındaki çözümler yalnızca anasayfa ciro grafiğindedir; yenisi onaysız eklenmez.- Dolgulu (gradyanlı) büyük çizgi anasayfa grafiğine özgüdür; diğer ekranlarda dolgusuz tek çizgi kullanılır.
+- Şimdilik panelui'nin varsayılan davranışı kullanılır: grafik bulunduğu alanın genişliğini alır (ekranın kenar boşluğu içinde kalır), yükseklik `aspectRatio` ile verilir. Ekran kenarına taşırma, uç noktası uzatma gibi varsayılanın dışındaki çözümler yalnızca anasayfa ciro grafiğindedir; yenisi onaysız eklenmez.
+- Dolgulu (gradyanlı) çizgi anasayfa ve ürün detayı grafiğindedir; ürün detayındaki dolgu daha soluktur (`AffiliateSalesChart` → `filled`). Diğer ekranlarda dolgusuz tek çizgi kullanılır.
 - Seri renkleri anlamıyla sabittir: ciro `orange`, sipariş `green`, adet/ürün `purple`.
 
 ### Tailwind / Uniwind

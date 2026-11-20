@@ -87,10 +87,13 @@ export default function RootLayout() {
               name="settings"
               options={{ ...pushedScreenOptions, title: t('settings.title') }}
             />
+            {/* App bar, sayfadaki yeşil başlıkla tek parça görünsün diye gradyanın başlangıç tonunda */}
             <Stack.Screen
               name="order-detail/[id]"
               options={{
                 ...pushedScreenOptions,
+                headerStyle: { backgroundColor: colors.orderHeaderStart },
+                headerTintColor: colors.onHeader,
                 title: t('orders.detailTitle'),
                 headerRight: () => <OrderEditHeaderButton />,
               }}
