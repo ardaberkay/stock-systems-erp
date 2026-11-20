@@ -5,7 +5,6 @@
     "done": "Done",
     "close": "Close",
     "cancel": "Cancel",
-    "back": "Back",
     "clear": "Clear",
     "comingSoon": "This feature is coming soon.",
     "increase": "Increase",
@@ -587,9 +586,6 @@
     "editMode": {
       "save": "Save",
       "cancel": "Cancel",
-      "changeStatus": "Change order status",
-      "changeCustomStatus": "Change custom status",
-      "addCustomStatus": "Add custom status",
       "noCustomStatus": "No custom status",
       "statusStockNote": "Changing the status does not change stock.",
       "statusLocked": "Not available in the app",
@@ -652,7 +648,6 @@
     "totalSales": "Total Sales",
     "soldProduct": "Products Sold",
     "orders": "Orders",
-    "unitCod": "pcs.",
     "bestSellers": "Best Sellers",
     "topSize": "Popular: {{size}}",
     "previousDay": "Yesterday",
@@ -959,8 +954,6 @@
     }
   },
   "theme": {
-    "lightTheme": "Light",
-    "darkTheme": "Dark",
     "darkMode": "Dark mode"
   },
   "tabs": {

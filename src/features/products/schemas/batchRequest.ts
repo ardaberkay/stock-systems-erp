@@ -33,5 +33,4 @@ export const batchRequestListSchema = z.object({
   data: z.array(batchRequestSchema),
 });
 
-export type BatchRequest = z.infer<typeof batchRequestSchema>;
 export type BatchFailedItem = z.infer<typeof failedItemSchema>;

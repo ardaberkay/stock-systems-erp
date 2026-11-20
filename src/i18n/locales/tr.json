@@ -5,7 +5,6 @@
         "done": "Tamam",
         "close": "Kapat",
         "cancel": "Vazgeç",
-        "back": "Geri",
         "clear": "Temizle",
         "comingSoon": "Bu özellik yakında eklenecek.",
         "increase": "Artır",
@@ -587,9 +586,6 @@
         "editMode": {
             "save": "Kaydet",
             "cancel": "Vazgeç",
-            "changeStatus": "Sipariş durumunu değiştir",
-            "changeCustomStatus": "Özel durumu değiştir",
-            "addCustomStatus": "Özel durum ekle",
             "noCustomStatus": "Özel durum yok",
             "statusStockNote": "Durum değişikliği stokları değiştirmez.",
             "statusLocked": "Uygulamadan seçilemiyor",
@@ -652,7 +648,6 @@
         "totalSales": "Toplam Satış",
         "soldProduct": "Satılan Ürün",
         "orders": "Sipariş",
-        "unitCod": "ad.",
         "bestSellers": "Çok Satılanlar",
         "topSize": "Popüler: {{size}}",
         "previousDay": "Dün",
@@ -959,8 +954,6 @@
         }
     },
     "theme": {
-        "lightTheme": "Açık",
-        "darkTheme": "Koyu",
         "darkMode": "Koyu mod"
     },
     "tabs": {

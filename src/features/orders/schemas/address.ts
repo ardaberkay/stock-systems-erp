@@ -19,6 +19,3 @@ export const districtSchema = z.object({
 export const districtListSchema = z.object({
   data: z.array(districtSchema),
 });
-
-export type City = z.infer<typeof citySchema>;
-export type District = z.infer<typeof districtSchema>;

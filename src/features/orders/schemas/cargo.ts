@@ -10,5 +10,3 @@ export const cargoCompanySchema = z.object({
 export const cargoCompanyListSchema = z.object({
   data: z.array(cargoCompanySchema),
 });
-
-export type CargoCompany = z.infer<typeof cargoCompanySchema>;

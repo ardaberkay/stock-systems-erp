@@ -96,5 +96,3 @@ export const orderCustomStatusListSchema = z.object({
 });
 
 export type Order = z.infer<typeof orderSchema>;
-export type OrderPaymentType = z.infer<typeof orderPaymentTypeSchema>;
-export type OrderCustomStatus = z.infer<typeof orderCustomStatusSchema>;

@@ -10,7 +10,8 @@ import { StyleSheet, View } from 'react-native';
 type OrderStatusBadgeProps = {
   statusId: number;
   colors: AppColors;
-  // Yanlarda daha geniş iç boşluk (ör. detayın yeşil başlığı); listede dar alan için varsayılan
+  // Yanlarda daha geniş iç boşluk (detayın yeşil başlığı ve sipariş kartı); ürün satırı ve
+  // seçim listesi gibi dar yerlerde varsayılan
   spacious?: boolean;
 };
 

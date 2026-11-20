@@ -111,7 +111,7 @@ function OrderCard({
           <Text style={styles.orderNumber}>#{order.id}</Text>
           {` · ${formatOrderDateTime(order.orderDateTime)}`}
         </Text>
-        <OrderStatusBadge statusId={order.orderStatusId} colors={colors} />
+        <OrderStatusBadge statusId={order.orderStatusId} colors={colors} spacious />
       </View>
 
       <View style={styles.row}>
@@ -290,11 +290,12 @@ function createStyles(colors: AppColors) {
       gap: SPACING.xs,
       flexShrink: 0,
     },
+    // Durum rozetinden (sm) biraz dar: içinde yalnızca kısa bir sayı var
     itemBadge: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: SPACING.xs,
-      paddingHorizontal: SPACING.xs,
+      paddingHorizontal: SPACING.xs + SPACING.xxs,
       borderRadius: RADIUS.sm,
       backgroundColor: colors.purpleLight,
     },
@@ -347,7 +348,7 @@ function createStyles(colors: AppColors) {
     },
     customStatus: {
       flexShrink: 1,
-      paddingHorizontal: SPACING.xs,
+      paddingHorizontal: SPACING.sm,
       borderRadius: RADIUS.sm,
       borderWidth: 1,
       borderColor: colors.border,
