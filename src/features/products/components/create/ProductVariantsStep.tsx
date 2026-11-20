@@ -18,6 +18,7 @@ import Text from '@/components/ui/Text';
 import { StyleSheet } from 'react-native';
 
 // 3. adım: renk, model kodu ve varyantlar. Her renk ayrı üründür; bu form bir rengi oluşturur.
+// Alanlar diğer adımlar gibi yan yana (etiket solda).
 export default function ProductVariantsStep() {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -50,6 +51,7 @@ export default function ProductVariantsStep() {
               onChange={(option) => onChange(option.value)}
               required
               error={translateError(error?.message)}
+              layout="inline"
             />
           )}
         />
@@ -66,6 +68,7 @@ export default function ProductVariantsStep() {
               required
               hint={t('stock.create.fields.modelCodeHint')}
               error={translateError(error?.message)}
+              layout="inline"
             />
           )}
         />

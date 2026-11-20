@@ -14,28 +14,38 @@ type PeriodPillProps = {
   onPress: () => void;
   // Liste içi satırlarda kullanılan küçük görünüm
   compact?: boolean;
+  // Normal görünümün dikeyde biraz daha ince hali; yazı aynı (ör. dashboard)
+  slim?: boolean;
 };
 
 const COMPACT_HEIGHT = MIN_TOUCH_SIZE - SPACING.md;
+const SLIM_HEIGHT = MIN_TOUCH_SIZE - SPACING.sm;
 const COMPACT_ICON_SIZE = ICON_SIZE.sm - SPACING.xxs;
-// Küçük görünümde de dokunma alanı 44 kalır
+// Küçük ve ince görünümde de dokunma alanı 44 kalır
 const COMPACT_HIT_SLOP = (MIN_TOUCH_SIZE - COMPACT_HEIGHT) / 2;
+const SLIM_HIT_SLOP = (MIN_TOUCH_SIZE - SLIM_HEIGHT) / 2;
 
 // Seçili dönemi gösteren düğme; hangi dönemin seçildiğini kullanan ekran bilir.
-export default function PeriodPill({ label, onPress, compact = false }: PeriodPillProps) {
+export default function PeriodPill({
+  label,
+  onPress,
+  compact = false,
+  slim = false,
+}: PeriodPillProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const iconSize = compact ? COMPACT_ICON_SIZE : ICON_SIZE.sm;
+  const hitSlop = compact ? COMPACT_HIT_SLOP : slim ? SLIM_HIT_SLOP : undefined;
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={t('filters.changePeriod')}
       accessibilityHint={label}
-      hitSlop={compact ? COMPACT_HIT_SLOP : undefined}
+      hitSlop={hitSlop}
       onPress={onPress}
-      style={[styles.trigger, compact && styles.triggerCompact]}
+      style={[styles.trigger, slim && styles.triggerSlim, compact && styles.triggerCompact]}
     >
       <Calendar size={iconSize} color={colors.orange} />
       <Text style={[styles.label, compact && styles.labelCompact]} numberOfLines={1}>
@@ -58,6 +68,9 @@ function createStyles(colors: AppColors) {
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.surface,
+    },
+    triggerSlim: {
+      minHeight: SLIM_HEIGHT,
     },
     triggerCompact: {
       minHeight: COMPACT_HEIGHT,

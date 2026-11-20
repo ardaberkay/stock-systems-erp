@@ -172,9 +172,10 @@ function createStyles(colors: AppColors) {
     scroll: {
       flex: 1,
     },
+    // Kartlar detay sayfaları gibi geniş: yan boşluk SPACING.md (AGENTS.md'deki istisna)
     content: {
       gap: SPACING.xl,
-      paddingHorizontal: SPACING.xl,
+      paddingHorizontal: SPACING.md,
       paddingBottom: SPACING.xl,
     },
     footer: {

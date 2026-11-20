@@ -30,7 +30,8 @@ type VariantRowProps = {
 };
 
 // Bir varyantın satırı; ürün ekleme ve düzenleme formunda ortak. Zorunlu olan varyant adı ve
-// stok hep görünür; özel fiyat, barkod ve raf "Diğer alanlar"ın altında durur ki liste uzamasın.
+// stok hep görünür, yan yana iki hücre; özel fiyat, barkod ve raf "Diğer alanlar"ın altında
+// yan yana satırlardır (etiket solda) ki liste uzamasın.
 export default function VariantRow({
   index,
   canRemove,
@@ -134,6 +135,7 @@ export default function VariantRow({
                 onChangeText={onChange}
                 onBlur={onBlur}
                 error={translateError(error?.message)}
+                layout="inline"
               />
             )}
           />
@@ -150,6 +152,7 @@ export default function VariantRow({
                 placeholder={barcodePlaceholder}
                 maxLength={EAN13_LENGTH}
                 error={translateError(error?.message)}
+                layout="inline"
               />
             )}
           />

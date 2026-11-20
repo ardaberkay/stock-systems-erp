@@ -184,7 +184,7 @@ State'in nerede tutulacağı şu sırayla belirlenir:
 
 ### Boşluk, köşe ve boyutlar
 - `padding`, `margin`, `gap` değerleri yalnızca `SPACING`, `borderRadius` değerleri yalnızca `RADIUS`, ikon boyutları yalnızca `ICON_SIZE` sabitlerinden alınır (`src/theme/spacing.ts`). Bileşenlerde bu alanlar için sayı yazılmaz.
-- Ekranın yatay kenar boşluğu her ekranda `SPACING.xl`'dir. İstisna: raporlar, ürün, sipariş ve satış ortağı detayı (okuma ve düzenleme) `SPACING.md` kullanır; kartlar/gruplar daha geniş durur. Bu üç detayın okuma halindeki bölümleri çerçevesiz (`DetailSection variant="plain"`), düzenleme hali çerçevelidir; düzenlemede alanlar `layout="inline"` ile yan yana (etiket solda), yalnızca çok satırlı metin ve seçenek çipleri alt alta.
+- Ekranın yatay kenar boşluğu her ekranda `SPACING.xl`'dir. İstisna: raporlar, ürün, sipariş ve satış ortağı detayı (okuma ve düzenleme), ürün ekleme ve sipariş oluşturma formlarının içeriği `SPACING.md` kullanır; kartlar/gruplar daha geniş durur. Bu üç detayın okuma halindeki bölümleri çerçevesiz (`DetailSection variant="plain"`), düzenleme hali çerçevelidir; düzenlemede alanlar `layout="inline"` ile yan yana (etiket solda), yalnızca çok satırlı metin ve seçenek çipleri alt alta.
 - Ürün ve sipariş detayında modül renginde sabit başlık vardır (ürün mor, sipariş yeşil; `ProductDetailHeader` / `OrderDetailHeader`): app bar aynı tonla boyanır, sekmeler başlığın içindedir, başlık okuma ve düzenlemede aynı yerde kalır, yalnızca altındaki içerik değişir.
 - Yeni bir değer gerekiyorsa renklerde olduğu gibi birlikte kararlaştırılıp dosyaya eklenir.
 
