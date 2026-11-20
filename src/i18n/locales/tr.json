@@ -2,6 +2,7 @@
     "common": {
         "retry": "Tekrar dene",
         "required": "zorunlu",
+        "requiredNote": "* ile işaretli alanlar zorunludur.",
         "done": "Tamam",
         "close": "Kapat",
         "cancel": "Vazgeç",
@@ -193,7 +194,6 @@
             "comingSoonHint": "Şimdilik yalnızca panelden girilebilir.",
             "noResults": "Sonuç bulunamadı.",
             "invalid": "Bazı alanlar eksik veya hatalı. İlgili adıma geçildi.",
-            "requiredNote": "* ile işaretli alanlar zorunludur.",
             "errorCode": "Hata kodu: {{code}}",
             "phoneCountry": "Ülke kodu",
             "searchCountry": "Ülke veya kod ara",
@@ -853,7 +853,6 @@
             "back": "Geri",
             "next": "Devam",
             "submit": "Kaydet",
-            "requiredNote": "* ile işaretli alanlar zorunludur.",
             "sections": {
                 "general": "Genel bilgiler",
                 "classification": "Sınıflandırma",

@@ -18,14 +18,13 @@ import {
 } from '@/features/products/schemas/productCreate';
 import type { AppColors } from '@/theme/colors';
 import { SCREEN_CONTENT, SPACING } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
+import RequiredNote from '@/components/ui/form/RequiredNote';
 import { generateModelCode } from '@/features/products/utils/productCreate';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { useLayoutEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { FormProvider, useForm, type FieldErrors } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import Text from '@/components/ui/Text';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -150,7 +149,7 @@ export default function ProductNewScreen() {
           // iOS'ta klavye açılınca odaktaki alan görünür kalır
           automaticallyAdjustKeyboardInsets
         >
-          <Text style={styles.requiredNote}>{t('stock.create.requiredNote')}</Text>
+          <RequiredNote />
           {step === 'info' ? <ProductInfoStep /> : null}
           {step === 'price' ? <ProductPriceStep /> : null}
           {step === 'variants' ? <ProductVariantsStep /> : null}
@@ -198,12 +197,6 @@ function createStyles(colors: AppColors) {
       gap: SPACING.xl,
       paddingHorizontal: SPACING.md,
       paddingBottom: SPACING.xl,
-    },
-    // Not ilk bölüme yakın dursun; içerik aralığının yarısı geri alınır
-    requiredNote: {
-      ...typography.caption,
-      marginBottom: -SPACING.sm,
-      color: colors.textSecondary,
     },
     footer: {
       flexDirection: 'row',

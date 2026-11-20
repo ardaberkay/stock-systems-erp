@@ -2,6 +2,7 @@
   "common": {
     "retry": "Try again",
     "required": "required",
+    "requiredNote": "Fields marked with * are required.",
     "done": "Done",
     "close": "Close",
     "cancel": "Cancel",
@@ -193,7 +194,6 @@
       "comingSoonHint": "Can only be set in the web panel for now.",
       "noResults": "No results found.",
       "invalid": "Some fields are missing or invalid. Moved to that step.",
-      "requiredNote": "Fields marked with * are required.",
       "errorCode": "Error code: {{code}}",
       "phoneCountry": "Country code",
       "searchCountry": "Search country or code",
@@ -853,7 +853,6 @@
       "back": "Back",
       "next": "Continue",
       "submit": "Save",
-      "requiredNote": "Fields marked with * are required.",
       "sections": {
         "general": "General information",
         "classification": "Classification",

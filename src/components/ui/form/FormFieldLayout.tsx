@@ -17,7 +17,8 @@ type FormFieldLayoutProps = {
   children: ReactNode;
 };
 
-// Form alanlarının etiket + alan + mesaj yerleşimi (TextField, PickerField)
+// Form alanlarının etiket + alan + mesaj yerleşimi (TextField, PickerField, MultiPickerField,
+// LockedField, SegmentedField, PhoneField)
 export default function FormFieldLayout({
   label,
   required = false,
