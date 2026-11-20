@@ -1,7 +1,8 @@
+import Badge from '@/components/ui/Badge';
 import Skeleton from '@/components/ui/Skeleton';
 import type { AppColors } from '@/theme/colors';
 import { FONT_FAMILY, FONT_SIZE, LINE_HEIGHT, typography } from '@/theme/typography';
-import { ICON_SIZE, RADIUS, SPACING } from '@/theme/spacing';
+import { RADIUS, SPACING } from '@/theme/spacing';
 import { formatMoney, formatNumber, formatPercent } from '@/utils/formatter';
 import type { OrderTotals, RevenueChange } from '@/features/orders/utils/orderStats';
 import TrendingDown from 'lucide-react-native/icons/trending-down';
@@ -73,13 +74,10 @@ export default function DashboardHeader({
 
         {change && (
           <View
+            accessible
             accessibilityLabel={`${t('dashboard.changeFromPrevious')}: ${changeLabel}`}
-            style={[styles.changeBadge, isDown && styles.changeBadgeDown]}
           >
-            <ChangeIcon size={ICON_SIZE.sm} color={isDown ? colors.error : colors.success} />
-            <Text style={[styles.changeText, isDown && styles.changeTextDown]}>
-              {changeLabel}
-            </Text>
+            <Badge label={changeLabel} tone={isDown ? 'error' : 'success'} icon={ChangeIcon} />
           </View>
         )}
       </View>
@@ -200,27 +198,6 @@ function createStyles(colors: AppColors) {
     },
     revenueSkeleton: {
       marginTop: SPACING.md,
-    },
-    changeBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: SPACING.xxs,
-      backgroundColor: colors.successBackground,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 7,
-    },
-    changeBadgeDown: {
-      backgroundColor: colors.errorBackground,
-    },
-    changeText: {
-      ...typography.caption,
-      color: colors.success,
-      fontSize: FONT_SIZE.xs,
-      fontFamily: FONT_FAMILY.bold,
-    },
-    changeTextDown: {
-      color: colors.error,
     },
     metricsRow: {
       width: '100%',

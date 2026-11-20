@@ -1,7 +1,8 @@
+import Badge from '@/components/ui/Badge';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/theme/colors';
-import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
-import { FONT_FAMILY, typography } from '@/theme/typography';
+import { MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
+import { typography } from '@/theme/typography';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import Text from '@/components/ui/Text';
@@ -26,9 +27,7 @@ export default function ComingSoonRow({ label }: ComingSoonRowProps) {
       accessibilityState={{ disabled: true }}
     >
       <Text style={styles.label}>{label}</Text>
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>{t('orders.create.comingSoon')}</Text>
-      </View>
+      <Badge label={t('orders.create.comingSoon')} tone="neutral" />
     </View>
   );
 }
@@ -46,17 +45,6 @@ function createStyles(colors: AppColors) {
       ...typography.body,
       flex: 1,
       color: colors.textDisabled,
-    },
-    badge: {
-      paddingHorizontal: SPACING.sm,
-      paddingVertical: SPACING.xxs,
-      borderRadius: RADIUS.full,
-      backgroundColor: colors.border,
-    },
-    badgeText: {
-      ...typography.caption,
-      fontFamily: FONT_FAMILY.semiBold,
-      color: colors.textSecondary,
     },
   });
 }

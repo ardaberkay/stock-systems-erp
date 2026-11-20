@@ -1,63 +1,25 @@
+import Badge from '@/components/ui/Badge';
 import { getOrderStatusDisplay } from '@/features/orders/constants/status';
 import type { AppColors } from '@/theme/colors';
-import { ICON_SIZE, RADIUS, SPACING } from '@/theme/spacing';
-import { FONT_FAMILY, typography } from '@/theme/typography';
 import { getOrderStatusToneColors } from '@/features/orders/utils/orderStatusColor';
 import { useTranslation } from 'react-i18next';
-import Text from '@/components/ui/Text';
-import { StyleSheet, View } from 'react-native';
 
 type OrderStatusBadgeProps = {
   statusId: number;
   colors: AppColors;
-  // Yanlarda daha geniş iç boşluk (detayın yeşil başlığı ve sipariş kartı); ürün satırı ve
-  // seçim listesi gibi dar yerlerde varsayılan
-  spacious?: boolean;
 };
 
-const BADGE_ICON_SIZE = ICON_SIZE.sm - SPACING.xxs;
-
-// Durum adı hep tam okunsun diye rozet küçülmez; yer darsa satırın diğer tarafı kısalır.
-export default function OrderStatusBadge({
-  statusId,
-  colors,
-  spacious = false,
-}: OrderStatusBadgeProps) {
+// Sipariş durumu: ortak rozet, durumun renginde ve ikonuyla. Durum adı hep tam okunsun diye
+// rozet küçülmez; yer darsa satırın diğer tarafı kısalır.
+export default function OrderStatusBadge({ statusId, colors }: OrderStatusBadgeProps) {
   const { t } = useTranslation();
-  const { key, icon: Icon, tone } = getOrderStatusDisplay(statusId);
-  const toneColors = getOrderStatusToneColors(tone, colors);
+  const { key, icon, tone } = getOrderStatusDisplay(statusId);
 
   return (
-    <View
-      style={[
-        styles.badge,
-        spacious && styles.spacious,
-        { backgroundColor: toneColors.background },
-      ]}
-    >
-      <Icon size={BADGE_ICON_SIZE} color={toneColors.text} />
-      <Text style={[styles.label, { color: toneColors.text }]} numberOfLines={1}>
-        {t(`orders.status.${key}`)}
-      </Text>
-    </View>
+    <Badge
+      label={t(`orders.status.${key}`)}
+      palette={getOrderStatusToneColors(tone, colors)}
+      icon={icon}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.xs,
-    flexShrink: 0,
-    paddingHorizontal: SPACING.xs,
-    paddingVertical: SPACING.xxs,
-    borderRadius: RADIUS.sm,
-  },
-  spacious: {
-    paddingHorizontal: SPACING.sm,
-  },
-  label: {
-    ...typography.caption,
-    fontFamily: FONT_FAMILY.semiBold,
-  },
-});

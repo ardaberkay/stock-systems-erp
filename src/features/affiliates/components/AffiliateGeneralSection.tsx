@@ -23,7 +23,8 @@ type AffiliateGeneralSectionProps = {
   locale: string;
 };
 
-// Bilgi sekmesi: düzenleme ekranıyla aynı başlıklı kartlar. API'nin okumadığı alanlar da
+// Bilgi sekmesi: düzenleme ekranıyla aynı başlıklı gruplar (okumada çerçevesiz, düzenlemede
+// kart; ürün ve sipariş detayı gibi). API'nin okumadığı alanlar da
 // yerinde durur ve "—" görünür; kullanıcı bilginin panelde olduğunu bilir. Kayıt tarihi en
 // altta küçük bir satırdır.
 export default function AffiliateGeneralSection({
@@ -37,7 +38,7 @@ export default function AffiliateGeneralSection({
 
   return (
     <>
-      <DetailSection title={t('affiliates.edit.sections.contact')}>
+      <DetailSection title={t('affiliates.edit.sections.contact')} variant="plain">
         <DetailRow label={t('affiliates.edit.fields.officeName')} value={affiliate.officeName} />
         <DetailRow label={t('affiliates.edit.fields.firstName')} value={affiliate.firstName} />
         <DetailRow label={t('affiliates.edit.fields.lastName')} value={affiliate.lastName} />
@@ -49,7 +50,7 @@ export default function AffiliateGeneralSection({
         <DetailRow label={t('affiliates.edit.fields.email')} value={affiliate.email} selectable />
       </DetailSection>
 
-      <DetailSection title={t('affiliates.edit.sections.account')}>
+      <DetailSection title={t('affiliates.edit.sections.account')} variant="plain">
         {PANEL_ONLY_ACCOUNT_FIELDS.map((field) => (
           <DetailRow key={field} label={t(`affiliates.edit.fields.${field}`)} value={null} />
         ))}
@@ -61,7 +62,7 @@ export default function AffiliateGeneralSection({
         />
       </DetailSection>
 
-      <DetailSection title={t('affiliates.edit.sections.sales')}>
+      <DetailSection title={t('affiliates.edit.sections.sales')} variant="plain">
         <DetailRow
           label={t('affiliates.edit.fields.subtraction')}
           value={t(isAffiliateSubtractionOn(affiliate) ? 'affiliates.edit.on' : 'affiliates.edit.off')}

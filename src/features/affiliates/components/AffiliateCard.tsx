@@ -1,3 +1,4 @@
+import Badge from '@/components/ui/Badge';
 import Text from '@/components/ui/Text';
 import {
   getAffiliateFullName,
@@ -70,7 +71,8 @@ function AffiliateCard({ affiliate, onPress, colors, locale }: AffiliateCardProp
         .join(', ')}
       accessibilityHint={t('affiliates.openHint')}
       onPress={() => onPress(affiliate.id)}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      // Basınca görünüm değişmez (çerçeve rengi değişmesin; karar 20.11.2026)
+      style={styles.card}
     >
       <View style={styles.top}>
         <AffiliateAvatar
@@ -87,12 +89,7 @@ function AffiliateCard({ affiliate, onPress, colors, locale }: AffiliateCardProp
             <Text style={styles.title} numberOfLines={1}>
               {title}
             </Text>
-            <View style={[styles.statusBadge, isPassive ? styles.statusPassive : styles.statusActive]}>
-              <View style={[styles.statusDot, isPassive ? styles.dotPassive : styles.dotActive]} />
-              <Text style={[styles.statusText, isPassive ? styles.textPassive : styles.textActive]}>
-                {statusText}
-              </Text>
-            </View>
+            <Badge label={statusText} tone={isPassive ? 'neutral' : 'success'} dot />
           </View>
           {subtitle && (
             <Text style={styles.subtitle} numberOfLines={1}>
@@ -133,9 +130,6 @@ function createStyles(colors: AppColors) {
       borderColor: colors.card.border,
       backgroundColor: colors.card.background,
     },
-    pressed: {
-      borderColor: colors.textDisabled,
-    },
     top: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -160,43 +154,6 @@ function createStyles(colors: AppColors) {
     },
     subtitle: {
       ...typography.bodySmall,
-      color: colors.textSecondary,
-    },
-    // Detay sayfasındaki durum etiketinin küçüğü: aktif yeşil, pasif gri
-    statusBadge: {
-      flexShrink: 0,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: SPACING.xs,
-      paddingHorizontal: SPACING.sm,
-      paddingVertical: SPACING.xxs,
-      borderRadius: RADIUS.full,
-    },
-    statusActive: {
-      backgroundColor: colors.successBackground,
-    },
-    statusPassive: {
-      backgroundColor: colors.divider,
-    },
-    statusDot: {
-      width: SPACING.xs + SPACING.xxs,
-      height: SPACING.xs + SPACING.xxs,
-      borderRadius: RADIUS.full,
-    },
-    dotActive: {
-      backgroundColor: colors.success,
-    },
-    dotPassive: {
-      backgroundColor: colors.textSecondary,
-    },
-    statusText: {
-      ...typography.caption,
-      fontFamily: FONT_FAMILY.semiBold,
-    },
-    textActive: {
-      color: colors.success,
-    },
-    textPassive: {
       color: colors.textSecondary,
     },
     // İnce çizginin altında telefon solda, kayıt tarihi sağda; yazı büyüyüp sığmazsa tarih

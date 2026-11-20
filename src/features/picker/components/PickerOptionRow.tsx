@@ -1,11 +1,12 @@
+import Badge from '@/components/ui/Badge';
 import type { AppColors } from '@/theme/colors';
-import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
+import { ICON_SIZE, MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
 import Check from 'lucide-react-native/icons/check';
 import type { PickerValue } from '@/features/picker/pickerStore';
 import { memo, useMemo } from 'react';
 import Text from '@/components/ui/Text';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 
 export type { PickerValue };
 
@@ -51,11 +52,7 @@ function PickerOptionRow({
         {label}
       </Text>
       {detail ? <Text style={[styles.detail, disabled && styles.disabled]}>{detail}</Text> : null}
-      {badge ? (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{badge}</Text>
-        </View>
-      ) : null}
+      {badge ? <Badge label={badge} tone="neutral" /> : null}
       {selected ? <Check size={ICON_SIZE.sm} color={colors.iconActive} /> : null}
     </Pressable>
   );
@@ -91,17 +88,6 @@ function createStyles(colors: AppColors) {
     },
     detail: {
       ...typography.label,
-      color: colors.textSecondary,
-    },
-    badge: {
-      paddingHorizontal: SPACING.sm,
-      paddingVertical: SPACING.xxs,
-      borderRadius: RADIUS.full,
-      backgroundColor: colors.border,
-    },
-    badgeText: {
-      ...typography.caption,
-      fontFamily: FONT_FAMILY.semiBold,
       color: colors.textSecondary,
     },
   });

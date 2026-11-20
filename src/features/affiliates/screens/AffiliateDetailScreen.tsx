@@ -2,6 +2,10 @@ import SegmentedControl from '@/components/ui/SegmentedControl';
 import Skeleton from '@/components/ui/Skeleton';
 import StateMessage from '@/components/ui/StateMessage';
 import {
+  AFFILIATE_DETAIL_TABS,
+  type AffiliateDetailTab,
+} from '@/features/affiliates/affiliateDetail';
+import {
   AFFILIATE_DEFAULT_SELECTION,
   useAffiliateFilterStore,
 } from '@/features/affiliates/affiliateFilterStore';
@@ -19,6 +23,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { useLocale } from '@/hooks/useLocale';
 import { getErrorMessageKey } from '@/lib/apiError';
 import type { AppColors } from '@/theme/colors';
+import { SOFT_SHADOW } from '@/theme/elevation';
 import { RADIUS, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -26,12 +31,9 @@ import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Siparişler ayrı sayfadadır (sipariş satırı açar); sekmeler ortağın kendi kayıtlarıdır
-const AFFILIATE_DETAIL_TABS = ['general', 'billing', 'invoices'] as const;
-type AffiliateDetailTab = (typeof AFFILIATE_DETAIL_TABS)[number];
-
 type AffiliateDetailContentProps = {
   affiliate: Affiliate;
+  isEditing: boolean;
   refetchAffiliates: () => Promise<unknown>;
 };
 
@@ -69,27 +71,35 @@ export default function AffiliateDetailScreen() {
     return <StateMessage message={t('affiliates.notFound')} />;
   }
 
-  if (edit === '1') {
-    return (
-      <AffiliateEditView
-        affiliate={affiliate}
-        onExit={() => router.setParams({ edit: undefined })}
-      />
-    );
-  }
-
-  return <AffiliateDetailContent affiliate={affiliate} refetchAffiliates={refetch} />;
+  return (
+    <AffiliateDetailContent
+      affiliate={affiliate}
+      isEditing={edit === '1'}
+      refetchAffiliates={refetch}
+    />
+  );
 }
 
 // Üstte profil, hızlı işlemler ve sipariş satırı; altında yapışık sekme çubuğu ve seçili sekme.
-// İçerik kısa ve sabit sayıda olduğu için FlatList yerine ScrollView yeterli.
-function AffiliateDetailContent({ affiliate, refetchAffiliates }: AffiliateDetailContentProps) {
+// İki mod aynı kaydırma alanını paylaşır: üst kısım ve sekmeler yeniden oluşmaz, yalnızca
+// sekmelerin altındaki içerik değişir. Mod değişince ilk sekmeye ve sayfa başına dönülmez,
+// flaş olmaz (ürün ve sipariş detayındaki davranış). İçerik kısa; FlatList gerekmez.
+function AffiliateDetailContent({
+  affiliate,
+  isEditing,
+  refetchAffiliates,
+}: AffiliateDetailContentProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const locale = useLocale();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [activeTab, setActiveTab] = useState<AffiliateDetailTab>('general');
+  // Açılan bölüm sonra gizlenir ama kaldırılmaz: geri dönünce baştan çizilmesin
+  const [visitedTabs, setVisitedTabs] = useState<AffiliateDetailTab[]>([activeTab]);
+  if (!visitedTabs.includes(activeTab)) {
+    setVisitedTabs([...visitedTabs, activeTab]);
+  }
   // Satır hep son 7 günü gösterir: önbellekteki veridir, detayda dönem seçici yoktur
   const { selection, orders, revenue, hasData, refetch } = useAffiliateOrders(
     affiliate.id,
@@ -116,8 +126,15 @@ function AffiliateDetailContent({ affiliate, refetchAffiliates }: AffiliateDetai
   return (
     <ScrollView
       style={styles.screen}
-      contentContainerStyle={[styles.content, { paddingBottom: SPACING.xxl + insets.bottom }]}
+      contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
       stickyHeaderIndices={STICKY_TAB_INDICES}
+      // Düzenlemedeki form alanları için; okuma halinde etkisi yok
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      automaticallyAdjustKeyboardInsets
+      // Yenileme iki modda da hep durur: kaldırılıp eklenince kaydırma alanı ve içindeki sekme
+      // çubuğu baştan oluşuyor, mod geçişinde flaş yapıyordu. Düzenlemede yenilemek formu
+      // değiştirmez (form açıldığı anki halinden başlar).
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
@@ -159,13 +176,26 @@ function AffiliateDetailContent({ affiliate, refetchAffiliates }: AffiliateDetai
         />
       </View>
 
-      <View style={styles.tabContent}>
-        {activeTab === 'general' && (
-          <AffiliateGeneralSection affiliate={affiliate} colors={colors} locale={locale} />
-        )}
-        {activeTab === 'billing' && <AffiliateBillingSection kind="payments" />}
-        {activeTab === 'invoices' && <AffiliateBillingSection kind="addresses" />}
-      </View>
+      {isEditing ? (
+        <AffiliateEditView
+          affiliate={affiliate}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onExit={() => router.setParams({ edit: undefined })}
+        />
+      ) : (
+        <View>
+          {AFFILIATE_DETAIL_TABS.filter((tab) => visitedTabs.includes(tab)).map((tab) => (
+            <View key={tab} style={[styles.tabContent, tab !== activeTab && styles.hidden]}>
+              {tab === 'general' ? (
+                <AffiliateGeneralSection affiliate={affiliate} colors={colors} locale={locale} />
+              ) : null}
+              {tab === 'billing' ? <AffiliateBillingSection kind="payments" /> : null}
+              {tab === 'invoices' ? <AffiliateBillingSection kind="addresses" /> : null}
+            </View>
+          ))}
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -176,30 +206,39 @@ function createStyles(colors: AppColors) {
       flex: 1,
       backgroundColor: colors.background,
     },
+    // Yan boşluk ürün ve sipariş detayı gibi SPACING.md (AGENTS.md'deki istisna)
     content: {
       ...SCREEN_CONTENT,
-      paddingHorizontal: SPACING.xl,
+      paddingHorizontal: SPACING.md,
       paddingTop: SPACING.md,
     },
     top: {
       gap: SPACING.lg,
     },
-    // Yapışık kalınca altından geçen kartlar görünmesin diye zemin rengi verilir
+    // Yapışık kalınca altından geçen gruplar görünmesin diye zemin rengi verilir. Android'de
+    // gölgeli gruplar (elevation) yapışık çubuğun üstüne çıkmasın diye çubuk bir kat yukarıda;
+    // kendi gölgesi zemin renginde, görünmez.
     tabBar: {
       paddingTop: SPACING.xl,
       paddingBottom: SPACING.sm,
       backgroundColor: colors.background,
+      zIndex: 1,
+      elevation: SOFT_SHADOW.elevation + 1,
+      shadowColor: colors.background,
     },
-    // Başlıklı kartlar arası boşluk düzenleme ekranıyla aynı
+    // Gruplar arası boşluk ürün ve sipariş detayıyla aynı; sekmelerden ilk gruba sm + md = xl
     tabContent: {
       gap: SPACING.xl,
-      paddingTop: SPACING.sm,
+      paddingTop: SPACING.md,
+    },
+    hidden: {
+      display: 'none',
     },
     skeleton: {
       ...SCREEN_CONTENT,
       flex: 1,
       gap: SPACING.xl,
-      paddingHorizontal: SPACING.xl,
+      paddingHorizontal: SPACING.md,
       paddingTop: SPACING.md,
       backgroundColor: colors.background,
     },

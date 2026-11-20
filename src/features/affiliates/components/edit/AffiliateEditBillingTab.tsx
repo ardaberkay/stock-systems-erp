@@ -26,12 +26,21 @@ export default function AffiliateEditBillingTab({ kind }: AffiliateEditBillingTa
       {kind === 'payments' ? (
         <DetailSection title={t('affiliates.edit.sections.payments')}>
           {PAYMENT_FIELDS.map((field) => (
-            <LockedField key={field} label={t(`affiliates.edit.fields.${field}`)} value={null} />
+            <LockedField
+              key={field}
+              label={t(`affiliates.edit.fields.${field}`)}
+              value={null}
+              layout="inline"
+            />
           ))}
         </DetailSection>
       ) : (
         <DetailSection title={t('affiliates.edit.sections.addresses')}>
-          <LockedField label={t('affiliates.edit.fields.billingAddress')} value={null} />
+          <LockedField
+            label={t('affiliates.edit.fields.billingAddress')}
+            value={null}
+            layout="inline"
+          />
         </DetailSection>
       )}
 

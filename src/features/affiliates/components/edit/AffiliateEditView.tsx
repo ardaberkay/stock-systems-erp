@@ -1,7 +1,6 @@
-import SegmentedControl from '@/components/ui/SegmentedControl';
+import type { AffiliateDetailTab } from '@/features/affiliates/affiliateDetail';
 import { getAffiliateChanges, getAffiliateEditDefaults } from '@/features/affiliates/affiliateEdit';
 import { useUpdateAffiliate } from '@/features/affiliates/api/affiliates';
-import AffiliateProfileHeader from '@/features/affiliates/components/AffiliateProfileHeader';
 import AffiliateEditBillingTab from '@/features/affiliates/components/edit/AffiliateEditBillingTab';
 import AffiliateEditGeneralTab from '@/features/affiliates/components/edit/AffiliateEditGeneralTab';
 import AffiliateEditHeaderButton from '@/features/affiliates/components/edit/AffiliateEditHeaderButton';
@@ -12,8 +11,7 @@ import {
 import type { Affiliate } from '@/features/affiliates/schemas/affiliates';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { getErrorDetail, getErrorMessageKey } from '@/lib/apiError';
-import type { AppColors } from '@/theme/colors';
-import { ICON_SIZE, MIN_TOUCH_SIZE, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
+import { ICON_SIZE, MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Stack, useFocusEffect, useNavigation, usePreventRemove } from 'expo-router';
 import type { TFunction } from 'i18next';
@@ -22,26 +20,17 @@ import X from 'lucide-react-native/icons/x';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Alert,
-  BackHandler,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ActivityIndicator, Alert, BackHandler, Pressable, StyleSheet, View } from 'react-native';
 
 type AffiliateEditViewProps = {
   affiliate: Affiliate;
+  // Sekmeler ve kaydırma alanı ekranda (iki modda ortak); burada yalnızca sekmelerin altındaki
+  // form içeriği çizilir. Mod değişince ilk sekmeye ve başa dönülmez.
+  activeTab: AffiliateDetailTab;
+  onTabChange: (tab: AffiliateDetailTab) => void;
   // Düzenlemeden çıkar, sayfa okuma haline döner
   onExit: () => void;
 };
-
-// Detaydaki sekmelerle aynı: Bilgi / Ödeme / Fatura
-const EDIT_TABS = ['general', 'billing', 'invoices'] as const;
-type EditTab = (typeof EDIT_TABS)[number];
 
 // İkon 24; dokunma alanı 44'e tamamlanır
 const HEADER_BUTTON_HIT_SLOP = (MIN_TOUCH_SIZE - ICON_SIZE.lg) / 2;
@@ -54,13 +43,15 @@ function confirmDiscard(t: TFunction, onDiscard: () => void) {
 }
 
 // Satış ortağı detayının düzenleme hali; "Kaydet" yalnızca değişen alanları gönderir.
-export default function AffiliateEditView({ affiliate, onExit }: AffiliateEditViewProps) {
+export default function AffiliateEditView({
+  affiliate,
+  activeTab,
+  onTabChange,
+  onExit,
+}: AffiliateEditViewProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-  const [activeTab, setActiveTab] = useState<EditTab>('general');
   // Başlangıç düzenleme açıldığı anki halidir; arkadan gelen yenileme formu değiştirmez
   const [original] = useState(() => getAffiliateEditDefaults(affiliate));
   const schema = useMemo(() => createAffiliateEditSchema(original), [original]);
@@ -139,7 +130,7 @@ export default function AffiliateEditView({ affiliate, onExit }: AffiliateEditVi
     },
     // Tüm düzenlenebilir alanlar Bilgi bölümünde
     () => {
-      setActiveTab('general');
+      onTabChange('general');
       Alert.alert(t('orders.editMode.invalid'));
     },
   );
@@ -178,30 +169,9 @@ export default function AffiliateEditView({ affiliate, onExit }: AffiliateEditVi
             ),
         }}
       />
-      <ScrollView
-        style={styles.screen}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="interactive"
-        // iOS'ta klavye açılınca odaktaki alan görünür kalır
-        automaticallyAdjustKeyboardInsets
-        // 1. çocuk bölüm seçimi; kaydırınca üstte yapışık kalır
-        stickyHeaderIndices={[1]}
-      >
-        <AffiliateProfileHeader affiliate={affiliate} colors={colors} />
-
-        <View style={styles.tabBar}>
-          <SegmentedControl
-            options={EDIT_TABS.map((tab) => ({
-              value: tab,
-              label: t(`affiliates.detail.tabs.${tab}`),
-            }))}
-            value={activeTab}
-            onChange={setActiveTab}
-          />
-        </View>
-
-        {/* Bölümler gizlenir ama kaldırılmaz; yazılan değerler ve klavye odağı korunur */}
+      {/* Profil, butonlar, sekmeler ve kaydırma alanı ekranda (bkz. AffiliateDetailScreen).
+          Bölümler gizlenir ama kaldırılmaz; yazılan değerler ve klavye odağı korunur. */}
+      <View>
         <View style={[styles.tabContent, activeTab !== 'general' && styles.hidden]}>
           <AffiliateEditGeneralTab affiliate={affiliate} />
         </View>
@@ -211,33 +181,18 @@ export default function AffiliateEditView({ affiliate, onExit }: AffiliateEditVi
         <View style={[styles.tabContent, activeTab !== 'invoices' && styles.hidden]}>
           <AffiliateEditBillingTab kind="addresses" />
         </View>
-      </ScrollView>
+      </View>
     </FormProvider>
   );
 }
 
-function createStyles(colors: AppColors) {
-  return StyleSheet.create({
-    screen: {
-      ...SCREEN_CONTENT,
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    content: {
-      gap: SPACING.xl,
-      paddingHorizontal: SPACING.xl,
-      paddingTop: SPACING.md,
-    },
-    // Yapışık kalınca alttan kayan kartları örtsün diye zemin rengi taşır
-    tabBar: {
-      paddingVertical: SPACING.sm,
-      backgroundColor: colors.background,
-    },
-    tabContent: {
-      gap: SPACING.xl,
-    },
-    hidden: {
-      display: 'none',
-    },
-  });
-}
+const styles = StyleSheet.create({
+  // Okuma haliyle aynı: gruplar arası xl, sekmelerden ilk gruba sm + md = xl
+  tabContent: {
+    gap: SPACING.xl,
+    paddingTop: SPACING.md,
+  },
+  hidden: {
+    display: 'none',
+  },
+});

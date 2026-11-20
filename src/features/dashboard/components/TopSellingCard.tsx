@@ -1,9 +1,10 @@
+import Badge from "@/components/ui/Badge";
 import ProductMiniChart from "@/features/dashboard/components/ProductMiniChart";
 import ProductColor from "@/features/products/components/ProductColor";
 import ProductImage from "@/features/products/components/ProductImage";
 import type { Product } from "@/features/products/schemas/products";
 import type { AppColors } from "@/theme/colors";
-import { ICON_SIZE, RADIUS, SPACING } from "@/theme/spacing";
+import { SPACING } from "@/theme/spacing";
 import { FONT_FAMILY, FONT_SIZE, typography } from "@/theme/typography";
 import { formatMoney, formatNumber } from "@/utils/formatter";
 import type { BestSeller } from "@/features/orders/utils/orderStats";
@@ -11,7 +12,8 @@ import Tag from "lucide-react-native/icons/tag";
 import { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import Text from "@/components/ui/Text";
-import { StyleSheet, View } from "react-native";
+import { router } from "expo-router";
+import { Pressable, StyleSheet, View } from "react-native";
 
 type TopSellingCardProps = {
   item: BestSeller;
@@ -21,7 +23,6 @@ type TopSellingCardProps = {
   locale: string;
 };
 
-const SMALL_ICON_SIZE = ICON_SIZE.sm - SPACING.xxs;
 const MAX_CHART_WIDTH = 110;
 
 // Grafik çizgisi açıp kapatmak ekranı yeniler; 10 kartın küçük grafikleri boşuna çizilmesin.
@@ -37,7 +38,18 @@ function TopSellingCard({
     product?.name ?? t("dashboard.productFallback", { id: item.productId });
 
   return (
-    <View style={styles.productCard}>
+    // Basınca ürün detayı açılır (sipariş detayındaki ürün satırları gibi)
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={t("orders.detail.openProduct", { name })}
+      onPress={() =>
+        router.push({
+          pathname: "/product-detail/[id]",
+          params: { id: String(item.productId) },
+        })
+      }
+      style={styles.productCard}
+    >
       <ProductImage uri={product?.image} accessibilityLabel={name} />
 
       {/* Sabit kart boyunda içerik ortalanır; ad tek satırsa boşluk kalmaz */}
@@ -58,11 +70,10 @@ function TopSellingCard({
           )}
 
           {item.topSize && (
-            <View style={styles.productTopSize}>
-              <Text style={styles.productTopSizeName} numberOfLines={1}>
-                {t("dashboard.topSize", { size: item.topSize.name })}
-              </Text>
-            </View>
+            <Badge
+              label={t("dashboard.topSize", { size: item.topSize.name })}
+              tone="outline"
+            />
           )}
         </View>
 
@@ -70,12 +81,14 @@ function TopSellingCard({
         <View style={styles.productSpacedRow}>
           <ProductColor colorName={product?.colorName} />
 
-          <View style={styles.productSoldBadge}>
-            <Tag size={SMALL_ICON_SIZE} color={colors.purple} />
-            <Text style={styles.productSold} numberOfLines={1}>
-              {formatNumber(item.sold, locale)}
-            </Text>
-          </View>
+          {/* Siparişler sayfasındaki adet rozetinin aynısı */}
+          <Badge
+            label={formatNumber(item.sold, locale)}
+            tone="purple"
+            icon={Tag}
+            compact
+            slim
+          />
         </View>
 
         {/* Ciro küçülmez; rakam uzarsa grafik daralır */}
@@ -89,7 +102,7 @@ function TopSellingCard({
           </Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -140,33 +153,6 @@ function createStyles(colors: AppColors) {
       color: colors.textSecondary,
       fontFamily: FONT_FAMILY.italic,
       flexShrink: 1,
-    },
-    productTopSize: {
-      flexShrink: 0,
-      paddingHorizontal: SPACING.xs,
-      borderRadius: RADIUS.sm,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.background,
-    },
-    productTopSizeName: {
-      ...typography.caption,
-      color: colors.textSecondary,
-      fontFamily: FONT_FAMILY.semiBold,
-    },
-    productSoldBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: SPACING.xxs,
-      flexShrink: 0,
-      paddingHorizontal: SPACING.xs,
-      borderRadius: RADIUS.sm,
-      backgroundColor: colors.purpleLight,
-    },
-    productSold: {
-      ...typography.caption,
-      color: colors.purple,
-      fontFamily: FONT_FAMILY.bold,
     },
     productChart: {
       flex: 1,

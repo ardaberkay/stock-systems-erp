@@ -65,6 +65,7 @@ export default function AffiliateOrdersLink({
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
+    // Çerçeveli kalır: başka sayfaya götüren bir buton, bilgi grubu değil (karar 20.11.2026)
     row: {
       minHeight: MIN_TOUCH_SIZE,
       flexDirection: 'row',

@@ -10,10 +10,8 @@ import {
 import type { AffiliateEditForm } from '@/features/affiliates/schemas/affiliateEdit';
 import type { Affiliate } from '@/features/affiliates/schemas/affiliates';
 import { formatPhoneGroups, toTrPhoneDigits } from '@/features/orders/utils/phone';
-import { SPACING } from '@/theme/spacing';
 import { Controller, useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
 
 type AffiliateEditGeneralTabProps = {
   // Kilitli alanlar kayıtlı haliyle gösterilir
@@ -47,19 +45,19 @@ export default function AffiliateEditGeneralTab({ affiliate }: AffiliateEditGene
           keyboardType={options.keyboardType}
           autoCapitalize={options.autoCapitalize}
           error={translateError(error?.message)}
+          layout="inline"
         />
       )}
     />
   );
 
+  // Alanlar okuma halindeki satırlarla aynı sırada ve yan yana (etiket solda)
   return (
     <>
       <DetailSection title={t('affiliates.edit.sections.contact')}>
         {renderText('officeName')}
-        <View style={styles.row}>
-          <View style={styles.half}>{renderText('firstName', { required: true })}</View>
-          <View style={styles.half}>{renderText('lastName', { required: true })}</View>
-        </View>
+        {renderText('firstName', { required: true })}
+        {renderText('lastName', { required: true })}
         <Controller
           control={control}
           name="phone"
@@ -74,6 +72,7 @@ export default function AffiliateEditGeneralTab({ affiliate }: AffiliateEditGene
               autoComplete="tel"
               maxLength={PHONE_INPUT_MAX_LENGTH}
               error={translateError(error?.message)}
+              layout="inline"
             />
           )}
         />
@@ -83,13 +82,19 @@ export default function AffiliateEditGeneralTab({ affiliate }: AffiliateEditGene
       {/* API bu alanları değiştiremiyor; panelden yapılır */}
       <DetailSection title={t('affiliates.edit.sections.account')}>
         {PANEL_ONLY_ACCOUNT_FIELDS.map((field) => (
-          <LockedField key={field} label={t(`affiliates.edit.fields.${field}`)} value={null} />
+          <LockedField
+            key={field}
+            label={t(`affiliates.edit.fields.${field}`)}
+            value={null}
+            layout="inline"
+          />
         ))}
         <LockedField
           label={t('affiliates.edit.fields.status')}
           value={t(
             isAffiliateActive(affiliate) ? 'affiliates.status.active' : 'affiliates.status.passive',
           )}
+          layout="inline"
         />
       </DetailSection>
 
@@ -97,21 +102,17 @@ export default function AffiliateEditGeneralTab({ affiliate }: AffiliateEditGene
         <LockedField
           label={t('affiliates.edit.fields.subtraction')}
           value={t(isAffiliateSubtractionOn(affiliate) ? 'affiliates.edit.on' : 'affiliates.edit.off')}
+          layout="inline"
         />
         {PANEL_ONLY_SALE_FIELDS.map((field) => (
-          <LockedField key={field} label={t(`affiliates.edit.fields.${field}`)} value={null} />
+          <LockedField
+            key={field}
+            label={t(`affiliates.edit.fields.${field}`)}
+            value={null}
+            layout="inline"
+          />
         ))}
       </DetailSection>
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-  },
-  half: {
-    flex: 1,
-  },
-});

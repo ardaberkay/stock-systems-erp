@@ -3,6 +3,7 @@ import WhatsAppIcon from '@/features/orders/components/WhatsAppIcon';
 import { normalizePhone } from '@/features/orders/utils/orderList';
 import { getWhatsAppUrl } from '@/features/orders/utils/whatsapp';
 import type { AppColors } from '@/theme/colors';
+import { SOFT_SHADOW } from '@/theme/elevation';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
 import Mail from 'lucide-react-native/icons/mail';
@@ -108,6 +109,7 @@ function createStyles(colors: AppColors) {
       flexDirection: 'row',
       gap: SPACING.sm,
     },
+    // Detaydaki çerçevesiz gruplarla aynı görünüm: beyaz zemin, çerçeve yok, hafif gölge
     button: {
       flex: 1,
       minHeight: MIN_TOUCH_SIZE,
@@ -117,12 +119,12 @@ function createStyles(colors: AppColors) {
       paddingVertical: SPACING.md,
       paddingHorizontal: SPACING.xs,
       borderRadius: RADIUS.lg,
-      borderWidth: 1,
-      borderColor: colors.card.border,
-      backgroundColor: colors.card.background,
+      backgroundColor: colors.surface,
+      ...SOFT_SHADOW,
     },
+    // Çerçeve olmadığı için basılınca zemin sayfa rengine döner
     pressed: {
-      borderColor: colors.textDisabled,
+      backgroundColor: colors.background,
     },
     dimmed: {
       opacity: 0.4,

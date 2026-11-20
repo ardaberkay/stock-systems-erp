@@ -44,7 +44,7 @@ export default function OrderDetailHeader({ order, children }: OrderDetailHeader
           <Text style={styles.number} selectable>
             #{order.id}
           </Text>
-          <OrderStatusBadge statusId={order.orderStatusId} colors={colors} spacious />
+          <OrderStatusBadge statusId={order.orderStatusId} colors={colors} />
         </View>
 
         <View style={styles.row}>

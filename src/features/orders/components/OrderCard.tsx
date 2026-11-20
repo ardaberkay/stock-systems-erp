@@ -1,3 +1,4 @@
+import Badge from '@/components/ui/Badge';
 import OrderStatusBadge from '@/features/orders/components/OrderStatusBadge';
 import WhatsAppIcon from '@/features/orders/components/WhatsAppIcon';
 import Checkbox from '@/components/ui/Checkbox';
@@ -34,7 +35,6 @@ type OrderCardProps = {
 };
 
 const SMALL_ICON_SIZE = ICON_SIZE.sm - SPACING.xxs;
-const ITEM_ICON_SIZE = ICON_SIZE.sm - SPACING.xs;
 // Görünen satır metin yüksekliğinde kalır, dokunma alanı 44 olur
 const ICON_HIT_SLOP = (MIN_TOUCH_SIZE - ICON_SIZE.sm) / 2;
 // Müşteri ve ortak ikonları alt alta durur; dokunma alanları satırların tam ortasında ayrılır
@@ -111,7 +111,7 @@ function OrderCard({
           <Text style={styles.orderNumber}>#{order.id}</Text>
           {` · ${formatOrderDateTime(order.orderDateTime)}`}
         </Text>
-        <OrderStatusBadge statusId={order.orderStatusId} colors={colors} spacious />
+        <OrderStatusBadge statusId={order.orderStatusId} colors={colors} />
       </View>
 
       <View style={styles.row}>
@@ -123,10 +123,8 @@ function OrderCard({
           <View
             accessible
             accessibilityLabel={t('orders.itemCount', { value: formatNumber(itemCount, locale) })}
-            style={styles.itemBadge}
           >
-            <Tag size={ITEM_ICON_SIZE} color={colors.purple} />
-            <Text style={styles.itemCount}>{formatNumber(itemCount, locale)}</Text>
+            <Badge label={formatNumber(itemCount, locale)} tone="purple" icon={Tag} compact slim />
           </View>
           <Text style={styles.separator}>·</Text>
           <Text style={styles.amount} numberOfLines={1}>
@@ -208,13 +206,7 @@ function OrderCard({
             <View />
           )}
 
-          {customStatusName ? (
-            <View style={styles.customStatus}>
-              <Text style={styles.customStatusText} numberOfLines={1}>
-                {customStatusName}
-              </Text>
-            </View>
-          ) : null}
+          {customStatusName ? <Badge label={customStatusName} tone="outline" shrink slim /> : null}
         </View>
       ) : null}
 
@@ -290,20 +282,6 @@ function createStyles(colors: AppColors) {
       gap: SPACING.xs,
       flexShrink: 0,
     },
-    // Durum rozetinden (sm) biraz dar: içinde yalnızca kısa bir sayı var
-    itemBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: SPACING.xs,
-      paddingHorizontal: SPACING.xs + SPACING.xxs,
-      borderRadius: RADIUS.sm,
-      backgroundColor: colors.purpleLight,
-    },
-    itemCount: {
-      ...typography.caption,
-      color: colors.purple,
-      fontFamily: FONT_FAMILY.bold,
-    },
     separator: {
       ...typography.label,
       marginHorizontal: SPACING.xs,
@@ -345,19 +323,6 @@ function createStyles(colors: AppColors) {
       ...typography.caption,
       flexShrink: 1,
       color: colors.textSecondary,
-    },
-    customStatus: {
-      flexShrink: 1,
-      paddingHorizontal: SPACING.sm,
-      borderRadius: RADIUS.sm,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.background,
-    },
-    customStatusText: {
-      ...typography.caption,
-      color: colors.textSecondary,
-      fontFamily: FONT_FAMILY.semiBold,
     },
     footer: {
       flexDirection: 'row',

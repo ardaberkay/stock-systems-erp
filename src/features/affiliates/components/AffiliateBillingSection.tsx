@@ -11,7 +11,7 @@ type AffiliateBillingSectionProps = {
 // Panelde ödeme bilgileri (IBAN, alıcı, TC) ve fatura adresleri (vergi dairesi vb.) "ekle"
 // ile büyüyen listelerdir. API listeyi döndürmüyor (update tek kayıt alanı yazıyor, get
 // hiçbirini okumuyor), fatura adresi alanı hiç yok. Şimdilik bir kaydın alanları boş ("—")
-// görünür; API listeyi verince her kayıt böyle bir kart olur (backend listesinde).
+// görünür; API listeyi verince her kayıt böyle bir grup olur (backend listesinde).
 export default function AffiliateBillingSection({ kind }: AffiliateBillingSectionProps) {
   const { t } = useTranslation();
   const isPayments = kind === 'payments';
@@ -19,6 +19,7 @@ export default function AffiliateBillingSection({ kind }: AffiliateBillingSectio
   return (
     <DetailSection
       title={t(isPayments ? 'affiliates.edit.sections.payments' : 'affiliates.edit.sections.addresses')}
+      variant="plain"
     >
       {isPayments ? (
         PAYMENT_FIELDS.map((field) => (

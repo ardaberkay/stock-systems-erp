@@ -40,9 +40,10 @@ export default function ProductMiniChart({
         animationDuration={500}
         domainDuration={400}
       >
+        {/* Adet çizgisi: seri rengi mor (ürün detayındaki satış grafiğiyle aynı, AGENTS.md) */}
         <LineChart.Line
           dataKey="sold"
-          color={colors.orange}
+          color={colors.purple}
           strokeWidth={1.5}
         />
       </LineChart>

@@ -1,4 +1,5 @@
 import ProductCardDetails from '@/features/products/components/ProductCardDetails';
+import Badge from '@/components/ui/Badge';
 import AnimatedChevron from '@/components/ui/AnimatedChevron';
 import Collapsible from '@/components/ui/Collapsible';
 import ProductColor from '@/features/products/components/ProductColor';
@@ -117,11 +118,7 @@ function ProductCard({
             <View style={styles.spacedRow}>
               <ProductColor colorName={product.colorName} />
 
-              {isPassive && (
-                <View style={styles.passiveBadge}>
-                  <Text style={styles.passiveText}>{t('stock.statusFilter.passive')}</Text>
-                </View>
-              )}
+              {isPassive && <Badge label={t('stock.statusFilter.passive')} tone="outline" />}
             </View>
 
             <View style={styles.spacedRow}>
@@ -221,19 +218,6 @@ function createStyles(colors: AppColors) {
       justifyContent: 'space-between',
       gap: SPACING.sm,
       minWidth: 0,
-    },
-    passiveBadge: {
-      flexShrink: 0,
-      paddingHorizontal: SPACING.xs,
-      borderRadius: RADIUS.sm,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.background,
-    },
-    passiveText: {
-      ...typography.caption,
-      color: colors.textSecondary,
-      fontFamily: FONT_FAMILY.semiBold,
     },
     stock: {
       flexDirection: 'row',

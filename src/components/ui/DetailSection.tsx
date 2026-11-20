@@ -1,7 +1,7 @@
-import DetailNote from '@/components/ui/DetailNote';
-import DetailRow from '@/components/ui/DetailRow';
+import { DETAIL_LINE_MARK } from '@/components/ui/detailLine';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/theme/colors';
+import { SOFT_SHADOW } from '@/theme/elevation';
 import { RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
 import { Children, Fragment, isValidElement, useMemo, type ReactNode } from 'react';
@@ -19,8 +19,15 @@ type DetailSectionProps = {
   children: ReactNode;
 };
 
+// Satır bileşenleri (DetailRow, DetailNote) işaretle tanınır, kimlikle değil: Metro canlı
+// yenilemede bileşeni yeniden yükleyince eski ve yeni kopya birbirine eşit olmuyor, çizgiler
+// kayboluyordu. İşaret iki kopyada da var.
 function isDetailLine(node: ReactNode) {
-  return isValidElement(node) && (node.type === DetailRow || node.type === DetailNote);
+  return (
+    isValidElement(node) &&
+    typeof node.type === 'function' &&
+    DETAIL_LINE_MARK in node.type
+  );
 }
 
 // Detay sayfalarında başlıklı bilgi bölümü
@@ -88,17 +95,13 @@ function createStyles(colors: AppColors) {
       borderColor: colors.border,
       backgroundColor: colors.surface,
     },
-    // Zemin (background) ile beyaz grup neredeyse aynı renk; çerçeve yerine çok hafif bir gölge
-    // grubu zeminden ayırır. Gölge rengi verilmez, platformun varsayılan siyahı kullanılır.
+    // Çerçevesiz beyaz grup; zeminden çok hafif gölgeyle ayrılır (bkz. SOFT_SHADOW)
     plain: {
       gap: SPACING.md,
       padding: SPACING.md,
       borderRadius: RADIUS.lg,
       backgroundColor: colors.surface,
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.06,
-      shadowRadius: 6,
-      elevation: 1,
+      ...SOFT_SHADOW,
     },
     divider: {
       height: 1,

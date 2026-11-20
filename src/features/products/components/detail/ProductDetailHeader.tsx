@@ -1,3 +1,4 @@
+import Badge from '@/components/ui/Badge';
 import Text from '@/components/ui/Text';
 import { PRODUCT_STATUS } from '@/features/products/constants/products';
 import type { Product } from '@/features/products/schemas/products';
@@ -57,11 +58,7 @@ export default function ProductDetailHeader({ product, children }: ProductDetail
               <Text style={styles.meta} numberOfLines={1} selectable>
                 {meta}
               </Text>
-              {isPassive ? (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{t('stock.statusFilter.passive')}</Text>
-                </View>
-              ) : null}
+              {isPassive ? <Badge label={t('stock.statusFilter.passive')} tone="onHeader" /> : null}
             </View>
             {product.typeName ? (
               <View
@@ -87,13 +84,7 @@ export default function ProductDetailHeader({ product, children }: ProductDetail
             <Package size={ICON_SIZE.sm} color={colors.onHeaderMuted} />
             <Text style={styles.stockText}>{formatNumber(product.stock, locale)}</Text>
             {/* Kırmızı yazı mor zeminde okunmaz; uyarı kendi zemini olan rozetle verilir */}
-            {isOutOfStock ? (
-              <View style={[styles.badge, styles.outOfStockBadge]}>
-                <Text style={[styles.badgeText, styles.outOfStockText]}>
-                  {t('stock.stockFilter.outOfStock')}
-                </Text>
-              </View>
-            ) : null}
+            {isOutOfStock ? <Badge label={t('stock.stockFilter.outOfStock')} tone="error" /> : null}
           </View>
           <Text style={styles.price}>{formatMoney(product.price, locale)}</Text>
         </View>
@@ -150,23 +141,6 @@ function createStyles(colors: AppColors) {
       gap: SPACING.xs,
       flexShrink: 1,
       minWidth: 0,
-    },
-    badge: {
-      flexShrink: 0,
-      paddingHorizontal: SPACING.xs,
-      borderRadius: RADIUS.sm,
-      backgroundColor: colors.onHeaderSurface,
-    },
-    badgeText: {
-      ...typography.caption,
-      fontFamily: FONT_FAMILY.semiBold,
-      color: colors.onHeader,
-    },
-    outOfStockBadge: {
-      backgroundColor: colors.errorBackground,
-    },
-    outOfStockText: {
-      color: colors.error,
     },
     stock: {
       flexDirection: 'row',

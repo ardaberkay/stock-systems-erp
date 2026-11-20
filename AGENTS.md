@@ -20,6 +20,7 @@ Her ihtiyaç için **yalnızca** aşağıdaki araç kullanılır. Listede olmaya
 | HTTP | `src/lib/apiClient.ts` (fetch sarmalayıcı) | axios, ekranlarda doğrudan `fetch` |
 | Çoklu dil | `i18next` + `react-i18next`, cihaz dili için `expo-localization` | Koda gömülü metin |
 | UI bileşenleri | Kendi bileşenlerimiz: `src/components/ui` | panelui-native bileşenleri (grafik, takvim, raporlardaki `Kpi` ve `Leaderboard` hariç), başka UI kütüphanesi |
+| Rozet / küçük etiket (durum, adet, özel durum, aktif/pasif, yakında…) | `@/components/ui/Badge` (renk `tone` ya da `palette` ile; ölçü her yerde aynı, yalnızca sayı taşıyan rozet `compact`) | Ekranda ayrı rozet stili yazmak |
 | Metin ve giriş alanı | `@/components/ui/Text` ve `@/components/ui/TextInput` (yazı büyütmeyi `MAX_FONT_SCALE` ile sınırlar) | `react-native`'den doğrudan `Text` / `TextInput` import etmek |
 | Tarih (aralığı) seçici | `panelui-native` `Calendar` (yalnızca `src/components/ui/DateRangePicker.tsx` sarmalayıcısı üzerinden; gün bazında seçilir, saat seçtirilmez) | Başka picker kütüphanesi |
 | Stil | `StyleSheet.create` + `src/theme` token'ları | `className` / Tailwind sınıfları, styled-components |
@@ -183,7 +184,7 @@ State'in nerede tutulacağı şu sırayla belirlenir:
 
 ### Boşluk, köşe ve boyutlar
 - `padding`, `margin`, `gap` değerleri yalnızca `SPACING`, `borderRadius` değerleri yalnızca `RADIUS`, ikon boyutları yalnızca `ICON_SIZE` sabitlerinden alınır (`src/theme/spacing.ts`). Bileşenlerde bu alanlar için sayı yazılmaz.
-- Ekranın yatay kenar boşluğu her ekranda `SPACING.xl`'dir. İstisna: raporlar, ürün detayı ve sipariş detayı (okuma ve düzenleme) `SPACING.md` kullanır; kartlar/gruplar daha geniş durur. Bu iki detayın okuma halindeki bölümleri çerçevesiz (`DetailSection variant="plain"`), düzenleme hali çerçevelidir; düzenlemede alanlar `layout="inline"` ile yan yana (etiket solda), yalnızca çok satırlı metin ve seçenek çipleri alt alta.
+- Ekranın yatay kenar boşluğu her ekranda `SPACING.xl`'dir. İstisna: raporlar, ürün, sipariş ve satış ortağı detayı (okuma ve düzenleme) `SPACING.md` kullanır; kartlar/gruplar daha geniş durur. Bu üç detayın okuma halindeki bölümleri çerçevesiz (`DetailSection variant="plain"`), düzenleme hali çerçevelidir; düzenlemede alanlar `layout="inline"` ile yan yana (etiket solda), yalnızca çok satırlı metin ve seçenek çipleri alt alta.
 - Ürün ve sipariş detayında modül renginde sabit başlık vardır (ürün mor, sipariş yeşil; `ProductDetailHeader` / `OrderDetailHeader`): app bar aynı tonla boyanır, sekmeler başlığın içindedir, başlık okuma ve düzenlemede aynı yerde kalır, yalnızca altındaki içerik değişir.
 - Yeni bir değer gerekiyorsa renklerde olduğu gibi birlikte kararlaştırılıp dosyaya eklenir.
 

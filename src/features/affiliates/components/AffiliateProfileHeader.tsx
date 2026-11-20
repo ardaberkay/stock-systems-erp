@@ -1,3 +1,4 @@
+import Badge from '@/components/ui/Badge';
 import Text from '@/components/ui/Text';
 import {
   getAffiliateFullName,
@@ -8,8 +9,8 @@ import {
 import AffiliateAvatar from '@/features/affiliates/components/AffiliateAvatar';
 import type { Affiliate } from '@/features/affiliates/schemas/affiliates';
 import type { AppColors } from '@/theme/colors';
-import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
-import { FONT_FAMILY, typography } from '@/theme/typography';
+import { MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
+import { typography } from '@/theme/typography';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
@@ -47,11 +48,12 @@ export default function AffiliateProfileHeader({ affiliate, colors }: AffiliateP
           {title}
         </Text>
         {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-        <View style={[styles.statusBadge, isActive ? styles.statusActive : styles.statusPassive]}>
-          <View style={[styles.statusDot, isActive ? styles.dotActive : styles.dotPassive]} />
-          <Text style={[styles.statusText, isActive ? styles.textActive : styles.textPassive]}>
-            {t(isActive ? 'affiliates.status.active' : 'affiliates.status.passive')}
-          </Text>
+        <View style={styles.status}>
+          <Badge
+            label={t(isActive ? 'affiliates.status.active' : 'affiliates.status.passive')}
+            tone={isActive ? 'success' : 'neutral'}
+            dot
+          />
         </View>
       </View>
     </View>
@@ -79,41 +81,8 @@ function createStyles(colors: AppColors) {
       ...typography.bodySmall,
       color: colors.textSecondary,
     },
-    statusBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: SPACING.xs,
+    status: {
       marginTop: SPACING.xs,
-      paddingHorizontal: SPACING.md,
-      paddingVertical: SPACING.xxs,
-      borderRadius: RADIUS.full,
-    },
-    statusActive: {
-      backgroundColor: colors.successBackground,
-    },
-    statusPassive: {
-      backgroundColor: colors.divider,
-    },
-    statusDot: {
-      width: SPACING.sm,
-      height: SPACING.sm,
-      borderRadius: RADIUS.full,
-    },
-    dotActive: {
-      backgroundColor: colors.success,
-    },
-    dotPassive: {
-      backgroundColor: colors.textSecondary,
-    },
-    statusText: {
-      ...typography.label,
-      fontFamily: FONT_FAMILY.semiBold,
-    },
-    textActive: {
-      color: colors.success,
-    },
-    textPassive: {
-      color: colors.textSecondary,
     },
   });
 }

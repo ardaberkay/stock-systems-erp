@@ -1,3 +1,4 @@
+import { markAsDetailLine } from '@/components/ui/detailLine';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/theme/colors';
 import { SPACING } from '@/theme/spacing';
@@ -56,6 +57,9 @@ export default function DetailRow({
     </View>
   );
 }
+
+// Çerçevesiz grupta satırlar arasına çizgi girsin (bkz. DetailSection)
+markAsDetailLine(DetailRow);
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
