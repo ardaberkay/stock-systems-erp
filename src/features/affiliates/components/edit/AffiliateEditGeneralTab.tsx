@@ -9,7 +9,11 @@ import {
 } from '@/features/affiliates/affiliateList';
 import type { AffiliateEditForm } from '@/features/affiliates/schemas/affiliateEdit';
 import type { Affiliate } from '@/features/affiliates/schemas/affiliates';
-import { formatPhoneGroups, toTrPhoneDigits } from '@/features/orders/utils/phone';
+import {
+  formatPhoneGroups,
+  toTrPhoneDigits,
+  TR_PHONE_INPUT_MAX_LENGTH,
+} from '@/features/orders/utils/phone';
 import { Controller, useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -19,9 +23,6 @@ type AffiliateEditGeneralTabProps = {
 };
 
 type TextFieldName = 'firstName' | 'lastName' | 'officeName' | 'email';
-
-// "555 123 45 67" biçiminde yazılır: boşluklar dahil en fazla 13 karakter
-const PHONE_INPUT_MAX_LENGTH = 13;
 
 export default function AffiliateEditGeneralTab({ affiliate }: AffiliateEditGeneralTabProps) {
   const { t } = useTranslation();
@@ -70,7 +71,7 @@ export default function AffiliateEditGeneralTab({ affiliate }: AffiliateEditGene
               placeholder={t('affiliates.edit.phonePlaceholder')}
               keyboardType="phone-pad"
               autoComplete="tel"
-              maxLength={PHONE_INPUT_MAX_LENGTH}
+              maxLength={TR_PHONE_INPUT_MAX_LENGTH}
               error={translateError(error?.message)}
               layout="inline"
             />

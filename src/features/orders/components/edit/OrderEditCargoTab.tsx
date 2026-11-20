@@ -1,5 +1,5 @@
 import { useCargoCompanies } from '@/features/orders/api/cargo';
-import ChoiceChips from '@/components/ui/form/ChoiceChips';
+import SegmentedField from '@/components/ui/form/SegmentedField';
 import PickerField, { type PickerOption } from '@/features/picker/components/PickerField';
 import DetailRow from '@/components/ui/DetailRow';
 import DetailSection from '@/components/ui/DetailSection';
@@ -77,16 +77,16 @@ export default function OrderEditCargoTab({ order }: OrderEditCargoTabProps) {
             : formatNumber(order.shippingPackageDeciValue, locale)
         }
       />
-      {/* Seçenekler yan yana sığmadığı için alt alta */}
       <Controller
         control={control}
         name="whoPaysShipping"
         render={({ field: { value, onChange } }) => (
-          <ChoiceChips
+          <SegmentedField
             label={t('orders.create.shipping.whoPays')}
             value={value}
             options={payerOptions}
             onChange={onChange}
+            layout="inline"
           />
         )}
       />

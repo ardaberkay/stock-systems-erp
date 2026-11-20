@@ -19,6 +19,8 @@ import {
 } from '@/features/orders/schemas/orderCreate';
 import type { AppColors } from '@/theme/colors';
 import { SCREEN_CONTENT, SPACING } from '@/theme/spacing';
+import { typography } from '@/theme/typography';
+import Text from '@/components/ui/Text';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { useLayoutEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
@@ -130,6 +132,10 @@ export default function OrderNewScreen() {
           // iOS'ta klavye açılınca odaktaki alan görünür kalır
           automaticallyAdjustKeyboardInsets
         >
+          {/* Sepet adımında yıldızlı alan yok; not yalnızca formlu adımlarda */}
+          {step === 'products' ? null : (
+            <Text style={styles.requiredNote}>{t('orders.create.requiredNote')}</Text>
+          )}
           {step === 'products' ? <OrderProductsStep /> : null}
           {step === 'customer' ? <OrderCustomerStep /> : null}
           {step === 'shipping' ? <OrderShippingStep /> : null}
@@ -177,6 +183,12 @@ function createStyles(colors: AppColors) {
       gap: SPACING.xl,
       paddingHorizontal: SPACING.md,
       paddingBottom: SPACING.xl,
+    },
+    // Not ilk bölüme yakın dursun; içerik aralığının yarısı geri alınır (ürün eklemedeki gibi)
+    requiredNote: {
+      ...typography.caption,
+      marginBottom: -SPACING.sm,
+      color: colors.textSecondary,
     },
     footer: {
       flexDirection: 'row',

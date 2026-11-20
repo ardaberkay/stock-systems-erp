@@ -23,11 +23,22 @@ export function toTrPhoneDigits(input: string): string {
   return withoutCountry.replace(/^0+/, '').slice(0, TR_PHONE_DIGITS);
 }
 
-// "5551234567" → "555 123 45 67"; yazarken de gruplanır ki hata gözle görülsün
+// Gruplu yazılmış Türkiye numarasının en uzun hali: "(555) 123 45 67"
+export const TR_PHONE_INPUT_MAX_LENGTH = 15;
+
+// "5551234567" → "(555) 123 45 67"; yazarken de gruplanır ki hata gözle görülsün.
+// Parantez dördüncü hane gelince eklenir: metin hiçbir zaman ayraçla bitmez, silme tuşu
+// her basışta bir hane siler (ayraca takılıp kalmaz).
 export function formatPhoneGroups(digits: string): string {
-  return [digits.slice(0, 3), digits.slice(3, 6), digits.slice(6, 8), digits.slice(8, 10)]
+  if (digits.length <= 3) {
+    return digits;
+  }
+
+  const rest = [digits.slice(3, 6), digits.slice(6, 8), digits.slice(8, 10)]
     .filter(Boolean)
     .join(' ');
+
+  return `(${digits.slice(0, 3)}) ${rest}`;
 }
 
 // Müşteri numara vermediğinde panelde yazılan yer tutucular; geçerli sayılır

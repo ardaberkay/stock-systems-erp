@@ -8,7 +8,14 @@ import type { Order } from '@/features/orders/schemas/orders';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, FONT_SIZE, typography } from '@/theme/typography';
-import { formatMoney, formatNumber, formatOrderDateTime, formatPhone } from '@/utils/formatter';
+import {
+  formatMessageAmount,
+  formatMessageDateTime,
+  formatMoney,
+  formatNumber,
+  formatOrderDateTime,
+  formatPhone,
+} from '@/utils/formatter';
 import Pencil from 'lucide-react-native/icons/pencil';
 import Store from 'lucide-react-native/icons/store';
 import Tag from 'lucide-react-native/icons/tag';
@@ -150,7 +157,11 @@ function OrderCard({
               onPress={() =>
                 onWhatsApp(
                   phone,
-                  t('orders.whatsappCustomerMessage', { name: customerName, id: order.id }),
+                  t('orders.whatsappCustomerMessage', {
+                    name: customerName,
+                    date: formatMessageDateTime(order.orderDateTime),
+                    amount: formatMessageAmount(order.orderAmount),
+                  }),
                 )
               }
             >
@@ -192,7 +203,15 @@ function OrderCard({
                     right: ICON_HIT_SLOP,
                   }}
                   onPress={() =>
-                    onWhatsApp(partnerPhone, t('orders.whatsappPartnerMessage', { id: order.id }))
+                    onWhatsApp(
+                      partnerPhone,
+                      t('orders.whatsappPartnerMessage', {
+                        partner: partner.name,
+                        date: formatMessageDateTime(order.orderDateTime),
+                        amount: formatMessageAmount(order.orderAmount),
+                        customer: customerName,
+                      }),
+                    )
                   }
                 >
                   <WhatsAppIcon />

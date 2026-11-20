@@ -1,7 +1,7 @@
 import { useCargoCompanies } from '@/features/orders/api/cargo';
 import { useOrderPaymentTypes } from '@/features/orders/api/orders';
-import ChoiceChips from '@/components/ui/form/ChoiceChips';
 import ComingSoonRow from '@/components/ui/form/ComingSoonRow';
+import SegmentedField from '@/components/ui/form/SegmentedField';
 import PickerField, { type PickerOption } from '@/features/picker/components/PickerField';
 import SwitchRow from '@/components/ui/form/SwitchRow';
 import TextField from '@/components/ui/form/TextField';
@@ -52,7 +52,8 @@ export default function OrderShippingStep() {
   );
   const deliveryPlaceOptions = DELIVERY_PLACES.map((place) => ({
     value: place,
-    label: t(`orders.detail.deliveryPlaces.${place}`),
+    // Yan yana düzende iki seçenek dar alana sığsın diye kısa adlar
+    label: t(`orders.detail.deliveryPlacesShort.${place}`),
   }));
   const payerOptions = SHIPPING_PAYERS.map((payer) => ({
     value: payer,
@@ -91,6 +92,8 @@ export default function OrderShippingStep() {
               onChange={(option) => onChange(option.value)}
               searchable={false}
               error={translateError(error?.message)}
+              required
+              layout="inline"
             />
           )}
         />
@@ -98,19 +101,21 @@ export default function OrderShippingStep() {
           control={control}
           name="deliveryPlace"
           render={({ field: { value, onChange } }) => (
-            <ChoiceChips
+            <SegmentedField
               label={t('orders.create.shipping.deliveryPlace')}
               value={value}
               options={deliveryPlaceOptions}
               onChange={onChange}
+              layout="inline"
             />
           )}
         />
-        <ChoiceChips
+        <SegmentedField
           label={t('orders.create.shipping.whoPays')}
           value={whoPaysShipping}
           options={payerOptions}
           onChange={handlePayerChange}
+          layout="inline"
         />
         {isRecipientPaying ? null : (
           <>
@@ -131,6 +136,9 @@ export default function OrderShippingStep() {
                     onBlur={onBlur}
                     keyboardType="decimal-pad"
                     error={translateError(error?.message)}
+                    required
+                    layout="inline"
+                    textAlign="right"
                   />
                 )}
               />
@@ -158,6 +166,8 @@ export default function OrderShippingStep() {
               onChange={(option) => onChange(option.value)}
               searchable={false}
               error={translateError(error?.message)}
+              required
+              layout="inline"
             />
           )}
         />
@@ -182,11 +192,11 @@ export default function OrderShippingStep() {
               onChangeText={onChange}
               onBlur={onBlur}
               keyboardType="decimal-pad"
+              // Boş bırakılırsa ürünlerden hesaplanan tutar gider; yer tutucu onu gösterir
               placeholder={formatMoney(getItemsTotal(items), locale)}
-              hint={t('orders.create.shipping.productsValueHint', {
-                value: formatMoney(getItemsTotal(items), locale),
-              })}
               error={translateError(error?.message)}
+              layout="inline"
+              textAlign="right"
             />
           )}
         />
@@ -205,6 +215,7 @@ export default function OrderShippingStep() {
               onChangeText={onChange}
               onBlur={onBlur}
               multiline
+              minLines={2}
               autoCapitalize="sentences"
             />
           )}
@@ -219,6 +230,7 @@ export default function OrderShippingStep() {
               onChangeText={onChange}
               onBlur={onBlur}
               multiline
+              minLines={2}
               autoCapitalize="sentences"
             />
           )}

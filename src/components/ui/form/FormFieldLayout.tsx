@@ -1,5 +1,5 @@
 import FieldLabel from '@/components/ui/form/FieldLabel';
-import { SPACING } from '@/theme/spacing';
+import { MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -12,7 +12,7 @@ type FormFieldLayoutProps = {
   label: string;
   required?: boolean;
   layout?: FieldLayout;
-  // Alanın altındaki hata veya ipucu; yan yana düzende de satırın altında tam genişlikte
+  // Alanın altındaki hata veya ipucu; yan yana düzende kutunun altında, kutu genişliğinde
   message?: ReactNode;
   children: ReactNode;
 };
@@ -25,23 +25,28 @@ export default function FormFieldLayout({
   message,
   children,
 }: FormFieldLayoutProps) {
+  if (layout === 'inline') {
+    return (
+      // Oran her satırda aynı (etiket 1, alan 2 pay): alanlar alt alta aynı hizadan başlar.
+      // Etiketler kısa (en uzunu "Piyasa fiyatı"); büyük yazıda kendi payında alt satıra iner.
+      <View style={styles.inlineRow}>
+        <View style={styles.inlineLabel}>
+          <FieldLabel label={label} required={required} />
+        </View>
+        {/* Hata/ipucu kutunun hemen altında, kutuyla aynı hizada: kırmızı çerçeve ile mesaj aynı
+            sütunda durur, hangi alana ait olduğu karışmaz */}
+        <View style={styles.inlineControl}>
+          {children}
+          {message}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.field}>
-      {layout === 'inline' ? (
-        // Oran her satırda aynı (etiket 1, alan 2 pay): alanlar alt alta aynı hizadan başlar.
-        // Etiketler kısa (en uzunu "Piyasa fiyatı"); büyük yazıda kendi payında alt satıra iner.
-        <View style={styles.inlineRow}>
-          <View style={styles.inlineLabel}>
-            <FieldLabel label={label} required={required} />
-          </View>
-          <View style={styles.inlineControl}>{children}</View>
-        </View>
-      ) : (
-        <>
-          <FieldLabel label={label} required={required} />
-          {children}
-        </>
-      )}
+      <FieldLabel label={label} required={required} />
+      {children}
       {message}
     </View>
   );
@@ -51,17 +56,22 @@ const styles = StyleSheet.create({
   field: {
     gap: SPACING.xs,
   },
+  // Etiket üstten hizalı ve kutu yüksekliğinde ortalanır: altında mesaj açılınca etiket
+  // kutunun karşısında kalır, ikisinin ortasına kaymaz
   inlineRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: SPACING.md,
   },
   inlineLabel: {
     flex: 1,
     minWidth: 0,
+    minHeight: MIN_TOUCH_SIZE,
+    justifyContent: 'center',
   },
   inlineControl: {
     flex: 2,
     minWidth: 0,
+    gap: SPACING.xs,
   },
 });

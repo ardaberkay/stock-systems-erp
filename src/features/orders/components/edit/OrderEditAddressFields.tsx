@@ -59,6 +59,7 @@ export default function OrderEditAddressFields({ prefix }: OrderEditAddressField
             minLines={2}
             autoCapitalize="sentences"
             error={translateError(error?.message)}
+            required
           />
         )}
       />
@@ -84,6 +85,7 @@ export default function OrderEditAddressFields({ prefix }: OrderEditAddressField
               setValue(`${prefix}.districtName`, '', { shouldDirty: true });
             }}
             error={translateError(error?.message)}
+            required
             layout="inline"
           />
         )}
@@ -106,6 +108,7 @@ export default function OrderEditAddressFields({ prefix }: OrderEditAddressField
             onRetry={() => void districtsQuery.refetch()}
             onChange={(option) => onChange(option.label)}
             error={translateError(error?.message)}
+            required
             layout="inline"
           />
         )}

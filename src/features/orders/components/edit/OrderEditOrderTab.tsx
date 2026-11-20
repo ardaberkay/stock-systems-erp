@@ -181,6 +181,7 @@ export default function OrderEditOrderTab({
               onBlur={onBlur}
               keyboardType="decimal-pad"
               error={translateError(error?.message)}
+              required
               layout="inline"
               // Tutar: ürün fiyat alanları gibi sağa yaslı
               textAlign="right"

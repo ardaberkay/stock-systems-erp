@@ -1,9 +1,11 @@
+import FormFieldLayout, { type FieldLayout } from '@/components/ui/form/FormFieldLayout';
 import {
   DEFAULT_PHONE_COUNTRY,
   PHONE_COUNTRIES,
   getPhoneDial,
   type PhoneCountryCode,
 } from '@/features/orders/constants/phoneCountries';
+import { formatPhoneGroups, toTrPhoneDigits } from '@/features/orders/utils/phone';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { usePickerSheet } from '@/features/picker/usePickerSheet';
 import type { AppColors } from '@/theme/colors';
@@ -24,6 +26,9 @@ type PhoneFieldProps = {
   onChangeText: (text: string) => void;
   onBlur?: () => void;
   error?: string;
+  required?: boolean;
+  // inline: etiket solda, ülke kodu ve numara sağda (bkz. FormFieldLayout)
+  layout?: FieldLayout;
 };
 
 type CountryOption = {
@@ -43,12 +48,17 @@ export default function PhoneField({
   onChangeText,
   onBlur,
   error,
+  required = false,
+  layout = 'stacked',
 }: PhoneFieldProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { openPicker } = usePickerSheet();
   const dial = getPhoneDial(country) || getPhoneDial(DEFAULT_PHONE_COUNTRY);
+  // Türkiye numarası yazarken "(555) 123 45 67" diye gruplanır, formda yalnızca haneler tutulur.
+  // Diğer ülkelerin numara düzeni farklı; yazıldığı gibi bırakılır.
+  const isTurkey = country === DEFAULT_PHONE_COUNTRY;
 
   // Türkiye ve KKTC en üstte, diğerleri seçili dilin alfabesine göre
   const options = useMemo<CountryOption[]>(() => {
@@ -87,59 +97,70 @@ export default function PhoneField({
   };
 
   return (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.row}>
+    <FormFieldLayout
+      label={label}
+      required={required}
+      layout={layout}
+      message={error ? <Text style={styles.error}>{error}</Text> : null}
+    >
+      {/* Ülke kodu ve numara tek kutuda, ince çizgiyle ayrılır: iki kutunun arasındaki boşluk
+          ve çerçeveler kalkınca numara yan yana düzende tek satıra sığar */}
+      <View style={[styles.box, error ? styles.errorBorder : null]}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('orders.create.phoneCountry')}
           accessibilityValue={{ text: `+${dial}` }}
           onPress={openCountries}
-          style={[styles.country, error ? styles.errorBorder : null]}
+          style={styles.country}
         >
           <Text style={styles.dial}>{`+${dial}`}</Text>
           <ChevronDown size={ICON_SIZE.sm} color={colors.icon} />
         </Pressable>
+        <View style={styles.divider} />
         <TextInput
-          value={value}
-          onChangeText={onChangeText}
+          value={isTurkey ? formatPhoneGroups(toTrPhoneDigits(value)) : value}
+          onChangeText={(text) => onChangeText(isTurkey ? toTrPhoneDigits(text) : text)}
           onBlur={onBlur}
-          accessibilityLabel={label}
+          accessibilityLabel={required ? `${label}, ${t('common.required')}` : label}
           accessibilityHint={error}
           keyboardType="phone-pad"
           autoComplete="tel"
+          // Türkiye'de de geniş: "+90 555 …" yapıştırılınca kesilmeden gelir, haneler
+          // toTrPhoneDigits'te 10'a indirilir
           maxLength={PHONE_MAX_LENGTH}
-          style={[styles.input, error ? styles.errorBorder : null]}
+          style={styles.input}
         />
       </View>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-    </View>
+    </FormFieldLayout>
   );
 }
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
-    field: {
-      gap: SPACING.xs,
-    },
-    label: {
-      ...typography.label,
-      color: colors.textSecondary,
-    },
-    row: {
-      flexDirection: 'row',
-      gap: SPACING.sm,
-    },
-    country: {
+    // Çerçeve ve köşe diğer giriş kutularıyla aynı (TextField)
+    box: {
       minHeight: MIN_TOUCH_SIZE,
       flexDirection: 'row',
-      alignItems: 'center',
-      gap: SPACING.xs,
-      paddingHorizontal: SPACING.md,
+      alignItems: 'stretch',
       borderRadius: RADIUS.md,
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.background,
+      overflow: 'hidden',
+    },
+    // Sol iç boşluk diğer kutulardaki metinle aynı hizada; ok ve çizgi tarafı numaraya yer
+    // kalsın diye dar
+    country: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.xxs,
+      paddingLeft: SPACING.md,
+      paddingRight: SPACING.xs,
+    },
+    divider: {
+      width: 1,
+      marginVertical: SPACING.sm,
+      backgroundColor: colors.border,
     },
     dial: {
       ...typography.label,
@@ -151,13 +172,10 @@ function createStyles(colors: AppColors) {
       flex: 1,
       fontFamily: typography.body.fontFamily,
       fontSize: typography.body.fontSize,
-      minHeight: MIN_TOUCH_SIZE,
-      paddingHorizontal: SPACING.md,
+      // Çizginin iki yanı eşit: soldaki ok ile çizgi arası (country paddingRight) kadar
+      paddingLeft: SPACING.xs,
+      paddingRight: SPACING.sm,
       paddingVertical: SPACING.sm,
-      borderRadius: RADIUS.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.background,
       color: colors.text,
     },
     errorBorder: {

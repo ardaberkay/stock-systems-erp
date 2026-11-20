@@ -99,6 +99,19 @@ export function formatOrderDateTime(dateTime: string): string {
   return `${formatOrderDay(day)} ${time.slice(0, 5)}`;
 }
 
+// 'YYYY-MM-DD HH:MM:SS' → "16/11/26 20:16"; WhatsApp mesajındaki tarih biçimi
+export function formatMessageDateTime(dateTime: string): string {
+  const [dayKey, time = ''] = dateTime.split(' ');
+  const [year, month, day] = dayKey.split('-');
+
+  return `${day}/${month}/${year.slice(2)} ${time.slice(0, 5)}`;
+}
+
+// 5650 → "5650.00"; WhatsApp mesajındaki tutar biçimi
+export function formatMessageAmount(value: number): string {
+  return value.toFixed(2);
+}
+
 // 5451234567 → "0545 123 45 67"; beklenmeyen uzunluk olduğu gibi gösterilir.
 export function formatPhone(phone: string): string {
   if (phone.length !== 10) {

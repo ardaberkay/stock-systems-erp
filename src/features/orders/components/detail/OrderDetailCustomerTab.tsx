@@ -4,7 +4,7 @@ import ContactActions from '@/features/orders/components/detail/ContactActions';
 import { isDeliveryPlace } from '@/features/orders/constants/detail';
 import type { Order } from '@/features/orders/schemas/orders';
 import { getAddressLine, getFullName } from '@/features/orders/utils/orderDetail';
-import { formatPhone } from '@/utils/formatter';
+import { formatMessageAmount, formatMessageDateTime, formatPhone } from '@/utils/formatter';
 import { useTranslation } from 'react-i18next';
 
 type OrderDetailCustomerTabProps = {
@@ -32,7 +32,8 @@ export default function OrderDetailCustomerTab({ order }: OrderDetailCustomerTab
                 whatsappLabel={t('orders.whatsappCustomer')}
                 whatsappMessage={t('orders.whatsappCustomerMessage', {
                   name: customerName,
-                  id: order.id,
+                  date: formatMessageDateTime(order.orderDateTime),
+                  amount: formatMessageAmount(order.orderAmount),
                 })}
               />
             ) : null

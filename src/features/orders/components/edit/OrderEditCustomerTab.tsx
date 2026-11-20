@@ -1,4 +1,4 @@
-import ChoiceChips from '@/components/ui/form/ChoiceChips';
+import SegmentedField from '@/components/ui/form/SegmentedField';
 import LockedField from '@/components/ui/form/LockedField';
 import TextField from '@/components/ui/form/TextField';
 import OrderEditAddressFields from '@/features/orders/components/edit/OrderEditAddressFields';
@@ -7,7 +7,11 @@ import { DELIVERY_PLACES } from '@/features/orders/constants/detail';
 import type { OrderEditForm } from '@/features/orders/schemas/orderEdit';
 import type { Order } from '@/features/orders/schemas/orders';
 import { formatPhone } from '@/utils/formatter';
-import { formatPhoneGroups, toTrPhoneDigits } from '@/features/orders/utils/phone';
+import {
+  formatPhoneGroups,
+  toTrPhoneDigits,
+  TR_PHONE_INPUT_MAX_LENGTH,
+} from '@/features/orders/utils/phone';
 import { Controller, useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -16,19 +20,18 @@ type OrderEditCustomerTabProps = {
   order: Order;
 };
 
-// "555 123 45 67" biçiminde yazılır: boşluklar dahil en fazla 13 karakter
-const PHONE_INPUT_MAX_LENGTH = 13;
 // TC 11, vergi no 10 hane
 const TAX_NUMBER_MAX_LENGTH = 11;
 
-// Alanlar okuma halindeki gibi yan yana (etiket solda); adres ve teslimat yeri alt alta
+// Alanlar okuma halindeki gibi yan yana (etiket solda); yalnızca adres alt alta
 export default function OrderEditCustomerTab({ order }: OrderEditCustomerTabProps) {
   const { t } = useTranslation();
   const { control } = useFormContext<OrderEditForm>();
   const translateError = (message: string | undefined) => (message ? t(message) : undefined);
   const placeOptions = DELIVERY_PLACES.map((place) => ({
     value: place,
-    label: t(`orders.detail.deliveryPlaces.${place}`),
+    // Yan yana düzende iki seçenek dar alana sığsın diye kısa adlar
+    label: t(`orders.detail.deliveryPlacesShort.${place}`),
   }));
 
   return (
@@ -45,6 +48,7 @@ export default function OrderEditCustomerTab({ order }: OrderEditCustomerTabProp
               onBlur={onBlur}
               autoCapitalize="words"
               error={translateError(error?.message)}
+              required
               layout="inline"
             />
           )}
@@ -60,6 +64,7 @@ export default function OrderEditCustomerTab({ order }: OrderEditCustomerTabProp
               onBlur={onBlur}
               autoCapitalize="words"
               error={translateError(error?.message)}
+              required
               layout="inline"
             />
           )}
@@ -88,16 +93,16 @@ export default function OrderEditCustomerTab({ order }: OrderEditCustomerTabProp
           )}
         />
         <OrderEditAddressFields prefix="delivery" />
-        {/* Seçenekler yan yana sığmadığı için alt alta */}
         <Controller
           control={control}
           name="delivery.place"
           render={({ field: { value, onChange } }) => (
-            <ChoiceChips
+            <SegmentedField
               label={t('orders.detail.deliveryPlace')}
               value={value}
               options={placeOptions}
               onChange={onChange}
+              layout="inline"
             />
           )}
         />
@@ -115,6 +120,7 @@ export default function OrderEditCustomerTab({ order }: OrderEditCustomerTabProp
               onBlur={onBlur}
               autoCapitalize="words"
               error={translateError(error?.message)}
+              required
               layout="inline"
             />
           )}
@@ -170,8 +176,9 @@ export default function OrderEditCustomerTab({ order }: OrderEditCustomerTabProp
               placeholder={t('orders.editMode.phonePlaceholder')}
               keyboardType="phone-pad"
               autoComplete="tel"
-              maxLength={PHONE_INPUT_MAX_LENGTH}
+              maxLength={TR_PHONE_INPUT_MAX_LENGTH}
               error={translateError(error?.message)}
+              required
               layout="inline"
             />
           )}

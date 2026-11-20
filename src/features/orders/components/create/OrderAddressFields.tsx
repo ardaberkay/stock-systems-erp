@@ -3,11 +3,9 @@ import PhoneField from '@/features/orders/components/PhoneField';
 import PickerField, { type PickerOption } from '@/features/picker/components/PickerField';
 import TextField from '@/components/ui/form/TextField';
 import type { OrderCreateFormInput } from '@/features/orders/schemas/orderCreate';
-import { SPACING } from '@/theme/spacing';
 import { useMemo } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
 
 type OrderAddressFieldsProps = {
   // Teslimat ve fatura aynı alanları kullanır
@@ -42,40 +40,39 @@ export default function OrderAddressFields({ prefix }: OrderAddressFieldsProps) 
 
   return (
     <>
-      <View style={styles.row}>
-        <View style={styles.half}>
-          <Controller
-            control={control}
-            name={`${prefix}.firstName`}
-            render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
-              <TextField
-                label={t('orders.create.customer.firstName')}
-                value={value ?? ''}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                autoCapitalize="words"
-                error={translateError(error?.message)}
-              />
-            )}
+      {/* Ad ve soyad ayrı satırlarda: yan yana düzende ikisi tek satıra sığmaz */}
+      <Controller
+        control={control}
+        name={`${prefix}.firstName`}
+        render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
+          <TextField
+            label={t('orders.create.customer.firstName')}
+            value={value ?? ''}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            autoCapitalize="words"
+            error={translateError(error?.message)}
+            required
+            layout="inline"
           />
-        </View>
-        <View style={styles.half}>
-          <Controller
-            control={control}
-            name={`${prefix}.lastName`}
-            render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
-              <TextField
-                label={t('orders.create.customer.lastName')}
-                value={value ?? ''}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                autoCapitalize="words"
-                error={translateError(error?.message)}
-              />
-            )}
+        )}
+      />
+      <Controller
+        control={control}
+        name={`${prefix}.lastName`}
+        render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
+          <TextField
+            label={t('orders.create.customer.lastName')}
+            value={value ?? ''}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            autoCapitalize="words"
+            error={translateError(error?.message)}
+            required
+            layout="inline"
           />
-        </View>
-      </View>
+        )}
+      />
 
       <Controller
         control={control}
@@ -89,6 +86,8 @@ export default function OrderAddressFields({ prefix }: OrderAddressFieldsProps) 
             onChangeText={onChange}
             onBlur={onBlur}
             error={translateError(error?.message)}
+            required
+            layout="inline"
           />
         )}
       />
@@ -114,6 +113,8 @@ export default function OrderAddressFields({ prefix }: OrderAddressFieldsProps) 
               setValue(`${prefix}.districtName`, '');
             }}
             error={translateError(error?.message)}
+            required
+            layout="inline"
           />
         )}
       />
@@ -137,6 +138,8 @@ export default function OrderAddressFields({ prefix }: OrderAddressFieldsProps) 
             onRetry={() => void districtsQuery.refetch()}
             onChange={(option) => onChange(option.label)}
             error={translateError(error?.message)}
+            required
+            layout="inline"
           />
         )}
       />
@@ -151,21 +154,13 @@ export default function OrderAddressFields({ prefix }: OrderAddressFieldsProps) 
             onChangeText={onChange}
             onBlur={onBlur}
             multiline
+            minLines={2}
             autoCapitalize="sentences"
             error={translateError(error?.message)}
+            required
           />
         )}
       />
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-  },
-  half: {
-    flex: 1,
-  },
-});

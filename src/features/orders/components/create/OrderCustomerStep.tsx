@@ -29,8 +29,8 @@ export default function OrderCustomerStep() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
-              hint={t('orders.create.customer.emailHint')}
               error={error?.message ? t(error.message) : undefined}
+              layout="inline"
             />
           )}
         />
@@ -60,6 +60,7 @@ export default function OrderCustomerStep() {
                   onChangeText={onChange}
                   onBlur={onBlur}
                   keyboardType="number-pad"
+                  layout="inline"
                 />
               )}
             />
@@ -73,6 +74,7 @@ export default function OrderCustomerStep() {
                   onChangeText={onChange}
                   onBlur={onBlur}
                   autoCapitalize="words"
+                  layout="inline"
                 />
               )}
             />

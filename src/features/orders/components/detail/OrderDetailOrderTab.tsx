@@ -6,13 +6,18 @@ import OrderItemRow from '@/features/orders/components/detail/OrderItemRow';
 import OrderTimeline from '@/features/orders/components/detail/OrderTimeline';
 import type { OrderPartner } from '@/features/orders/hooks/useOrderLookups';
 import type { Order } from '@/features/orders/schemas/orders';
-import { getOrderTimeline } from '@/features/orders/utils/orderDetail';
+import { getFullName, getOrderTimeline } from '@/features/orders/utils/orderDetail';
 import type { Product } from '@/features/products/schemas/products';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useLocale } from '@/hooks/useLocale';
 import type { AppColors } from '@/theme/colors';
 import { SPACING } from '@/theme/spacing';
-import { formatMoney, formatNumber } from '@/utils/formatter';
+import {
+  formatMessageAmount,
+  formatMessageDateTime,
+  formatMoney,
+  formatNumber,
+} from '@/utils/formatter';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
@@ -104,7 +109,12 @@ export default function OrderDetailOrderTab({
               <ContactActions
                 phone={partner.phone}
                 whatsappLabel={t('orders.whatsappPartner', { name: partner.name })}
-                whatsappMessage={t('orders.whatsappPartnerMessage', { id: order.id })}
+                whatsappMessage={t('orders.whatsappPartnerMessage', {
+                  partner: partner.name,
+                  date: formatMessageDateTime(order.orderDateTime),
+                  amount: formatMessageAmount(order.orderAmount),
+                  customer: getFullName(order.deliveryFirstName, order.deliveryLastName),
+                })}
               />
             ) : null
           }
