@@ -23,11 +23,18 @@ type SegmentedControlProps<T extends string> = {
   // Renkli bir başlığın içindeyse o zeminin rengi: çubuk saydam beyaz, seçili parça beyaz,
   // seçili yazı bu renkte olur (ör. ürün detayının mor başlığı)
   onColor?: string;
+  // Çubuğun toplam yüksekliği arama çubuğuyla aynı olur (sabit başlıkta yan yana sayfalar
+  // aynı yükseklikte dursun diye); dokunma alanı yine en az MIN_TOUCH_SIZE kalır
+  compact?: boolean;
 };
 
 const TRACK_PADDING = SPACING.xxs;
 const TRACK_BORDER_WIDTH = 1;
 const SLIDE_DURATION_MS = 200;
+// Kısa çubukta parça, çubuğun iç boşluğu ve kenarlığı kadar kısalır; aynı miktar dokunma
+// alanına geri eklenir
+const COMPACT_INSET = TRACK_PADDING + TRACK_BORDER_WIDTH;
+const COMPACT_HIT_SLOP = { top: COMPACT_INSET, bottom: COMPACT_INSET };
 
 // Her zaman tek seçeneğin seçili olduğu bölüm geçişi; parçalar genişliği eşit paylaşır
 export default function SegmentedControl<T extends string>({
@@ -36,9 +43,13 @@ export default function SegmentedControl<T extends string>({
   onChange,
   markedHint,
   onColor,
+  compact = false,
 }: SegmentedControlProps<T>) {
   const { colors } = useAppTheme();
-  const styles = useMemo(() => createStyles(colors, onColor), [colors, onColor]);
+  const styles = useMemo(
+    () => createStyles(colors, onColor, compact),
+    [colors, onColor, compact],
+  );
   const [trackWidth, setTrackWidth] = useState(0);
   const translateX = useSharedValue(0);
 
@@ -93,6 +104,7 @@ export default function SegmentedControl<T extends string>({
             accessibilityLabel={option.label}
             accessibilityHint={option.marked ? markedHint : undefined}
             onPress={() => onChange(option.value)}
+            hitSlop={compact ? COMPACT_HIT_SLOP : undefined}
             style={styles.segment}
           >
             <View style={styles.labelRow}>
@@ -108,7 +120,7 @@ export default function SegmentedControl<T extends string>({
   );
 }
 
-function createStyles(colors: AppColors, onColor?: string) {
+function createStyles(colors: AppColors, onColor: string | undefined, compact: boolean) {
   // Renkli zeminde kenarlık da aynı saydam beyazdır; kenarda hafif bir çizgi gibi görünür
   const palette = onColor
     ? {
@@ -145,7 +157,7 @@ function createStyles(colors: AppColors, onColor?: string) {
     },
     segment: {
       flex: 1,
-      minHeight: MIN_TOUCH_SIZE,
+      minHeight: compact ? MIN_TOUCH_SIZE - COMPACT_INSET * 2 : MIN_TOUCH_SIZE,
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: SPACING.sm,

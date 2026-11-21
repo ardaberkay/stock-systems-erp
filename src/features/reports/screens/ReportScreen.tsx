@@ -1,5 +1,5 @@
 import ReportCard from '@/features/reports/components/ReportCard';
-import FilterChip from '@/components/ui/FilterChip';
+import SegmentedControl from '@/components/ui/SegmentedControl';
 import StateMessage from '@/components/ui/StateMessage';
 import {
   REPORT_CATEGORIES,
@@ -46,9 +46,10 @@ export default function ReportScreen() {
   } = useReportData(REPORT_DEFAULT_SELECTION);
   const bottomSpace = useTabBarInset() + SPACING.xl;
   const [category, setCategory] = useState<ReportCategory>('all');
-  const visibleIds = REPORT_IDS.filter(
-    (id) => category === 'all' || REPORT_CATEGORY_BY_ID[id] === category,
-  );
+  const categoryOptions = REPORT_CATEGORIES.map((item) => ({
+    value: item,
+    label: t(`reports.categories.${item}`),
+  }));
 
   useTabPressScrollToTop(scrollRef);
 
@@ -71,22 +72,14 @@ export default function ReportScreen() {
         </Text>
       </View>
 
-      <View style={styles.chipBar}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          accessibilityRole="radiogroup"
-          contentContainerStyle={styles.chips}
-        >
-          {REPORT_CATEGORIES.map((item) => (
-            <FilterChip
-              key={item}
-              label={t(`reports.categories.${item}`)}
-              active={item === category}
-              onPress={() => setCategory(item)}
-            />
-          ))}
-        </ScrollView>
+      {/* Kategoriler tek parça bölüm geçişidir; parçalar eşit genişlikte */}
+      <View style={styles.categoryBar}>
+        <SegmentedControl
+          options={categoryOptions}
+          value={category}
+          onChange={setCategory}
+          compact
+        />
       </View>
 
       <ScrollView
@@ -106,16 +99,26 @@ export default function ReportScreen() {
         {error && !stats ? (
           <StateMessage message={t(getErrorMessageKey(error))} onRetry={refresh} />
         ) : (
-          visibleIds.map((id) => (
-            <ReportCard
+          // Kartlar bir kez kurulur, kategori dışındakiler yalnızca gizlenir. Silinip yeniden
+          // kurulsalar her geçişte grafikler baştan çizilir ve açılış animasyonu tekrar oynar.
+          REPORT_IDS.map((id) => (
+            <View
               key={id}
-              id={id}
-              stats={stats}
-              productsById={productsById}
-              paymentNames={paymentNames}
-              isPaymentNamesLoading={isPaymentNamesLoading}
-              partnerNames={partnerNames}
-            />
+              style={
+                category !== 'all' && REPORT_CATEGORY_BY_ID[id] !== category
+                  ? styles.hidden
+                  : undefined
+              }
+            >
+              <ReportCard
+                id={id}
+                stats={stats}
+                productsById={productsById}
+                paymentNames={paymentNames}
+                isPaymentNamesLoading={isPaymentNamesLoading}
+                partnerNames={partnerNames}
+              />
+            </View>
           ))
         )}
       </ScrollView>
@@ -130,13 +133,13 @@ function createStyles(colors: AppColors) {
       flex: 1,
       backgroundColor: colors.background,
     },
+    // Sipariş ve ürün sayfalarının app bar'ıyla aynı yükseklikte
     topBar: {
-      minHeight: MIN_TOUCH_SIZE,
+      minHeight: 54,
       flexDirection: 'row',
       alignItems: 'center',
       gap: SPACING.sm,
       paddingHorizontal: SPACING.xl,
-      paddingVertical: SPACING.xs,
     },
     iconButton: {
       width: MIN_TOUCH_SIZE,
@@ -153,11 +156,7 @@ function createStyles(colors: AppColors) {
       ...typography.caption,
       color: colors.textSecondary,
     },
-    chipBar: {
-      flexGrow: 0,
-    },
-    chips: {
-      gap: SPACING.sm,
+    categoryBar: {
       paddingHorizontal: SPACING.md,
       paddingBottom: SPACING.sm,
     },
@@ -166,6 +165,9 @@ function createStyles(colors: AppColors) {
       gap: SPACING.md,
       paddingHorizontal: SPACING.md,
       paddingTop: SPACING.xs,
+    },
+    hidden: {
+      display: 'none',
     },
   });
 }

@@ -1002,8 +1002,8 @@
       "all": "All",
       "sales": "Sales",
       "orders": "Orders",
-      "products": "Products",
-      "customers": "Customers"
+      "products": "Items",
+      "customers": "Buyers"
     },
     "customers": {
       "title": "Top Customers",
