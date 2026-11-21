@@ -10,6 +10,7 @@ import {
   type ProductSort,
 } from '@/features/products/constants/products';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useRevealOpenField } from '@/hooks/useRevealOpenField';
 import { useProductFilterStore } from '@/features/products/stores/productFilterStore';
 import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
@@ -37,6 +38,7 @@ export default function ProductFilterModal() {
   const setFilters = useProductFilterStore((state) => state.setFilters);
   const [draft, setDraft] = useState<ProductFilters>(filters);
   const [openSelect, setOpenSelect] = useState<SelectKey | null>(null);
+  const { scrollProps, onGroupLayout, onFieldLayout } = useRevealOpenField(openSelect);
   const { data: products } = useProducts();
 
   const catalog = useMemo(() => getProductFilterOptions(products ?? []), [products]);
@@ -71,21 +73,27 @@ export default function ProductFilterModal() {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom + SPACING.lg }]}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{t('stock.filterTitle')}</Text>
+    // iOS'ta react-native-screens, sheet'te ilk sıradaki ScrollView'u sheet boyuna uzatır ve
+    // Uygula butonunun arkasına taşırır. Kapsayıcı düzleştirilmez ve ilk çocuk başlıktır;
+    // böylece ScrollView bulunmaz, boyunu yerleşimden alır.
+    <View
+      collapsable={false}
+      style={[styles.container, { paddingBottom: insets.bottom + SPACING.lg }]}
+    >
+      <View style={styles.header}>
+        <Text style={styles.title}>{t('stock.filterTitle')}</Text>
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('stock.resetFilters')}
-            onPress={() => setDraft(DEFAULT_PRODUCT_FILTERS)}
-            style={styles.resetButton}
-          >
-            <Text style={styles.resetText}>{t('stock.resetFilters')}</Text>
-          </Pressable>
-        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('stock.resetFilters')}
+          onPress={() => setDraft(DEFAULT_PRODUCT_FILTERS)}
+          style={styles.resetButton}
+        >
+          <Text style={styles.resetText}>{t('stock.resetFilters')}</Text>
+        </Pressable>
+      </View>
 
+      <ScrollView {...scrollProps} style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('stock.stockTitle')}</Text>
           <View accessibilityRole="radiogroup" style={styles.chips}>
@@ -114,34 +122,37 @@ export default function ProductFilterModal() {
           </View>
         </View>
 
-        <View>
-          <SelectField
-            label={t('stock.sortTitle')}
-            value={draft.sort}
-            options={PRODUCT_SORTS.map((value) => ({ value, label: t(`stock.sort.${value}`) }))}
-            isOpen={openSelect === 'sort'}
-            onToggle={() => toggleSelect('sort')}
-            onSelect={(value) => {
-              const sort = PRODUCT_SORTS.find((item): item is ProductSort => item === value);
-              updateDraft({ sort: sort ?? DEFAULT_PRODUCT_FILTERS.sort });
-              setOpenSelect(null);
-            }}
-          />
+        <View onLayout={onGroupLayout}>
+          <View onLayout={onFieldLayout('sort')}>
+            <SelectField
+              label={t('stock.sortTitle')}
+              value={draft.sort}
+              options={PRODUCT_SORTS.map((value) => ({ value, label: t(`stock.sort.${value}`) }))}
+              isOpen={openSelect === 'sort'}
+              onToggle={() => toggleSelect('sort')}
+              onSelect={(value) => {
+                const sort = PRODUCT_SORTS.find((item): item is ProductSort => item === value);
+                updateDraft({ sort: sort ?? DEFAULT_PRODUCT_FILTERS.sort });
+                setOpenSelect(null);
+              }}
+            />
+          </View>
 
           {nameSelects.map((select) =>
             select.values.length > 0 ? (
-              <SelectField
-                key={select.key}
-                label={select.label}
-                value={select.selected ?? ALL_VALUE}
-                options={toNameOptions(select.values)}
-                isOpen={openSelect === select.key}
-                onToggle={() => toggleSelect(select.key)}
-                onSelect={(value) => {
-                  updateDraft({ [select.key]: value === ALL_VALUE ? null : value });
-                  setOpenSelect(null);
-                }}
-              />
+              <View key={select.key} onLayout={onFieldLayout(select.key)}>
+                <SelectField
+                  label={select.label}
+                  value={select.selected ?? ALL_VALUE}
+                  options={toNameOptions(select.values)}
+                  isOpen={openSelect === select.key}
+                  onToggle={() => toggleSelect(select.key)}
+                  onSelect={(value) => {
+                    updateDraft({ [select.key]: value === ALL_VALUE ? null : value });
+                    setOpenSelect(null);
+                  }}
+                />
+              </View>
             ) : null,
           )}
         </View>
@@ -161,28 +172,24 @@ export default function ProductFilterModal() {
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
-    // Kenar boşluğu kaydırılan içerikte; ScrollView taşanı kestiği için başlık çizgisi
-    // ancak böyle kenardan kenara uzanır
     container: {
       flex: 1,
-      gap: SPACING.md,
     },
     scroll: {
       flex: 1,
     },
-    // Alttaki boşluk Uygula butonu kadar: açılan son seçenekler butonun altında kalmasın
     content: {
-      paddingTop: SPACING.xxl,
+      paddingTop: SPACING.lg,
       paddingHorizontal: SPACING.xl,
-      paddingBottom: MIN_TOUCH_SIZE + SPACING.xs + SPACING.md,
+      paddingBottom: SPACING.md,
       gap: SPACING.lg,
     },
-    // Başlık satırı içerikten kenardan kenara bir çizgiyle ayrılır
+    // Başlık sabit durur, içerikten kenardan kenara bir çizgiyle ayrılır
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginHorizontal: -SPACING.xl,
+      paddingTop: SPACING.xxl,
       paddingHorizontal: SPACING.xl,
       paddingBottom: SPACING.md,
       borderBottomWidth: 1,

@@ -10,6 +10,7 @@ import {
 import { getOrderStatusDisplay } from '@/features/orders/constants/status';
 import { getCargoCompanyName } from '@/features/orders/utils/cargo';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useRevealOpenField } from '@/hooks/useRevealOpenField';
 import { useOrderFilterStore } from '@/features/orders/orderFilterStore';
 import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
@@ -42,6 +43,7 @@ export default function OrderFilterModal() {
   const setFilters = useOrderFilterStore((state) => state.setFilters);
   const [draft, setDraft] = useState<OrderFilters>(filters);
   const [openSelect, setOpenSelect] = useState<SelectKey | null>(null);
+  const { scrollProps, onGroupLayout, onFieldLayout } = useRevealOpenField(openSelect);
   const { data: customStatuses } = useOrderCustomStatuses();
   const { data: paymentTypes } = useOrderPaymentTypes();
   const { data: cargoCompanies } = useCargoCompanies();
@@ -101,55 +103,64 @@ export default function OrderFilterModal() {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom + SPACING.lg }]}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{t('orders.filterTitle')}</Text>
+    // iOS'ta react-native-screens, sheet'te ilk sıradaki ScrollView'u sheet boyuna uzatır ve
+    // Uygula butonunun arkasına taşırır. Kapsayıcı düzleştirilmez ve ilk çocuk başlıktır;
+    // böylece ScrollView bulunmaz, boyunu yerleşimden alır.
+    <View
+      collapsable={false}
+      style={[styles.container, { paddingBottom: insets.bottom + SPACING.lg }]}
+    >
+      <View style={styles.header}>
+        <Text style={styles.title}>{t('orders.filterTitle')}</Text>
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('orders.resetFilters')}
-            onPress={() => setDraft(DEFAULT_ORDER_FILTERS)}
-            style={styles.resetButton}
-          >
-            <Text style={styles.resetText}>{t('orders.resetFilters')}</Text>
-          </Pressable>
-        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('orders.resetFilters')}
+          onPress={() => setDraft(DEFAULT_ORDER_FILTERS)}
+          style={styles.resetButton}
+        >
+          <Text style={styles.resetText}>{t('orders.resetFilters')}</Text>
+        </Pressable>
+      </View>
 
-        <View>
+      <ScrollView {...scrollProps} style={styles.scroll} contentContainerStyle={styles.content}>
+        <View onLayout={onGroupLayout}>
           {/* Çoklu seçim: seçenek işaretlenince alan açık kalır */}
-          <SelectField
-            label={t('orders.statusTitle')}
-            value={draft.statusIds.map(String)}
-            options={ORDER_STATUS_FILTERS.map((statusId) => ({
-              value: String(statusId),
-              label: t(`orders.status.${getOrderStatusDisplay(statusId).key}`),
-            }))}
-            isOpen={openSelect === 'status'}
-            onToggle={() => setOpenSelect((current) => (current === 'status' ? null : 'status'))}
-            onSelect={(value) => toggleStatus(Number(value))}
-            emptyLabel={t('orders.allOption')}
-          />
+          <View onLayout={onFieldLayout('status')}>
+            <SelectField
+              label={t('orders.statusTitle')}
+              value={draft.statusIds.map(String)}
+              options={ORDER_STATUS_FILTERS.map((statusId) => ({
+                value: String(statusId),
+                label: t(`orders.status.${getOrderStatusDisplay(statusId).key}`),
+              }))}
+              isOpen={openSelect === 'status'}
+              onToggle={() => setOpenSelect((current) => (current === 'status' ? null : 'status'))}
+              onSelect={(value) => toggleStatus(Number(value))}
+              emptyLabel={t('orders.allOption')}
+            />
+          </View>
 
           {selects.map((select) =>
             select.items.length > 0 ? (
-              <SelectField
-                key={select.key}
-                label={select.label}
-                value={String(draft[select.key] ?? ALL_VALUE)}
-                options={toOptions([...select.items])}
-                isOpen={openSelect === select.key}
-                onToggle={() =>
-                  setOpenSelect((current) => (current === select.key ? null : select.key))
-                }
-                onSelect={(value) => {
-                  setDraft((current) => ({
-                    ...current,
-                    [select.key]: value === ALL_VALUE ? null : Number(value),
-                  }));
-                  setOpenSelect(null);
-                }}
-              />
+              <View key={select.key} onLayout={onFieldLayout(select.key)}>
+                <SelectField
+                  label={select.label}
+                  value={String(draft[select.key] ?? ALL_VALUE)}
+                  options={toOptions([...select.items])}
+                  isOpen={openSelect === select.key}
+                  onToggle={() =>
+                    setOpenSelect((current) => (current === select.key ? null : select.key))
+                  }
+                  onSelect={(value) => {
+                    setDraft((current) => ({
+                      ...current,
+                      [select.key]: value === ALL_VALUE ? null : Number(value),
+                    }));
+                    setOpenSelect(null);
+                  }}
+                />
+              </View>
             ) : null,
           )}
         </View>
@@ -169,28 +180,24 @@ export default function OrderFilterModal() {
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
-    // Kenar boşluğu kaydırılan içerikte; ScrollView taşanı kestiği için başlık çizgisi
-    // ancak böyle kenardan kenara uzanır
     container: {
       flex: 1,
-      gap: SPACING.md,
     },
     scroll: {
       flex: 1,
     },
-    // Alttaki boşluk Uygula butonu kadar: açılan son seçenekler butonun altında kalmasın
     content: {
-      paddingTop: SPACING.xxl,
+      paddingTop: SPACING.lg,
       paddingHorizontal: SPACING.xl,
-      paddingBottom: MIN_TOUCH_SIZE + SPACING.xs + SPACING.md,
+      paddingBottom: SPACING.md,
       gap: SPACING.lg,
     },
-    // Başlık satırı içerikten kenardan kenara bir çizgiyle ayrılır
+    // Başlık sabit durur, içerikten kenardan kenara bir çizgiyle ayrılır
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginHorizontal: -SPACING.xl,
+      paddingTop: SPACING.xxl,
       paddingHorizontal: SPACING.xl,
       paddingBottom: SPACING.md,
       borderBottomWidth: 1,
