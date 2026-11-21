@@ -1,4 +1,4 @@
-import SegmentedControl from '@/components/ui/SegmentedControl';
+import SelectField from '@/components/ui/SelectField';
 import Text from '@/components/ui/Text';
 import { useAffiliateFilterStore } from '@/features/affiliates/affiliateFilterStore';
 import {
@@ -6,8 +6,9 @@ import {
   AFFILIATE_STATUS_FILTERS,
   DEFAULT_AFFILIATE_FILTERS,
   type AffiliateFilters,
+  type AffiliateSort,
+  type AffiliateStatusFilter,
 } from '@/features/affiliates/affiliateList';
-import ChoiceOptionRow from '@/features/picker/components/ChoiceOptionRow';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
@@ -18,7 +19,10 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Seçimler taslakta tutulur; liste yalnızca "Uygula"da değişir.
+type SelectKey = 'sort' | 'status';
+
+// Seçimler taslakta tutulur; liste yalnızca "Uygula"da değişir. Ürün ve sipariş filtresiyle
+// aynı düzendedir; içerik kısa olduğu için sheet içerik kadar açılır, ScrollView gerekmez.
 export default function AffiliateFilterModal() {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -27,11 +31,27 @@ export default function AffiliateFilterModal() {
   const filters = useAffiliateFilterStore((state) => state.filters);
   const setFilters = useAffiliateFilterStore((state) => state.setFilters);
   const [draft, setDraft] = useState<AffiliateFilters>(filters);
+  const [openSelect, setOpenSelect] = useState<SelectKey | null>(null);
 
-  const statusOptions = AFFILIATE_STATUS_FILTERS.map((value) => ({
-    value,
-    label: t(`affiliates.status.${value}`),
-  }));
+  const toggleSelect = (key: SelectKey) => {
+    setOpenSelect((current) => (current === key ? null : key));
+  };
+
+  // Seçiliyse çıkarır, değilse ekler; alan açık kalır ki art arda seçilebilsin
+  const toggleStatus = (value: string) => {
+    const status = AFFILIATE_STATUS_FILTERS.find(
+      (item): item is AffiliateStatusFilter => item === value,
+    );
+    if (!status) {
+      return;
+    }
+    setDraft((current) => ({
+      ...current,
+      status: current.status.includes(status)
+        ? current.status.filter((item) => item !== status)
+        : [...current.status, status],
+    }));
+  };
 
   const apply = () => {
     setFilters(draft);
@@ -39,7 +59,7 @@ export default function AffiliateFilterModal() {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom + SPACING.lg }]}>
+    <View style={{ paddingBottom: insets.bottom + SPACING.lg }}>
       <View style={styles.header}>
         <Text style={styles.title} accessibilityRole="header">
           {t('affiliates.filterTitle')}
@@ -55,36 +75,43 @@ export default function AffiliateFilterModal() {
         </Pressable>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('affiliates.statusTitle')}</Text>
-        <SegmentedControl
-          options={statusOptions}
-          value={draft.status}
-          onChange={(status) => setDraft((current) => ({ ...current, status }))}
+      <View style={styles.content}>
+        <SelectField
+          label={t('affiliates.sortTitle')}
+          value={draft.sort}
+          options={AFFILIATE_SORTS.map((value) => ({
+            value,
+            label: t(`affiliates.sort.${value}`),
+          }))}
+          isOpen={openSelect === 'sort'}
+          onToggle={() => toggleSelect('sort')}
+          onSelect={(value) => {
+            const sort = AFFILIATE_SORTS.find((item): item is AffiliateSort => item === value);
+            setDraft((current) => ({ ...current, sort: sort ?? DEFAULT_AFFILIATE_FILTERS.sort }));
+            setOpenSelect(null);
+          }}
         />
-      </View>
 
-      <View style={styles.section} accessibilityRole="radiogroup">
-        <Text style={styles.sectionTitle}>{t('affiliates.sortTitle')}</Text>
-        <View style={styles.sortOptions}>
-          {AFFILIATE_SORTS.map((sort) => (
-            <ChoiceOptionRow
-              key={sort}
-              value={sort}
-              label={t(`affiliates.sort.${sort}`)}
-              selected={draft.sort === sort}
-              colors={colors}
-              onSelect={() => setDraft((current) => ({ ...current, sort }))}
-            />
-          ))}
-        </View>
+        {/* Çoklu seçim: hiçbiri işaretli değilse "Tümü" görünür ve filtre uygulanmaz */}
+        <SelectField
+          label={t('affiliates.statusTitle')}
+          value={draft.status}
+          options={AFFILIATE_STATUS_FILTERS.map((value) => ({
+            value,
+            label: t(`affiliates.status.${value}`),
+          }))}
+          isOpen={openSelect === 'status'}
+          onToggle={() => toggleSelect('status')}
+          onSelect={toggleStatus}
+          emptyLabel={t('affiliates.status.all')}
+        />
       </View>
 
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('filters.apply')}
         onPress={apply}
-        style={({ pressed }) => [styles.applyButton, pressed && styles.applyPressed]}
+        style={styles.applyButton}
       >
         <Text style={styles.applyText}>{t('filters.apply')}</Text>
       </Pressable>
@@ -94,17 +121,17 @@ export default function AffiliateFilterModal() {
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
-    container: {
-      gap: SPACING.lg,
-      paddingTop: SPACING.xxl,
+    content: {
+      paddingTop: SPACING.lg,
       paddingHorizontal: SPACING.xl,
+      paddingBottom: SPACING.md,
     },
-    // Başlık satırı içerikten kenardan kenara bir çizgiyle ayrılır
+    // Başlık sabit durur, içerikten kenardan kenara bir çizgiyle ayrılır
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginHorizontal: -SPACING.xl,
+      paddingTop: SPACING.xxl,
       paddingHorizontal: SPACING.xl,
       paddingBottom: SPACING.md,
       borderBottomWidth: 1,
@@ -123,26 +150,13 @@ function createStyles(colors: AppColors) {
       color: colors.orange,
       fontFamily: FONT_FAMILY.semiBold,
     },
-    section: {
-      gap: SPACING.sm,
-    },
-    sectionTitle: {
-      ...typography.label,
-      color: colors.textSecondary,
-    },
-    // Satırın kendi iç boşluğu (md) kadar dışa taşar: yazılar bölüm başlığıyla aynı hizada durur
-    sortOptions: {
-      marginHorizontal: -SPACING.md,
-    },
     applyButton: {
+      marginHorizontal: SPACING.xl,
       minHeight: MIN_TOUCH_SIZE + SPACING.xs,
       alignItems: 'center',
       justifyContent: 'center',
       borderRadius: RADIUS.md,
       backgroundColor: colors.buttonPrimary,
-    },
-    applyPressed: {
-      opacity: 0.85,
     },
     applyText: {
       ...typography.body,

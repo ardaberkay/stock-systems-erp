@@ -3,24 +3,23 @@ import { normalizeText } from '@/features/products/utils/productList';
 
 export const AFFILIATE_STATUS = { passive: 0, active: 1 } as const;
 
-export const AFFILIATE_STATUS_FILTERS = ['all', 'active', 'passive'] as const;
+// "Tümü" seçenek değildir: hiçbiri seçili değilse filtre uygulanmaz.
+export const AFFILIATE_STATUS_FILTERS = ['active', 'passive'] as const;
 export type AffiliateStatusFilter = (typeof AFFILIATE_STATUS_FILTERS)[number];
 
 export const AFFILIATE_SORTS = ['newest', 'oldest', 'nameAsc', 'nameDesc'] as const;
 export type AffiliateSort = (typeof AFFILIATE_SORTS)[number];
 
+// Durum çoklu seçimdir; boş dizi "Tümü" demektir.
 export type AffiliateFilters = {
-  status: AffiliateStatusFilter;
+  status: AffiliateStatusFilter[];
   sort: AffiliateSort;
 };
 
-export const DEFAULT_AFFILIATE_FILTERS: AffiliateFilters = { status: 'all', sort: 'newest' };
+export const DEFAULT_AFFILIATE_FILTERS: AffiliateFilters = { status: [], sort: 'newest' };
 
 export function isDefaultAffiliateFilters(filters: AffiliateFilters): boolean {
-  return (
-    filters.status === DEFAULT_AFFILIATE_FILTERS.status &&
-    filters.sort === DEFAULT_AFFILIATE_FILTERS.sort
-  );
+  return filters.status.length === 0 && filters.sort === DEFAULT_AFFILIATE_FILTERS.sort;
 }
 
 export function getAffiliateFullName(affiliate: Affiliate): string {
@@ -76,8 +75,6 @@ export function parseAffiliateCreateDay(createTime: string | null | undefined): 
 
 function matchesStatus(affiliate: Affiliate, filter: AffiliateStatusFilter): boolean {
   switch (filter) {
-    case 'all':
-      return true;
     case 'active':
       return isAffiliateActive(affiliate);
     case 'passive':
@@ -146,7 +143,8 @@ export function getVisibleAffiliates(
   return affiliates
     .filter(
       (affiliate) =>
-        matchesStatus(affiliate, filters.status) &&
+        (filters.status.length === 0 ||
+          filters.status.some((status) => matchesStatus(affiliate, status))) &&
         matchesQuery(affiliate, normalizedQuery, digits),
     )
     .sort(compareAffiliates(filters.sort));

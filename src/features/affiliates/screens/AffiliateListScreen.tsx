@@ -43,7 +43,7 @@ export default function AffiliateListScreen() {
   const { data, isPending, error, refetch } = useAffiliates();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isFilterActive = !isDefaultAffiliateFilters(filters);
-  const isFiltered = query.trim().length > 0 || filters.status !== 'all';
+  const isFiltered = query.trim().length > 0 || filters.status.length > 0;
 
   const affiliates = useMemo(
     () => getVisibleAffiliates(data ?? [], query, filters),
