@@ -25,7 +25,11 @@ export default function PeriodOption({ label, active, onPress, showChevron }: Pe
       accessibilityState={{ checked: active }}
       accessibilityLabel={label}
       onPress={onPress}
-      style={[styles.option, active && styles.optionActive]}
+      style={({ pressed }) => [
+        styles.option,
+        (active || pressed) && styles.optionHighlighted,
+        active && styles.optionActive,
+      ]}
     >
       <Text style={[styles.label, active && styles.labelActive]}>{label}</Text>
       {showChevron && <ChevronRight size={ICON_SIZE.md} color={colors.icon} />}
@@ -41,23 +45,26 @@ function createStyles(colors: AppColors) {
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: SPACING.md,
-      borderRadius: RADIUS.sm,
+      borderRadius: RADIUS.md,
       // Seçili olunca kenarlık rengi değişir; boyut zıplamasın diye her zaman 1px
       // ve seçili değilken arka planla aynı renkte (görünmez)
       borderWidth: 1,
       borderColor: colors.surface,
     },
+    // Kısa seçim listeleriyle (ChoiceOptionRow) aynı: gri zemin, ince çerçeve, kalın turuncu yazı
+    optionHighlighted: {
+      backgroundColor: colors.background,
+    },
     optionActive: {
-      borderColor: colors.orange,
-      backgroundColor: colors.orangeLight,
+      borderColor: colors.border,
     },
     label: {
       ...typography.body,
       color: colors.text,
     },
     labelActive: {
-      fontFamily: FONT_FAMILY.semiBold,
       color: colors.orange,
+      fontFamily: FONT_FAMILY.semiBold,
     },
   });
 }

@@ -161,22 +161,32 @@ export default function ProductFilterModal() {
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
+    // Kenar boşluğu kaydırılan içerikte; ScrollView taşanı kestiği için başlık çizgisi
+    // ancak böyle kenardan kenara uzanır
     container: {
       flex: 1,
       gap: SPACING.md,
-      paddingHorizontal: SPACING.xl,
     },
     scroll: {
       flex: 1,
     },
+    // Alttaki boşluk Uygula butonu kadar: açılan son seçenekler butonun altında kalmasın
     content: {
       paddingTop: SPACING.xxl,
+      paddingHorizontal: SPACING.xl,
+      paddingBottom: MIN_TOUCH_SIZE + SPACING.xs + SPACING.md,
       gap: SPACING.lg,
     },
+    // Başlık satırı içerikten kenardan kenara bir çizgiyle ayrılır
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      marginHorizontal: -SPACING.xl,
+      paddingHorizontal: SPACING.xl,
+      paddingBottom: SPACING.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.divider,
     },
     title: {
       ...typography.h3,
@@ -204,6 +214,7 @@ function createStyles(colors: AppColors) {
       gap: SPACING.xs,
     },
     applyButton: {
+      marginHorizontal: SPACING.xl,
       minHeight: MIN_TOUCH_SIZE + SPACING.xs,
       alignItems: 'center',
       justifyContent: 'center',

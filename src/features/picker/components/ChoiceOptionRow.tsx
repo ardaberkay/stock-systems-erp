@@ -24,7 +24,7 @@ type ChoiceOptionRowProps = {
 const DISABLED_OPACITY = 0.45;
 
 // Kısa listelerin (ödeme tipi, kargo, durum) satırı: çizgisiz sade satırlar. Seçili olanın
-// arkasında nötr gri zemin ve ince çerçeve durur; yazı rengi değişmez, yalnızca kalınlaşır.
+// arkasında nötr gri zemin ve ince çerçeve durur; yazı turuncu ve kalın olur.
 // Uzun listeler (il, ilçe, ülke) çizgili PickerOptionRow kullanır.
 function ChoiceOptionRow({
   value,
@@ -100,6 +100,7 @@ function createStyles(colors: AppColors) {
       color: colors.text,
     },
     labelSelected: {
+      color: colors.orange,
       fontFamily: FONT_FAMILY.semiBold,
     },
     disabled: {

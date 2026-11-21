@@ -68,9 +68,15 @@ function createStyles(colors: AppColors) {
       paddingTop: SPACING.xxl,
       gap: SPACING.md,
     },
+    // Yalnızca başlık olan sheet'lerde başlık içerikten kenardan kenara bir çizgiyle ayrılır
     title: {
       ...typography.h3,
       color: colors.text,
+      marginHorizontal: -SPACING.xl,
+      paddingHorizontal: SPACING.xl,
+      paddingBottom: SPACING.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.divider,
     },
     options: {
       gap: SPACING.xs,

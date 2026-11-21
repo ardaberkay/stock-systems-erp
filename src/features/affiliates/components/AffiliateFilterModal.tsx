@@ -99,10 +99,16 @@ function createStyles(colors: AppColors) {
       paddingTop: SPACING.xxl,
       paddingHorizontal: SPACING.xl,
     },
+    // Başlık satırı içerikten kenardan kenara bir çizgiyle ayrılır
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      marginHorizontal: -SPACING.xl,
+      paddingHorizontal: SPACING.xl,
+      paddingBottom: SPACING.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.divider,
     },
     title: {
       ...typography.h3,
