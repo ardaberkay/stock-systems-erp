@@ -68,18 +68,21 @@ export default function DashboardHeader({
 
   return (
     <View style={styles.revenueSection}>
-      {/* Solda dönem filtresi, sağda önceki döneme göre değişim */}
+      {/* Solda önceki döneme göre değişim, sağda dönem filtresi (raporlar ve siparişlerle aynı).
+          Rozet yokken boş yer tutulur; dönem filtresi sola kaymaz. */}
       <View style={styles.revenueHeader}>
-        {periodFilter}
-
-        {change && (
+        {change ? (
           <View
             accessible
             accessibilityLabel={`${t('dashboard.changeFromPrevious')}: ${changeLabel}`}
           >
             <Badge label={changeLabel} tone={isDown ? 'error' : 'success'} icon={ChangeIcon} />
           </View>
+        ) : (
+          <View />
         )}
+
+        {periodFilter}
       </View>
 
       {/* "Toplam satış" yazısı yok; ekran okuyucu için etiket olarak verilir */}

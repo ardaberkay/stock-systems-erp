@@ -195,11 +195,10 @@ export default function OrderScreen() {
     return t(isFiltering ? 'orders.resultCount' : 'orders.orderCount', { value });
   };
 
-  // Yüklenme, hata ve boş durumda da görünür; kullanıcı dönemi her zaman değiştirebilir
+  // Yüklenme, hata ve boş durumda da görünür; kullanıcı dönemi her zaman değiştirebilir.
+  // Raporlardaki gibi bilgi solda, dönem sağda.
   const listHeader = (
     <View style={styles.listHeader}>
-      <PeriodPill label={periodLabel} onPress={openPeriodSelect} compact />
-
       {isLoading ? (
         <Skeleton width={72} height={typography.caption.lineHeight} />
       ) : (
@@ -210,6 +209,8 @@ export default function OrderScreen() {
           </Text>
         </View>
       )}
+
+      <PeriodPill label={periodLabel} onPress={openPeriodSelect} compact />
     </View>
   );
 

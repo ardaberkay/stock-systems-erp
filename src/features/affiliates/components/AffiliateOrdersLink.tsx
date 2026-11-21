@@ -7,6 +7,7 @@ import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
 import { formatMoney, formatNumber } from '@/utils/formatter';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
+import ShoppingCart from 'lucide-react-native/icons/shopping-cart';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -51,7 +52,11 @@ export default function AffiliateOrdersLink({
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
       <View style={styles.texts}>
-        <Text style={styles.title}>{title}</Text>
+        {/* Siparişler sayfasındaki sayı satırının ikonu */}
+        <View style={styles.titleRow}>
+          <ShoppingCart size={ICON_SIZE.sm} color={colors.icon} />
+          <Text style={styles.title}>{title}</Text>
+        </View>
         {isLoading ? (
           <Skeleton width="70%" height={typography.caption.lineHeight} />
         ) : (
@@ -83,6 +88,11 @@ function createStyles(colors: AppColors) {
     texts: {
       flex: 1,
       gap: SPACING.xxs,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.xs,
     },
     title: {
       ...typography.label,
