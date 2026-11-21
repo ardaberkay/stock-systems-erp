@@ -16,10 +16,23 @@
       "supportsTablet": true,
       "requireFullScreen": true,
       "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true,
         "UISupportedInterfaceOrientations~ipad": [
           "UIInterfaceOrientationPortrait",
           "UIInterfaceOrientationPortraitUpsideDown"
         ]
+      }
+    },
+    "locales": {
+      "tr": {
+        "ios": {
+          "NSCameraUsageDescription": "Ürün etiketindeki barkodu okutup ürünü bulmak için kameranız kullanılır."
+        }
+      },
+      "en": {
+        "ios": {
+          "NSCameraUsageDescription": "Your camera is used to scan the barcode on a product label and find the product."
+        }
       }
     },
     "android": {
@@ -51,6 +64,7 @@
         "expo-camera",
         {
           "cameraPermission": "Ürün etiketindeki barkodu okutup ürünü bulmak için kameranız kullanılır.",
+          "microphonePermission": false,
           "recordAudioAndroid": false
         }
       ]
