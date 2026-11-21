@@ -1010,7 +1010,6 @@
     "customers": {
       "title": "Top Customers",
       "subtitle": "{{total}} customers · {{repeat}} repeat",
-      "sortHint": "Sorted by order count",
       "history": "Customer Orders"
     },
     "productFallback": "Product #{{id}}",
@@ -1035,7 +1034,6 @@
     },
     "profit": {
       "title": "Estimated Profit",
-      "subtitle": "{{revenue}} revenue · {{shipping}} shipping",
       "center": "Estimated profit",
       "revenue": "Total revenue",
       "cost": "Product cost",
@@ -1073,7 +1071,6 @@
     },
     "stock": {
       "title": "Stock",
-      "subtitle": "{{products}} · current stock",
       "units": "Total units",
       "value": "Stock value",
       "outOfStock": "Out of stock",
@@ -1097,7 +1094,7 @@
     "other": "Other",
     "unsold": {
       "title": "Unsold Products",
-      "subtitle": "In stock today, no sales in the selected period",
+      "subtitle": "No sales in the selected period",
       "products": "Products",
       "units": "Units in stock",
       "stockValue": "Stock value: {{value}}",

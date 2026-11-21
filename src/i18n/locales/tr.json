@@ -1010,7 +1010,6 @@
         "customers": {
             "title": "En Çok Alışveriş Yapanlar",
             "subtitle": "{{total}} müşteri · {{repeat}} tekrar eden",
-            "sortHint": "Sipariş adedine göre sıralı",
             "history": "Müşteri Siparişleri"
         },
         "productFallback": "Ürün #{{id}}",
@@ -1035,7 +1034,6 @@
         },
         "profit": {
             "title": "Tahmini Kâr",
-            "subtitle": "{{revenue}} ciro · {{shipping}} kargo",
             "center": "Tahmini kâr",
             "revenue": "Toplam ciro",
             "cost": "Ürün maliyeti",
@@ -1073,7 +1071,6 @@
         },
         "stock": {
             "title": "Stok",
-            "subtitle": "{{products}} · güncel stok",
             "units": "Toplam adet",
             "value": "Stok değeri",
             "outOfStock": "Tükenen",
@@ -1097,7 +1094,7 @@
         "other": "Diğer",
         "unsold": {
             "title": "Satılmayan Ürünler",
-            "subtitle": "Bugün stokta, seçili dönemde hiç satılmadı",
+            "subtitle": "Seçili dönemde hiç satılmadı",
             "products": "Ürün",
             "units": "Stoktaki adet",
             "stockValue": "Stok değeri: {{value}}",

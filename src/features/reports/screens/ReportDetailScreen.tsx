@@ -96,6 +96,7 @@ function ReportDetail({ id }: { id: ReportId }) {
   );
   const hasPeriod = !REPORT_SNAPSHOT_IDS.includes(id) && !isPattern;
   const shownError = (!stats ? error : null) ?? (isPattern && !pattern ? patternError : null);
+  const hasContent = Boolean(content && stats && !content.isEmpty);
 
   const selectStockGroup = (key: string) => {
     const group = REPORT_STOCK_GROUPS.find((item) => item === key);
@@ -168,13 +169,15 @@ function ReportDetail({ id }: { id: ReportId }) {
     [colors, locale, productsById, styles, expandedId, toggleProduct, lookups],
   );
 
-  // Alt başlık ve küçük not; gün deseni raporlarında grafiğin altına, listenin başına gelir
-  const summary = content?.subtitle ? (
-    <View>
-      <Text style={styles.subtitle}>{content.subtitle}</Text>
-      {content.hint && <Text style={styles.hint}>{content.hint}</Text>}
-    </View>
-  ) : null;
+  // Raporun özeti (alt başlık ve küçük not). Dönemli raporlarda dönem seçiciyle aynı satırda,
+  // gün deseni raporlarında grafiğin altında, stokta sayı kutularının üstünde durur.
+  const summary =
+    hasContent && content?.subtitle ? (
+      <View style={styles.summary}>
+        <Text style={styles.subtitle}>{content.subtitle}</Text>
+        {content.hint && <Text style={styles.hint}>{content.hint}</Text>}
+      </View>
+    ) : null;
 
   return (
     <>
@@ -208,8 +211,10 @@ function ReportDetail({ id }: { id: ReportId }) {
                 colors={colors}
               />
             )}
+            {/* Dönem seçici yüklenirken ve hata varken de görünür; kullanıcı dönemi değiştirebilir */}
             {hasPeriod && (
-              <View style={styles.period}>
+              <View style={styles.summaryRow}>
+                {summary ?? <View style={styles.summary} />}
                 <PeriodPill
                   label={periodLabel}
                   onPress={() =>
@@ -227,15 +232,15 @@ function ReportDetail({ id }: { id: ReportId }) {
             )}
             {content?.isEmpty && <StateMessage message={t('reports.empty')} />}
 
-            {content && stats && !content.isEmpty && (
+            {content && stats && hasContent && (
               <>
-                {!isPattern && summary}
                 <ReportChart
                   content={content}
                   grid={pattern?.busyGrid ?? []}
                   colors={colors}
                   interactive
                   onSelectRow={id === 'stock' ? selectStockGroup : undefined}
+                  kpiHeader={!hasPeriod && !isPattern ? summary : undefined}
                 />
                 {isPattern && summary}
                 {content.note && <Text style={styles.note}>{content.note}</Text>}
@@ -271,8 +276,14 @@ function createStyles(colors: AppColors) {
       gap: SPACING.md,
       paddingBottom: SPACING.md,
     },
-    period: {
-      alignItems: 'flex-start',
+    // Özet solda, dönem sağda; özet uzarsa alt satıra geçer, dönem yerinde kalır
+    summaryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.md,
+    },
+    summary: {
+      flex: 1,
     },
     subtitle: {
       ...typography.bodySmall,

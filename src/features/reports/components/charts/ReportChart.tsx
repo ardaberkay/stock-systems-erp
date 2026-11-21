@@ -24,6 +24,7 @@ import type { ReportContent } from '@/features/reports/hooks/useReportContent';
 import type { AppColors } from '@/theme/colors';
 import { SPACING } from '@/theme/spacing';
 import { router } from 'expo-router';
+import type { ReactNode } from 'react';
 import { Leaderboard, type LeaderboardEntry } from 'panelui-native/components/leaderboard';
 import { StyleSheet, View } from 'react-native';
 
@@ -35,6 +36,8 @@ type ReportChartProps = {
   interactive: boolean;
   // Dokunulabilir çubuk grafikte satır seçimi; yalnızca detay verir
   onSelectRow?: (key: string) => void;
+  // Sayı kutularının (KPI) hemen üstüne gelir; dönemi olmayan stok detayının özet satırı
+  kpiHeader?: ReactNode;
 };
 
 function openCustomer(entry: LeaderboardEntry) {
@@ -50,6 +53,7 @@ export default function ReportChart({
   colors,
   interactive,
   onSelectRow,
+  kpiHeader,
 }: ReportChartProps) {
   const {
     kind,
@@ -108,6 +112,7 @@ export default function ReportChart({
           interactive={interactive}
         />
       )}
+      {kpiHeader}
       {kpis.length > 0 && <ReportKpiGrid items={kpis} footers={footers} />}
       {kind === 'leaderboard' && (
         <Leaderboard

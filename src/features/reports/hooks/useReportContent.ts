@@ -178,10 +178,8 @@ export function useReportContent(
       return {
         ...base,
         kind: 'pie',
-        subtitle: t('reports.profit.subtitle', {
-          revenue: money(revenue),
-          shipping: money(shipping),
-        }),
+        // Ciro ve kargo aşağıdaki satırlarda yazar; özet toplam siparişi verir
+        subtitle: orderText(stats.revenueOrderCount),
         note:
           missingCostCount > 0
             ? t('reports.profit.missingCost', { value: formatNumber(missingCostCount, locale) })
@@ -325,7 +323,6 @@ export function useReportContent(
           total: formatNumber(customers.length, locale),
           repeat: formatNumber(repeat, locale),
         }),
-        hint: t('reports.customers.sortHint'),
         isEmpty: customers.length === 0,
         leaders: podium.map((customer) => ({
           id: customer.phone,
@@ -568,9 +565,7 @@ export function useReportContent(
       return {
         ...base,
         kind: 'bar',
-        subtitle: t('reports.stock.subtitle', {
-          products: t('reports.products', { value: formatNumber(productsById.size, locale) }),
-        }),
+        subtitle: t('reports.products', { value: formatNumber(productsById.size, locale) }),
         isEmpty: productsById.size === 0,
         chartRows: [
           toChartRow('out', t('reports.stock.outOfStock')),
