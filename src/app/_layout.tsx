@@ -83,13 +83,15 @@ export default function RootLayout() {
           <StatusBar style={isDark ? 'light' : 'dark'} />
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(drawer)" />
+
+            {/* (pages): drawer'ın üstüne itilen sayfalar */}
             <Stack.Screen
-              name="settings"
+              name="(pages)/settings"
               options={{ ...pushedScreenOptions, title: t('settings.title') }}
             />
             {/* App bar, sayfadaki yeşil başlıkla tek parça görünsün diye gradyanın başlangıç tonunda */}
             <Stack.Screen
-              name="order-detail/[id]"
+              name="(pages)/order-detail/[id]"
               options={{
                 ...pushedScreenOptions,
                 headerStyle: { backgroundColor: colors.orderHeaderStart },
@@ -99,16 +101,16 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
-              name="order-new"
+              name="(pages)/order-new"
               options={{ ...pushedScreenOptions, title: t('orders.newTitle') }}
             />
             <Stack.Screen
-              name="product-new"
+              name="(pages)/product-new"
               options={{ ...pushedScreenOptions, title: t('stock.create.title') }}
             />
             {/* App bar, sayfadaki mor başlıkla tek parça görünsün diye gradyanın başlangıç tonunda */}
             <Stack.Screen
-              name="product-detail/[id]"
+              name="(pages)/product-detail/[id]"
               options={{
                 ...pushedScreenOptions,
                 headerStyle: { backgroundColor: colors.productHeaderStart },
@@ -118,13 +120,13 @@ export default function RootLayout() {
               }}
             />
             {/* Tip, marka, renk ve kategori listeleri; başlığı ekran kendisi verir */}
-            <Stack.Screen name="catalog/[kind]" options={pushedScreenOptions} />
+            <Stack.Screen name="(pages)/catalog/[kind]" options={pushedScreenOptions} />
             <Stack.Screen
-              name="affiliates"
+              name="(pages)/affiliates"
               options={{ ...pushedScreenOptions, title: t('affiliates.title') }}
             />
             <Stack.Screen
-              name="affiliate-detail/[id]"
+              name="(pages)/affiliate-detail/[id]"
               options={{
                 ...pushedScreenOptions,
                 title: t('affiliates.detail.title'),
@@ -132,66 +134,75 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
-              name="affiliate-orders/[id]"
+              name="(pages)/affiliate-orders/[id]"
               // Ekran açılınca başlığı ortağın butik adı yapar; o zamana kadar genel ad görünür
               options={{ ...pushedScreenOptions, title: t('affiliates.detail.title') }}
             />
             <Stack.Screen
-              name="report-detail/[id]"
+              name="(pages)/report-detail/[id]"
               options={{ ...pushedScreenOptions, title: t('reports.title') }}
             />
             <Stack.Screen
-              name="report-customer/[phone]"
+              name="(pages)/report-customer/[phone]"
               options={{ ...pushedScreenOptions, title: t('reports.customers.history') }}
             />
-            {/* Native alttan açılan sheet'ler: iOS'ta UISheetPresentationController,
+
+            {/* (sheets): native alttan açılan sheet'ler. iOS'ta UISheetPresentationController,
                 Android'de Material bottom sheet. Yükseklik içeriğe göre ayarlanır. */}
             {/* Dashboard, siparişler ve raporlar aynı dönem sheet'ini kullanır (scope parametresi) */}
-            <Stack.Screen name="period/[scope]" options={fitToContentSheetOptions} />
-            <Stack.Screen name="period-custom/[scope]" options={fitToContentSheetOptions} />
-            <Stack.Screen name="product-catalog" options={fitToContentSheetOptions} />
-            <Stack.Screen name="catalog-form/[kind]" options={fitToContentSheetOptions} />
+            <Stack.Screen name="(sheets)/period/[scope]" options={fitToContentSheetOptions} />
+            <Stack.Screen
+              name="(sheets)/period-custom/[scope]"
+              options={fitToContentSheetOptions}
+            />
+            <Stack.Screen name="(sheets)/product-catalog" options={fitToContentSheetOptions} />
+            <Stack.Screen name="(sheets)/catalog-form/[kind]" options={fitToContentSheetOptions} />
             {/* Kategori formu uzun ve açıklama alanı var; içerik kadar değil sabit yükseklikte
                 açılır, içi kaydırılır ve klavye alt alanları kapatmaz */}
             <Stack.Screen
-              name="category-form"
+              name="(sheets)/category-form"
               options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.9] }}
             />
-            <Stack.Screen
-              name="product-images"
-              options={{ presentation: 'fullScreenModal', animation: 'fade' }}
-            />
-            {/* Barkod okutma: ürün seçme sheet'inin üstünden de açılır; sheet üstüne sheet yerine
-                tam ekran açılır, kamera da daha geniş alan kullanır */}
-            <Stack.Screen name="barcode-scan" options={{ presentation: 'fullScreenModal' }} />
             {/* Marka ve tip listesi uzun olabildiği için içeriğe göre değil, sabit yükseklikte açılır */}
             <Stack.Screen
-              name="product-filters"
+              name="(sheets)/product-filters"
               options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.8] }}
             />
-            <Stack.Screen name="affiliate-filters" options={fitToContentSheetOptions} />
+            <Stack.Screen name="(sheets)/affiliate-filters" options={fitToContentSheetOptions} />
             <Stack.Screen
-              name="order-filters"
+              name="(sheets)/order-filters"
               options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.8] }}
             />
             <Stack.Screen
-              name="order-actions"
+              name="(sheets)/order-actions"
               options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.65] }}
             />
             {/* Formlardaki seçim alanları: kısa listeler içerik kadar, aramalı uzun listeler
                 neredeyse tam boy, ürün seçme tam boy açılır */}
-            <Stack.Screen name="picker" options={fitToContentSheetOptions} />
+            <Stack.Screen name="(sheets)/picker" options={fitToContentSheetOptions} />
             <Stack.Screen
-              name="picker-search"
+              name="(sheets)/picker-search"
               options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.9] }}
             />
             <Stack.Screen
-              name="picker-multi"
+              name="(sheets)/picker-multi"
               options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [0.9] }}
             />
             <Stack.Screen
-              name="product-picker"
+              name="(sheets)/product-picker"
               options={{ ...fitToContentSheetOptions, sheetAllowedDetents: [1] }}
+            />
+
+            {/* (modals): tam ekran modallar */}
+            <Stack.Screen
+              name="(modals)/product-images"
+              options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+            />
+            {/* Barkod okutma: ürün seçme sheet'inin üstünden de açılır; sheet üstüne sheet yerine
+                tam ekran açılır, kamera da daha geniş alan kullanır */}
+            <Stack.Screen
+              name="(modals)/barcode-scan"
+              options={{ presentation: 'fullScreenModal' }}
             />
           </Stack>
         </PanelUIProvider>

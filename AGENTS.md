@@ -53,7 +53,10 @@ Her ihtiyaç için **yalnızca** aşağıdaki araç kullanılır. Listede olmaya
 src/
 ├── app/                 Sadece rotalar (Expo Router). İçinde iş mantığı olmaz.
 │   ├── _layout.tsx      Kök layout: provider'lar, font yükleme
-│   └── (drawer)/(tabs)/ Sekmeler. Her route dosyası ilgili Screen'i render eder, başka bir şey yapmaz.
+│   ├── (drawer)/(tabs)/ Sekmeler. Her route dosyası ilgili Screen'i render eder, başka bir şey yapmaz.
+│   ├── (pages)/         Drawer'ın üstüne itilen sayfalar (detaylar, oluşturma formları, ayarlar)
+│   ├── (sheets)/        Alttan açılan native sheet'ler (picker, filtre, dönem…)
+│   └── (modals)/        Tam ekran modallar (barkod okutma, görsel görüntüleyici)
 ├── features/            İş modülleri. Bir modüle ait her şey kendi klasöründedir.
 │   ├── orders/          api/ schemas/ constants/ utils/ hooks/ components/ screens/ + store
 │   ├── products/        aynı düzen
@@ -90,7 +93,8 @@ src/
 - `components/ui` ve diğer ortak klasörler `features/` içinden import etmez.
 
 **Native sheet'ler**
-- Seçim pencereleri (dönem, filtre, picker) alttan açılan native sheet'tir ve her biri `src/app/` altında bir route'tur; seçenekleri `src/app/_layout.tsx`'teki `fitToContentSheetOptions` ile verilir.
+- Seçim pencereleri (dönem, filtre, picker) alttan açılan native sheet'tir ve her biri `src/app/(sheets)/` altında bir route'tur; seçenekleri `src/app/_layout.tsx`'teki `fitToContentSheetOptions` ile verilir.
+- Yeni route türüne göre gruba konur: sayfa `(pages)/`, sheet `(sheets)/`, tam ekran modal `(modals)/`. Gruplar URL'ye eklenmez (`/picker`, `/order-detail/5`); gruplara ayrı `_layout.tsx` konmaz, ekranlar kök `_layout.tsx`'te `"(sheets)/picker"` gibi grup önekiyle tanımlanır.
 - Route'lar arasında fonksiyon veya liste parametre olarak taşınmaz. Sheet'e giden istek ve "seçilince ne olacak" bilgisi bir store üzerinden taşınır (bkz. `features/picker/pickerStore.ts`); form değeri formda kalır.
 - Aynı sheet'i birden çok ekran kullanıyorsa ekran başına ayrı route açılmaz; tek route parametreyle ayrılır (ör. `period/[scope]`, bkz. `features/period/usePeriodScope.ts`).
 
