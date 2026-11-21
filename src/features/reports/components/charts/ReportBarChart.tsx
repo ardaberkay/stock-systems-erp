@@ -11,7 +11,6 @@ import { Pressable, StyleSheet, View } from 'react-native';
 type ReportBarChartProps = {
   rows: ReportRow[];
   colors: AppColors;
-  animated: boolean;
   // Verilirse satırlar dokunulabilir olur ve seçili olmayan çubuklar soluk çizilir
   selectedKey: string | null;
   onSelectRow?: (key: string) => void;
@@ -26,7 +25,6 @@ const ROW_HIT_SLOP = { top: SPACING.xxs, bottom: SPACING.xxs };
 export default function ReportBarChart({
   rows,
   colors,
-  animated,
   selectedKey,
   onSelectRow,
 }: ReportBarChartProps) {
@@ -74,7 +72,6 @@ export default function ReportBarChart({
             barGap={BAR_GAP}
             cornerRadius={RADIUS.sm}
             aspectRatio={width / height}
-            animationDuration={animated ? undefined : 0}
           >
             {rows.map((row) => (
               <BarChart.Bar

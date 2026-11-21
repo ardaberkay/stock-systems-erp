@@ -56,7 +56,6 @@ export default function ReportChart({
     chartRows,
     cardRowLimit,
     selectedKey,
-    animateChart,
     center,
     kpis,
     footers,
@@ -75,7 +74,6 @@ export default function ReportChart({
         <ReportBarChart
           rows={rows}
           colors={colors}
-          animated={animateChart}
           selectedKey={selectedKey}
           onSelectRow={onSelectRow}
         />

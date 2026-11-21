@@ -8,8 +8,6 @@ import { getBestSellers, getRevenueOrders } from '@/features/orders/utils/orderS
 import { resolvePeriodWindow } from '@/features/period/periodWindow';
 import {
   getBrandShares,
-  getBusyGrid,
-  getBusySlots,
   getCityCounts,
   getCustomerRanks,
   getPartnerSales,
@@ -19,7 +17,6 @@ import {
   getStatusCounts,
   getStockStats,
   getUnsoldProducts,
-  getWeekdayCounts,
 } from '@/features/reports/utils/reportStats';
 import { useMemo, useState } from 'react';
 
@@ -51,26 +48,17 @@ export function useReportData(selection: PeriodSelection) {
     }
 
     const revenueOrders = getRevenueOrders(orders);
-    const busyGrid = getBusyGrid(revenueOrders);
 
+    // Haftanın günleri ve yoğun saatler kendi dönemiyle hesaplanır (bkz. useReportPattern)
     return {
       orderCount: orders.length,
       revenueOrderCount: revenueOrders.length,
       statusCounts: getStatusCounts(orders),
       returns: getReturnStats(orders, window.range),
       topProducts: getBestSellers(revenueOrders, window, REPORT_TOP_PRODUCT_LIMIT),
-      topProductsByRevenue: getBestSellers(
-        revenueOrders,
-        window,
-        REPORT_TOP_PRODUCT_LIMIT,
-        'revenue',
-      ),
       customers: getCustomerRanks(revenueOrders),
       paymentShares: getPaymentShares(revenueOrders),
       cityCounts: getCityCounts(revenueOrders),
-      weekdayCounts: getWeekdayCounts(revenueOrders),
-      busyGrid,
-      busySlots: getBusySlots(busyGrid),
       profit: getProfitStats(revenueOrders, products),
       stock: getStockStats(products),
       unsold: getUnsoldProducts(revenueOrders, products),

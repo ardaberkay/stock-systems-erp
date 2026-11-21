@@ -10,7 +10,6 @@ export default function PeriodFilter() {
 
   return (
     <PeriodPill
-      slim
       label={label}
       onPress={() => router.push({ pathname: '/period/[scope]', params: { scope: 'dashboard' } })}
     />

@@ -57,6 +57,16 @@ export type ReportStockGroup = (typeof REPORT_STOCK_GROUPS)[number];
 // Kartlar her zaman bu dönemi gösterir; dönem yalnızca detayda değişir.
 export const REPORT_DEFAULT_SELECTION: PeriodSelection = { kind: 'preset', period: 'weekly' };
 
+// Gün deseni raporları genel dönemi kullanmaz. "Son 7 gün" geçen haftanın günleriyle bu
+// haftanınkileri karıştırıyordu; bunun yerine takvim haftası ya da tam 4 hafta gösterilir.
+export const REPORT_PATTERN_IDS: readonly ReportId[] = ['weekdays', 'busyHours'];
+export const REPORT_PATTERN_SPANS = ['thisWeek', 'lastFourWeeks'] as const;
+
+export type ReportPatternSpan = (typeof REPORT_PATTERN_SPANS)[number];
+
+// Her gün eşit sayıda geçsin diye tam hafta; API'nin 30 günlük sınırına da sığar
+export const REPORT_PATTERN_WEEKS = 4;
+
 export const REPORT_CARD_ROW_LIMIT = 5;
 export const REPORT_TOP_PRODUCT_LIMIT = 20;
 // Paletteki renk sayısı kadar; fazlası ilk şehrin rengini tekrar eder

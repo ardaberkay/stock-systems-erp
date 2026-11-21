@@ -12,6 +12,7 @@ import {
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useLocale } from '@/hooks/useLocale';
 import type { ReportStats } from '@/features/reports/hooks/useReportData';
+import type { ReportPattern } from '@/features/reports/utils/reportPattern';
 import type { Order } from '@/features/orders/schemas/orders';
 import type { Product } from '@/features/products/schemas/products';
 import {
@@ -34,8 +35,6 @@ const SHORTEN_FROM = 10000;
 function toOneDecimal(count: number): number {
   return Math.round((count / THOUSAND) * 10) / 10;
 }
-
-export type ReportProductSort = 'sold' | 'revenue';
 
 export type ReportRow = {
   key: string;
@@ -90,8 +89,6 @@ export type ReportContent = {
   cardRowLimit: number | null;
   // Dokunulabilir grafikte seçili satır; diğerleri soluk çizilir
   selectedKey: string | null;
-  // Sıralama değişince grafik baştan büyümesin; liste ile birlikte zıplıyor
-  animateChart: boolean;
   rows: ReportRow[];
   leaders: LeaderboardEntry[];
   formatLeaderValue: (value: number) => string;
@@ -108,11 +105,13 @@ type ReportSources = {
   paymentNames: Map<number, string>;
   isPaymentNamesLoading: boolean;
   partnerNames: Map<number, string>;
+  // Gün deseni raporlarının (haftanın günleri, yoğun saatler) kendi dönemindeki verisi;
+  // gelene kadar bu iki rapor yükleniyor görünür
+  pattern: ReportPattern | null;
 };
 
 // Yalnızca detayda verilir; kart varsayılanları kullanır
 type ReportContentOptions = {
-  productSort?: ReportProductSort;
   // Verilmezse stok çubukları seçimsiz çizilir ve liste süzülmez
   stockGroup?: ReportStockGroup;
 };
@@ -121,7 +120,7 @@ type ReportContentOptions = {
 export function useReportContent(
   id: ReportId,
   sources: ReportSources | null,
-  { productSort = 'sold', stockGroup }: ReportContentOptions = {},
+  { stockGroup }: ReportContentOptions = {},
 ): ReportContent | null {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -132,7 +131,7 @@ export function useReportContent(
     return null;
   }
 
-  const { stats, productsById, paymentNames, partnerNames } = sources;
+  const { stats, productsById, paymentNames, partnerNames, pattern } = sources;
   const palette = [
     colors.orange,
     colors.blue,
@@ -157,7 +156,6 @@ export function useReportContent(
     chartRows: [],
     cardRowLimit: null,
     selectedKey: null,
-    animateChart: true,
     rows: [],
     leaders: [],
     formatLeaderValue: String,
@@ -287,20 +285,19 @@ export function useReportContent(
     }
 
     case 'topProducts': {
-      const isBySold = productSort === 'sold';
-      const items = isBySold ? stats.topProducts : stats.topProductsByRevenue;
+      const items = stats.topProducts;
       const totalSold = items.reduce((sum, item) => sum + item.sold, 0);
       const rows = items.map((item) => ({
         key: `product${item.productId}`,
         label:
           productsById.get(item.productId)?.name ??
           t('reports.productFallback', { id: item.productId }),
-        value: isBySold ? item.sold : item.revenue,
+        value: item.sold,
         valueLabel: t('reports.soldLine', {
           sold: formatNumber(item.sold, locale),
           revenue: money(item.revenue),
         }),
-        chartValue: isBySold ? formatNumber(item.sold, locale) : money(item.revenue),
+        chartValue: formatNumber(item.sold, locale),
         color: colors.orange,
         bestSeller: item,
       }));
@@ -311,7 +308,6 @@ export function useReportContent(
         isEmpty: rows.length === 0,
         chartRows: rows,
         cardRowLimit: REPORT_CARD_ROW_LIMIT,
-        animateChart: false,
         rows,
       };
     }
@@ -487,9 +483,14 @@ export function useReportContent(
     }
 
     case 'weekdays': {
-      const chartRows = stats.weekdayCounts.map((count, index) => ({
+      if (!pattern) {
+        return null;
+      }
+      const { weekdayCounts, orderCount, todayIndex } = pattern;
+      const chartRows = weekdayCounts.map((count, index) => ({
         key: DAY_KEYS[index],
-        label: dayLabels[index],
+        // Bitmemiş gün eksende "Bugün" yazar; düşük sütun "zayıf gün" sanılmasın
+        label: index === todayIndex ? t('filters.today') : dayLabels[index],
         value: count,
         valueLabel: orderText(count),
         // Dar sütunda yazı küçültülmez; büyük sayı kısalır, tam değer alttaki listededir
@@ -503,14 +504,14 @@ export function useReportContent(
       return {
         ...base,
         kind: 'column',
-        subtitle: orderText(stats.revenueOrderCount),
-        isEmpty: stats.revenueOrderCount === 0,
+        subtitle: orderText(orderCount),
+        isEmpty: orderCount === 0,
         chartRows,
         rows: chartRows.map((row) => ({
           ...row,
           label: t(`reports.dayFullNames.${row.key}`),
           valueLabel: `${row.valueLabel} · ${formatPercent(
-            stats.revenueOrderCount > 0 ? row.value / stats.revenueOrderCount : 0,
+            orderCount > 0 ? row.value / orderCount : 0,
             locale,
           )}`,
           hideDot: true,
@@ -519,7 +520,10 @@ export function useReportContent(
     }
 
     case 'busyHours': {
-      const rows = stats.busySlots.map((slot) => {
+      if (!pattern) {
+        return null;
+      }
+      const rows = pattern.busySlots.map((slot) => {
         const start = slot.column * REPORT_HEAT_HOURS_PER_COLUMN;
 
         return {

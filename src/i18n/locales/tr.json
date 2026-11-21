@@ -996,14 +996,16 @@
         "thousands": "{{value}}B",
         "products": "{{value}} ürün",
         "soldLine": "{{sold}} adet · {{revenue}}",
-        "sortSold": "Adet",
-        "sortRevenue": "Ciro",
         "categories": {
             "all": "Tümü",
             "sales": "Satış",
             "orders": "Sipariş",
             "products": "Ürün",
             "customers": "Müşteri"
+        },
+        "patternSpans": {
+            "thisWeek": "Bu hafta",
+            "lastFourWeeks": "Son 4 hafta"
         },
         "customers": {
             "title": "En Çok Alışveriş Yapanlar",

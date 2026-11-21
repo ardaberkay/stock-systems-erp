@@ -1,10 +1,10 @@
 import PeriodPill from '@/components/ui/PeriodPill';
 import StateMessage from '@/components/ui/StateMessage';
+import UnderlineTabs from '@/components/ui/UnderlineTabs';
 import { getAffiliateTitle } from '@/features/affiliates/affiliateList';
 import type { AffiliateSalesMetric } from '@/features/affiliates/affiliateSales';
 import { useAffiliates } from '@/features/affiliates/api/affiliates';
 import AffiliateMetricSelector from '@/features/affiliates/components/AffiliateMetricSelector';
-import AffiliateReportTabs from '@/features/affiliates/components/AffiliateReportTabs';
 import AffiliateSalesChart from '@/features/affiliates/components/AffiliateSalesChart';
 import AffiliateTopProducts from '@/features/affiliates/components/AffiliateTopProducts';
 import { useAffiliateSalesReport } from '@/features/affiliates/useAffiliateSalesReport';
@@ -105,7 +105,7 @@ export default function AffiliateOrdersScreen() {
       case 'tabs':
         return (
           <View style={styles.tabBar}>
-            <AffiliateReportTabs
+            <UnderlineTabs
               options={REPORT_TABS.map((tab) => ({
                 value: tab,
                 label: t(`affiliates.detail.reportTabs.${tab}`),

@@ -12,40 +12,33 @@ import { Pressable, StyleSheet } from 'react-native';
 type PeriodPillProps = {
   label: string;
   onPress: () => void;
-  // Liste içi satırlarda kullanılan küçük görünüm
+  // Sayfa başındaki, listenin üstündeki küçük görünüm (ör. siparişler); varsayılan görünüm
+  // sayfa içindeki bölümler içindir (ör. dashboard)
   compact?: boolean;
-  // Normal görünümün dikeyde biraz daha ince hali; yazı aynı (ör. dashboard)
-  slim?: boolean;
 };
 
+const DEFAULT_HEIGHT = MIN_TOUCH_SIZE - SPACING.sm;
 const COMPACT_HEIGHT = MIN_TOUCH_SIZE - SPACING.md;
-const SLIM_HEIGHT = MIN_TOUCH_SIZE - SPACING.sm;
 const COMPACT_ICON_SIZE = ICON_SIZE.sm - SPACING.xxs;
-// Küçük ve ince görünümde de dokunma alanı 44 kalır
+// İki görünümde de dokunma alanı 44 kalır
+const DEFAULT_HIT_SLOP = (MIN_TOUCH_SIZE - DEFAULT_HEIGHT) / 2;
 const COMPACT_HIT_SLOP = (MIN_TOUCH_SIZE - COMPACT_HEIGHT) / 2;
-const SLIM_HIT_SLOP = (MIN_TOUCH_SIZE - SLIM_HEIGHT) / 2;
 
 // Seçili dönemi gösteren düğme; hangi dönemin seçildiğini kullanan ekran bilir.
-export default function PeriodPill({
-  label,
-  onPress,
-  compact = false,
-  slim = false,
-}: PeriodPillProps) {
+export default function PeriodPill({ label, onPress, compact = false }: PeriodPillProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const iconSize = compact ? COMPACT_ICON_SIZE : ICON_SIZE.sm;
-  const hitSlop = compact ? COMPACT_HIT_SLOP : slim ? SLIM_HIT_SLOP : undefined;
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={t('filters.changePeriod')}
       accessibilityHint={label}
-      hitSlop={hitSlop}
+      hitSlop={compact ? COMPACT_HIT_SLOP : DEFAULT_HIT_SLOP}
       onPress={onPress}
-      style={[styles.trigger, slim && styles.triggerSlim, compact && styles.triggerCompact]}
+      style={[styles.trigger, compact && styles.triggerCompact]}
     >
       <Calendar size={iconSize} color={colors.orange} />
       <Text style={[styles.label, compact && styles.labelCompact]} numberOfLines={1}>
@@ -59,7 +52,7 @@ export default function PeriodPill({
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
     trigger: {
-      minHeight: MIN_TOUCH_SIZE - SPACING.xs,
+      minHeight: DEFAULT_HEIGHT,
       flexDirection: 'row',
       alignItems: 'center',
       gap: SPACING.xs,
@@ -68,9 +61,6 @@ function createStyles(colors: AppColors) {
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.surface,
-    },
-    triggerSlim: {
-      minHeight: SLIM_HEIGHT,
     },
     triggerCompact: {
       minHeight: COMPACT_HEIGHT,

@@ -5,7 +5,7 @@ import { FONT_FAMILY, typography } from '@/theme/typography';
 import { useMemo, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-type AffiliateReportTabsProps<T extends string> = {
+type UnderlineTabsProps<T extends string> = {
   options: { value: T; label: string }[];
   value: T;
   onChange: (value: T) => void;
@@ -14,15 +14,15 @@ type AffiliateReportTabsProps<T extends string> = {
   colors: AppColors;
 };
 
-// İnce, altı çizili metin sekmeleri. Kutulu SegmentedControl rapor sayfasında fazla yer
+// İnce, altı çizili metin sekmeleri. Kutulu SegmentedControl rapor sayfalarında fazla yer
 // kaplıyordu; dönem seçici de aynı satıra sığar, ikisi birlikte yapışık kalır.
-export default function AffiliateReportTabs<T extends string>({
+export default function UnderlineTabs<T extends string>({
   options,
   value,
   onChange,
   trailing,
   colors,
-}: AffiliateReportTabsProps<T>) {
+}: UnderlineTabsProps<T>) {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (

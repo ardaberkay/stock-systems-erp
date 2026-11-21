@@ -264,7 +264,8 @@ export function getCustomerRanks(revenueOrders: Order[]): CustomerRank[] {
 }
 
 // Tarih Türkiye saatiyle metin olarak gelir; UTC ile okununca gün kaymaz. 0 pazartesidir.
-function getWeekdayIndex(dayKey: string): number {
+// Pazartesi 0, pazar 6
+export function getWeekdayIndex(dayKey: string): number {
   return (new Date(`${dayKey}T00:00:00Z`).getUTCDay() + 6) % REPORT_HEAT_DAYS;
 }
 

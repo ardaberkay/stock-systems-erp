@@ -996,14 +996,16 @@
     "thousands": "{{value}}K",
     "products": "{{value}} products",
     "soldLine": "{{sold}} pcs · {{revenue}}",
-    "sortSold": "Quantity",
-    "sortRevenue": "Revenue",
     "categories": {
       "all": "All",
       "sales": "Sales",
       "orders": "Orders",
       "products": "Items",
       "customers": "Buyers"
+    },
+    "patternSpans": {
+      "thisWeek": "This week",
+      "lastFourWeeks": "Last 4 weeks"
     },
     "customers": {
       "title": "Top Customers",

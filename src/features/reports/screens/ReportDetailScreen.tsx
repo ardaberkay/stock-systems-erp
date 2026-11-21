@@ -5,26 +5,26 @@ import ReportOrderCard from '@/features/reports/components/ReportOrderCard';
 import TopSellingCard from '@/features/dashboard/components/TopSellingCard';
 import ReportChart from '@/features/reports/components/charts/ReportChart';
 import Skeleton from '@/components/ui/Skeleton';
-import FilterChip from '@/components/ui/FilterChip';
 import PeriodPill from '@/components/ui/PeriodPill';
 import StateMessage from '@/components/ui/StateMessage';
+import UnderlineTabs from '@/components/ui/UnderlineTabs';
 import {
   isReportId,
+  REPORT_PATTERN_IDS,
+  REPORT_PATTERN_SPANS,
   REPORT_SNAPSHOT_IDS,
   REPORT_STOCK_GROUPS,
   type ReportId,
+  type ReportPatternSpan,
   type ReportStockGroup,
 } from '@/features/reports/constants';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useLocale } from '@/hooks/useLocale';
 import { useOrderLookups } from '@/features/orders/hooks/useOrderLookups';
 import { usePeriodLabel } from '@/features/period/usePeriodLabel';
-import {
-  useReportContent,
-  type ReportProductSort,
-  type ReportRow,
-} from '@/features/reports/hooks/useReportContent';
+import { useReportContent, type ReportRow } from '@/features/reports/hooks/useReportContent';
 import { useReportData } from '@/features/reports/hooks/useReportData';
+import { useReportPattern } from '@/features/reports/hooks/useReportPattern';
 import { getErrorMessageKey } from '@/lib/apiError';
 import { useReportFilterStore } from '@/features/reports/reportFilterStore';
 import type { AppColors } from '@/theme/colors';
@@ -75,7 +75,10 @@ function ReportDetail({ id }: { id: ReportId }) {
     refresh,
   } = useReportData(selection);
   const locale = useLocale();
-  const [productSort, setProductSort] = useState<ReportProductSort>('sold');
+  // Gün deseni raporları genel dönem yerine kendi iki seçeneğini kullanır
+  const isPattern = REPORT_PATTERN_IDS.includes(id);
+  const [patternSpan, setPatternSpan] = useState<ReportPatternSpan>('thisWeek');
+  const { pattern, error: patternError } = useReportPattern(patternSpan, isPattern);
   const [stockGroup, setStockGroup] = useState<ReportStockGroup>('out');
   const [expandedId, setExpandedId] = useState<number | null>(null);
   // Kargo ve ödeme adları yalnızca sipariş kartı çizilen raporda istenir
@@ -87,10 +90,12 @@ function ReportDetail({ id }: { id: ReportId }) {
   const content = useReportContent(
     id,
     stats
-      ? { stats, productsById, paymentNames, isPaymentNamesLoading, partnerNames }
+      ? { stats, productsById, paymentNames, isPaymentNamesLoading, partnerNames, pattern }
       : null,
-    { productSort, stockGroup: id === 'stock' ? stockGroup : undefined },
+    { stockGroup: id === 'stock' ? stockGroup : undefined },
   );
+  const hasPeriod = !REPORT_SNAPSHOT_IDS.includes(id) && !isPattern;
+  const shownError = (!stats ? error : null) ?? (isPattern && !pattern ? patternError : null);
 
   const selectStockGroup = (key: string) => {
     const group = REPORT_STOCK_GROUPS.find((item) => item === key);
@@ -163,6 +168,14 @@ function ReportDetail({ id }: { id: ReportId }) {
     [colors, locale, productsById, styles, expandedId, toggleProduct, lookups],
   );
 
+  // Alt başlık ve küçük not; gün deseni raporlarında grafiğin altına, listenin başına gelir
+  const summary = content?.subtitle ? (
+    <View>
+      <Text style={styles.subtitle}>{content.subtitle}</Text>
+      {content.hint && <Text style={styles.hint}>{content.hint}</Text>}
+    </View>
+  ) : null;
+
   return (
     <>
       <Stack.Screen options={{ title: t(`reports.${id}.title`) }} />
@@ -170,8 +183,7 @@ function ReportDetail({ id }: { id: ReportId }) {
         style={styles.screen}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACING.xl }]}
         data={content && !content.isEmpty ? content.rows : []}
-        // Sıralama değişince kartlar yer değiştirmek yerine yeniden çizilir; yer değiştirirken zıplıyordu
-        keyExtractor={(row) => `${productSort}-${row.key}`}
+        keyExtractor={(row) => row.key}
         renderItem={renderRow}
         extraData={expandedId}
         refreshControl={
@@ -185,7 +197,18 @@ function ReportDetail({ id }: { id: ReportId }) {
         }
         ListHeaderComponent={
           <View style={styles.header}>
-            {!REPORT_SNAPSHOT_IDS.includes(id) && (
+            {isPattern && (
+              <UnderlineTabs
+                options={REPORT_PATTERN_SPANS.map((span) => ({
+                  value: span,
+                  label: t(`reports.patternSpans.${span}`),
+                }))}
+                value={patternSpan}
+                onChange={setPatternSpan}
+                colors={colors}
+              />
+            )}
+            {hasPeriod && (
               <View style={styles.period}>
                 <PeriodPill
                   label={periodLabel}
@@ -196,44 +219,25 @@ function ReportDetail({ id }: { id: ReportId }) {
               </View>
             )}
 
-            {id === 'topProducts' && (
-              <View accessibilityRole="radiogroup" style={styles.sortChips}>
-                <FilterChip
-                  label={t('reports.sortSold')}
-                  active={productSort === 'sold'}
-                  onPress={() => setProductSort('sold')}
-                />
-                <FilterChip
-                  label={t('reports.sortRevenue')}
-                  active={productSort === 'revenue'}
-                  onPress={() => setProductSort('revenue')}
-                />
-              </View>
-            )}
-
-            {(isLoading || (stats && !content)) && (
+            {!shownError && (isLoading || (stats && !content)) && (
               <Skeleton width="100%" height={SKELETON_CHART_HEIGHT} radius={RADIUS.md} />
             )}
-            {error && !stats && (
-              <StateMessage message={t(getErrorMessageKey(error))} onRetry={refresh} />
+            {shownError && (
+              <StateMessage message={t(getErrorMessageKey(shownError))} onRetry={refresh} />
             )}
             {content?.isEmpty && <StateMessage message={t('reports.empty')} />}
 
             {content && stats && !content.isEmpty && (
               <>
-                {content.subtitle && (
-                  <View>
-                    <Text style={styles.subtitle}>{content.subtitle}</Text>
-                    {content.hint && <Text style={styles.hint}>{content.hint}</Text>}
-                  </View>
-                )}
+                {!isPattern && summary}
                 <ReportChart
                   content={content}
-                  grid={stats.busyGrid}
+                  grid={pattern?.busyGrid ?? []}
                   colors={colors}
                   interactive
                   onSelectRow={id === 'stock' ? selectStockGroup : undefined}
                 />
+                {isPattern && summary}
                 {content.note && <Text style={styles.note}>{content.note}</Text>}
                 {id === 'stock' && content.rows.length === 0 && (
                   <StateMessage message={t('reports.stock.emptyGroup')} />
@@ -262,10 +266,6 @@ function createStyles(colors: AppColors) {
     },
     rowGap: {
       marginBottom: SPACING.md,
-    },
-    sortChips: {
-      flexDirection: 'row',
-      gap: SPACING.sm,
     },
     header: {
       gap: SPACING.md,

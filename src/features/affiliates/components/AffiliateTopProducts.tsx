@@ -72,7 +72,7 @@ export default function AffiliateTopProducts({
           ))}
         </View>
       ) : (
-        <ReportBarChart rows={rows} colors={colors} animated selectedKey={null} />
+        <ReportBarChart rows={rows} colors={colors} selectedKey={null} />
       )}
     </View>
   );

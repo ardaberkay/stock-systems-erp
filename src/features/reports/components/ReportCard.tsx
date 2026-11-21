@@ -4,6 +4,7 @@ import StateMessage from '@/components/ui/StateMessage';
 import {
   REPORT_BODY_HEIGHT,
   REPORT_DEFAULT_SELECTION,
+  REPORT_PATTERN_IDS,
   REPORT_SMALL_BODY_HEIGHT,
   REPORT_SMALL_IDS,
   type ReportId,
@@ -11,6 +12,7 @@ import {
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useReportContent } from '@/features/reports/hooks/useReportContent';
 import type { ReportStats } from '@/features/reports/hooks/useReportData';
+import { useReportPattern } from '@/features/reports/hooks/useReportPattern';
 import type { Product } from '@/features/products/schemas/products';
 import { useReportFilterStore } from '@/features/reports/reportFilterStore';
 import type { AppColors } from '@/theme/colors';
@@ -46,9 +48,13 @@ export default function ReportCard({
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const setSelection = useReportFilterStore((state) => state.setSelection);
+  // Gün deseni kartları "Bu hafta"yı gösterir; veri son 7 günlük önbellekten gelir
+  const { pattern } = useReportPattern('thisWeek', REPORT_PATTERN_IDS.includes(id));
   const content = useReportContent(
     id,
-    stats ? { stats, productsById, paymentNames, isPaymentNamesLoading, partnerNames } : null,
+    stats
+      ? { stats, productsById, paymentNames, isPaymentNamesLoading, partnerNames, pattern }
+      : null,
   );
   const title = t(`reports.${id}.title`);
   const isSmall = REPORT_SMALL_IDS.includes(id);
@@ -89,7 +95,7 @@ export default function ReportCard({
         ) : (
           <ReportChart
             content={content}
-            grid={stats.busyGrid}
+            grid={pattern?.busyGrid ?? []}
             colors={colors}
             interactive={false}
           />
