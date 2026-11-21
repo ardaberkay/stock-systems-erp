@@ -21,8 +21,6 @@ export function normalizeText(text: string): string {
 
 function matchesStock(stock: number, filter: StockFilter): boolean {
   switch (filter) {
-    case 'all':
-      return true;
     case 'inStock':
       return stock > 0;
     case 'lowStock':
@@ -32,16 +30,32 @@ function matchesStock(stock: number, filter: StockFilter): boolean {
   }
 }
 
+// Boş dizi o alanı filtrelemez
+function matchesAny(selected: string[], value: string | null | undefined): boolean {
+  return selected.length === 0 || (value != null && selected.includes(value));
+}
+
+// Alan içindeki seçimler "veya", alanlar arası "ve" ile birleşir.
 function matchesFilters(product: Product, filters: ProductFilters): boolean {
-  if (filters.status === 'active' && product.status !== PRODUCT_STATUS.active) return false;
-  if (filters.status === 'passive' && product.status !== PRODUCT_STATUS.passive) return false;
-  if (filters.brand && product.brandName !== filters.brand) return false;
-  if (filters.type && product.typeName !== filters.type) return false;
-  if (filters.category && !product.categories.some((item) => item.name === filters.category)) {
+  if (
+    filters.status.length > 0 &&
+    !filters.status.some((status) => product.status === PRODUCT_STATUS[status])
+  ) {
+    return false;
+  }
+  if (!matchesAny(filters.brand, product.brandName)) return false;
+  if (!matchesAny(filters.type, product.typeName)) return false;
+  if (
+    filters.category.length > 0 &&
+    !product.categories.some((item) => filters.category.includes(item.name))
+  ) {
     return false;
   }
 
-  return matchesStock(product.stock, filters.stock);
+  return (
+    filters.stock.length === 0 ||
+    filters.stock.some((filter) => matchesStock(product.stock, filter))
+  );
 }
 
 function compareProducts(a: Product, b: Product, sort: ProductFilters['sort']): number {

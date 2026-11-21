@@ -1,5 +1,4 @@
 import { useProducts } from '@/features/products/api/products';
-import FilterChip from '@/components/ui/FilterChip';
 import SelectField, { type SelectOption } from '@/components/ui/SelectField';
 import {
   DEFAULT_PRODUCT_FILTERS,
@@ -8,6 +7,8 @@ import {
   STOCK_FILTERS,
   type ProductFilters,
   type ProductSort,
+  type StatusFilter,
+  type StockFilter,
 } from '@/features/products/constants/products';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useRevealOpenField } from '@/hooks/useRevealOpenField';
@@ -23,10 +24,12 @@ import Text from '@/components/ui/Text';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type SelectKey = 'sort' | 'brand' | 'type' | 'category';
+type SelectKey = 'sort' | 'stock' | 'status' | 'brand' | 'type' | 'category';
 
-// "Tümü" seçeneği; filtre değerinde null olarak tutulur
-const ALL_VALUE = '';
+// Seçiliyse çıkarır, değilse ekler
+function toggleValue<T>(list: T[], value: T): T[] {
+  return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
+}
 
 // Seçimler taslakta tutulur; liste yalnızca "Uygula"da hesaplanır, modal takılmaz.
 export default function ProductFilterModal() {
@@ -43,23 +46,60 @@ export default function ProductFilterModal() {
 
   const catalog = useMemo(() => getProductFilterOptions(products ?? []), [products]);
 
-  const updateDraft = (patch: Partial<ProductFilters>) => {
-    setDraft((current) => ({ ...current, ...patch }));
+  const toNameOptions = (values: string[]): SelectOption[] =>
+    values.map((value) => ({ value, label: value }));
+
+  const toggleName = (key: 'brand' | 'type' | 'category', value: string) => {
+    setDraft((current) => ({ ...current, [key]: toggleValue(current[key], value) }));
   };
 
-  const toNameOptions = (values: string[]): SelectOption[] => [
-    { value: ALL_VALUE, label: t('stock.statusFilter.all') },
-    ...values.map((value) => ({ value, label: value })),
-  ];
-
-  const nameSelects = [
-    { key: 'brand', label: t('stock.brand'), values: catalog.brands, selected: draft.brand },
-    { key: 'type', label: t('stock.type'), values: catalog.types, selected: draft.type },
+  // Sıralama dışındaki alanlar çoklu seçimdir: hiçbiri işaretli değilse "Tümü" görünür
+  // ve filtre uygulanmaz.
+  const multiSelects = [
+    {
+      key: 'stock',
+      label: t('stock.stockTitle'),
+      options: STOCK_FILTERS.map((value) => ({ value, label: t(`stock.stockFilter.${value}`) })),
+      selected: draft.stock,
+      onSelect: (value: string) => {
+        const stock = STOCK_FILTERS.find((item): item is StockFilter => item === value);
+        if (stock) {
+          setDraft((current) => ({ ...current, stock: toggleValue(current.stock, stock) }));
+        }
+      },
+    },
+    {
+      key: 'status',
+      label: t('stock.status'),
+      options: STATUS_FILTERS.map((value) => ({ value, label: t(`stock.statusFilter.${value}`) })),
+      selected: draft.status,
+      onSelect: (value: string) => {
+        const status = STATUS_FILTERS.find((item): item is StatusFilter => item === value);
+        if (status) {
+          setDraft((current) => ({ ...current, status: toggleValue(current.status, status) }));
+        }
+      },
+    },
+    {
+      key: 'brand',
+      label: t('stock.brand'),
+      options: toNameOptions(catalog.brands),
+      selected: draft.brand,
+      onSelect: (value: string) => toggleName('brand', value),
+    },
+    {
+      key: 'type',
+      label: t('stock.type'),
+      options: toNameOptions(catalog.types),
+      selected: draft.type,
+      onSelect: (value: string) => toggleName('type', value),
+    },
     {
       key: 'category',
       label: t('stock.category'),
-      values: catalog.categories,
+      options: toNameOptions(catalog.categories),
       selected: draft.category,
+      onSelect: (value: string) => toggleName('category', value),
     },
   ] as const;
 
@@ -94,34 +134,6 @@ export default function ProductFilterModal() {
       </View>
 
       <ScrollView {...scrollProps} style={styles.scroll} contentContainerStyle={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('stock.stockTitle')}</Text>
-          <View accessibilityRole="radiogroup" style={styles.chips}>
-            {STOCK_FILTERS.map((value) => (
-              <FilterChip
-                key={value}
-                label={t(`stock.stockFilter.${value}`)}
-                active={draft.stock === value}
-                onPress={() => updateDraft({ stock: value })}
-              />
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('stock.status')}</Text>
-          <View accessibilityRole="radiogroup" style={styles.chips}>
-            {STATUS_FILTERS.map((value) => (
-              <FilterChip
-                key={value}
-                label={t(`stock.statusFilter.${value}`)}
-                active={draft.status === value}
-                onPress={() => updateDraft({ status: value })}
-              />
-            ))}
-          </View>
-        </View>
-
         <View onLayout={onGroupLayout}>
           <View onLayout={onFieldLayout('sort')}>
             <SelectField
@@ -132,25 +144,24 @@ export default function ProductFilterModal() {
               onToggle={() => toggleSelect('sort')}
               onSelect={(value) => {
                 const sort = PRODUCT_SORTS.find((item): item is ProductSort => item === value);
-                updateDraft({ sort: sort ?? DEFAULT_PRODUCT_FILTERS.sort });
+                setDraft((current) => ({ ...current, sort: sort ?? DEFAULT_PRODUCT_FILTERS.sort }));
                 setOpenSelect(null);
               }}
             />
           </View>
 
-          {nameSelects.map((select) =>
-            select.values.length > 0 ? (
+          {/* Çoklu seçim: seçenek işaretlenince alan açık kalır */}
+          {multiSelects.map((select) =>
+            select.options.length > 0 ? (
               <View key={select.key} onLayout={onFieldLayout(select.key)}>
                 <SelectField
                   label={select.label}
-                  value={select.selected ?? ALL_VALUE}
-                  options={toNameOptions(select.values)}
+                  value={select.selected}
+                  options={select.options}
                   isOpen={openSelect === select.key}
                   onToggle={() => toggleSelect(select.key)}
-                  onSelect={(value) => {
-                    updateDraft({ [select.key]: value === ALL_VALUE ? null : value });
-                    setOpenSelect(null);
-                  }}
+                  onSelect={select.onSelect}
+                  emptyLabel={t('stock.statusFilter.all')}
                 />
               </View>
             ) : null,
@@ -182,7 +193,6 @@ function createStyles(colors: AppColors) {
       paddingTop: SPACING.lg,
       paddingHorizontal: SPACING.xl,
       paddingBottom: SPACING.md,
-      gap: SPACING.lg,
     },
     // Başlık sabit durur, içerikten kenardan kenara bir çizgiyle ayrılır
     header: {
@@ -207,18 +217,6 @@ function createStyles(colors: AppColors) {
       ...typography.label,
       color: colors.orange,
       fontFamily: FONT_FAMILY.semiBold,
-    },
-    section: {
-      gap: SPACING.sm,
-    },
-    sectionTitle: {
-      ...typography.label,
-      color: colors.textSecondary,
-    },
-    chips: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: SPACING.xs,
     },
     applyButton: {
       marginHorizontal: SPACING.xl,

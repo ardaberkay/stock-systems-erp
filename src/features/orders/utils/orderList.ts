@@ -45,13 +45,19 @@ function matchesSearch(order: Order, search: string, phoneSearch: string): boole
   );
 }
 
+// Boş dizi o alanı filtrelemez
+function matchesAnyId(selected: number[], value: number | null | undefined): boolean {
+  return selected.length === 0 || (value != null && selected.includes(value));
+}
+
+// Alan içindeki seçimler "veya", alanlar arası "ve" ile birleşir.
 function matchesFilters(order: Order, filters: OrderFilters): boolean {
   return (
-    (filters.statusIds.length === 0 || filters.statusIds.includes(order.orderStatusId)) &&
-    (filters.customStatusId === null || order.orderCustomStatusId === filters.customStatusId) &&
-    (filters.paymentTypeId === null || order.orderPaymentTypeId === filters.paymentTypeId) &&
-    (filters.cargoCompanyId === null || order.shippingCargoCompanyId === filters.cargoCompanyId) &&
-    (filters.affiliateAccountId === null || order.affiliateAccountId === filters.affiliateAccountId)
+    matchesAnyId(filters.statusIds, order.orderStatusId) &&
+    matchesAnyId(filters.customStatusIds, order.orderCustomStatusId) &&
+    matchesAnyId(filters.paymentTypeIds, order.orderPaymentTypeId) &&
+    matchesAnyId(filters.cargoCompanyIds, order.shippingCargoCompanyId) &&
+    matchesAnyId(filters.affiliateAccountIds, order.affiliateAccountId)
   );
 }
 
@@ -70,9 +76,9 @@ export function getVisibleOrders(orders: Order[], query: string, filters: OrderF
 export function hasActiveOrderFilters(filters: OrderFilters): boolean {
   return (
     filters.statusIds.length > 0 ||
-    filters.customStatusId !== null ||
-    filters.paymentTypeId !== null ||
-    filters.cargoCompanyId !== null ||
-    filters.affiliateAccountId !== null
+    filters.customStatusIds.length > 0 ||
+    filters.paymentTypeIds.length > 0 ||
+    filters.cargoCompanyIds.length > 0 ||
+    filters.affiliateAccountIds.length > 0
   );
 }

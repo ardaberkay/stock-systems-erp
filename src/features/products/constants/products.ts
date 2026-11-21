@@ -1,28 +1,30 @@
-// Görünen adlar `stock.<grup>.<anahtar>` çevirisinden gelir.
-export const STOCK_FILTERS = ['all', 'inStock', 'lowStock', 'outOfStock'] as const;
-export const STATUS_FILTERS = ['all', 'active', 'passive'] as const;
+// Görünen adlar `stock.<grup>.<anahtar>` çevirisinden gelir. "Tümü" seçenek değildir:
+// hiçbiri seçili değilse filtre uygulanmaz.
+export const STOCK_FILTERS = ['inStock', 'lowStock', 'outOfStock'] as const;
+export const STATUS_FILTERS = ['active', 'passive'] as const;
 export const PRODUCT_SORTS = ['newest', 'name', 'stockDesc', 'stockAsc', 'priceDesc', 'priceAsc'] as const;
 
 export type StockFilter = (typeof STOCK_FILTERS)[number];
 export type StatusFilter = (typeof STATUS_FILTERS)[number];
 export type ProductSort = (typeof PRODUCT_SORTS)[number];
 
+// Sıralama dışındaki alanlar çoklu seçimdir; boş dizi "Tümü" demektir.
 export type ProductFilters = {
-  stock: StockFilter;
-  status: StatusFilter;
+  stock: StockFilter[];
+  status: StatusFilter[];
   sort: ProductSort;
-  brand: string | null;
-  type: string | null;
-  category: string | null;
+  brand: string[];
+  type: string[];
+  category: string[];
 };
 
 export const DEFAULT_PRODUCT_FILTERS: ProductFilters = {
-  stock: 'all',
-  status: 'all',
+  stock: [],
+  status: [],
   sort: 'newest',
-  brand: null,
-  type: null,
-  category: null,
+  brand: [],
+  type: [],
+  category: [],
 };
 
 // API'de ürün durumu 1 aktif, 0 pasif olarak gelir.

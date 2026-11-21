@@ -22,15 +22,13 @@ import Text from '@/components/ui/Text';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type SelectKey =
-  | 'status'
-  | 'customStatusId'
-  | 'paymentTypeId'
-  | 'cargoCompanyId'
-  | 'affiliateAccountId';
+type ListKey =
+  | 'statusIds'
+  | 'customStatusIds'
+  | 'paymentTypeIds'
+  | 'cargoCompanyIds'
+  | 'affiliateAccountIds';
 
-// "Tümü" seçeneği; filtre değerinde null olarak tutulur
-const ALL_VALUE = '';
 const ACTIVE_STATUS = 1;
 
 // Seçimler taslakta tutulur; liste yalnızca "Uygula"da hesaplanır, modal takılmaz.
@@ -42,49 +40,56 @@ export default function OrderFilterModal() {
   const filters = useOrderFilterStore((state) => state.filters);
   const setFilters = useOrderFilterStore((state) => state.setFilters);
   const [draft, setDraft] = useState<OrderFilters>(filters);
-  const [openSelect, setOpenSelect] = useState<SelectKey | null>(null);
+  const [openSelect, setOpenSelect] = useState<ListKey | null>(null);
   const { scrollProps, onGroupLayout, onFieldLayout } = useRevealOpenField(openSelect);
   const { data: customStatuses } = useOrderCustomStatuses();
   const { data: paymentTypes } = useOrderPaymentTypes();
   const { data: cargoCompanies } = useCargoCompanies();
   const { data: affiliates } = useAffiliates();
 
-  const toggleStatus = (statusId: number) => {
+  // Seçiliyse çıkarır, değilse ekler; alan açık kalır ki art arda seçilebilsin
+  const toggleId = (key: ListKey, id: number) => {
     setDraft((current) => ({
       ...current,
-      statusIds: current.statusIds.includes(statusId)
-        ? current.statusIds.filter((id) => id !== statusId)
-        : [...current.statusIds, statusId],
+      [key]: current[key].includes(id)
+        ? current[key].filter((item) => item !== id)
+        : [...current[key], id],
     }));
   };
 
-  const toOptions = (items: { id: number; label: string }[]): SelectOption[] => [
-    { value: ALL_VALUE, label: t('orders.allOption') },
-    ...items.map((item) => ({ value: String(item.id), label: item.label })),
-  ];
+  const toOptions = (items: { id: number; label: string }[]): SelectOption[] =>
+    items.map((item) => ({ value: String(item.id), label: item.label }));
 
   const selects = [
     {
-      key: 'customStatusId',
+      key: 'statusIds',
+      label: t('orders.statusTitle'),
+      items: ORDER_STATUS_FILTERS.map((statusId) => ({
+        id: statusId,
+        label: t(`orders.status.${getOrderStatusDisplay(statusId).key}`),
+      })),
+    },
+    {
+      key: 'customStatusIds',
       label: t('orders.customStatusTitle'),
       items: (customStatuses ?? [])
         .filter((status) => status.status === ACTIVE_STATUS)
         .map((status) => ({ id: status.id, label: status.name })),
     },
     {
-      key: 'paymentTypeId',
+      key: 'paymentTypeIds',
       label: t('orders.paymentTitle'),
       items: (paymentTypes ?? []).map((type) => ({ id: type.id, label: type.name })),
     },
     {
-      key: 'cargoCompanyId',
+      key: 'cargoCompanyIds',
       label: t('orders.cargoTitle'),
       items: (cargoCompanies ?? [])
         .filter((company) => company.status === ACTIVE_STATUS)
         .map((company) => ({ id: company.id, label: getCargoCompanyName(company, t) })),
     },
     {
-      key: 'affiliateAccountId',
+      key: 'affiliateAccountIds',
       label: t('orders.partnerTitle'),
       items: (affiliates ?? [])
         .filter((affiliate) => affiliate.status === ACTIVE_STATUS)
@@ -126,39 +131,19 @@ export default function OrderFilterModal() {
       <ScrollView {...scrollProps} style={styles.scroll} contentContainerStyle={styles.content}>
         <View onLayout={onGroupLayout}>
           {/* Çoklu seçim: seçenek işaretlenince alan açık kalır */}
-          <View onLayout={onFieldLayout('status')}>
-            <SelectField
-              label={t('orders.statusTitle')}
-              value={draft.statusIds.map(String)}
-              options={ORDER_STATUS_FILTERS.map((statusId) => ({
-                value: String(statusId),
-                label: t(`orders.status.${getOrderStatusDisplay(statusId).key}`),
-              }))}
-              isOpen={openSelect === 'status'}
-              onToggle={() => setOpenSelect((current) => (current === 'status' ? null : 'status'))}
-              onSelect={(value) => toggleStatus(Number(value))}
-              emptyLabel={t('orders.allOption')}
-            />
-          </View>
-
           {selects.map((select) =>
             select.items.length > 0 ? (
               <View key={select.key} onLayout={onFieldLayout(select.key)}>
                 <SelectField
                   label={select.label}
-                  value={String(draft[select.key] ?? ALL_VALUE)}
+                  value={draft[select.key].map(String)}
                   options={toOptions([...select.items])}
                   isOpen={openSelect === select.key}
                   onToggle={() =>
                     setOpenSelect((current) => (current === select.key ? null : select.key))
                   }
-                  onSelect={(value) => {
-                    setDraft((current) => ({
-                      ...current,
-                      [select.key]: value === ALL_VALUE ? null : Number(value),
-                    }));
-                    setOpenSelect(null);
-                  }}
+                  onSelect={(value) => toggleId(select.key, Number(value))}
+                  emptyLabel={t('orders.allOption')}
                 />
               </View>
             ) : null,

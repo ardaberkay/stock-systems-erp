@@ -28,20 +28,21 @@ export const DEFAULT_ORDER_PERIOD: OrderPeriodSelection = { kind: 'preset', peri
 // Ana sayfa ve siparişlerin ortak kullandığı veri; bu aralıktaki dönemler anında gösterilir.
 export const ORDER_BASE_DAYS = 7;
 
+// Hepsi çoklu seçimdir; boş dizi "Tümü" demektir.
 export type OrderFilters = {
   statusIds: number[];
-  customStatusId: number | null;
-  paymentTypeId: number | null;
-  cargoCompanyId: number | null;
-  affiliateAccountId: number | null;
+  customStatusIds: number[];
+  paymentTypeIds: number[];
+  cargoCompanyIds: number[];
+  affiliateAccountIds: number[];
 };
 
 export const DEFAULT_ORDER_FILTERS: OrderFilters = {
   statusIds: [],
-  customStatusId: null,
-  paymentTypeId: null,
-  cargoCompanyId: null,
-  affiliateAccountId: null,
+  customStatusIds: [],
+  paymentTypeIds: [],
+  cargoCompanyIds: [],
+  affiliateAccountIds: [],
 };
 
 // "Ödeme Bekliyor" panelde seçilemez, yalnızca API'den gelirse listede gösterilir.
