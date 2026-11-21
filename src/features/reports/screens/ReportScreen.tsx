@@ -16,7 +16,7 @@ import { useTabPressScrollToTop } from '@/hooks/useTabPressScrollToTop';
 import { useTopInset } from '@/hooks/useTopInset';
 import { getErrorMessageKey } from '@/lib/apiError';
 import type { AppColors } from '@/theme/colors';
-import { ICON_SIZE, MIN_TOUCH_SIZE, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
+import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import { useNavigation } from 'expo-router';
 import { DrawerActions } from 'expo-router/react-navigation';
@@ -25,6 +25,10 @@ import { useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import Text from '@/components/ui/Text';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+
+// Liste panelin köşe yuvarlaklığı kadar altına girer; köşelerde arkadaki kartlar görünür
+// (sipariş ve ürün sayfalarıyla aynı)
+const HEADER_OVERLAP = RADIUS.xxl;
 
 export default function ReportScreen() {
   const { t } = useTranslation();
@@ -54,32 +58,35 @@ export default function ReportScreen() {
   useTabPressScrollToTop(scrollRef);
 
   return (
-    <View style={[styles.screen, { paddingTop: topInset }]}>
-      <View style={styles.topBar}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('drawer.open')}
-          onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-          style={styles.iconButton}
-        >
-          <Menu size={ICON_SIZE.lg} color={colors.text} />
-        </Pressable>
-        <Text style={styles.title} numberOfLines={1}>
-          {t('reports.title')}
-        </Text>
-        <Text style={styles.period} numberOfLines={1}>
-          {periodLabel}
-        </Text>
-      </View>
+    <View style={styles.screen}>
+      {/* Sabit üst panel: durum çubuğundan başlar, liste alt köşelerinin arkasından akar */}
+      <View style={[styles.header, { paddingTop: topInset }]}>
+        <View style={styles.topBar}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('drawer.open')}
+            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+            style={styles.iconButton}
+          >
+            <Menu size={ICON_SIZE.lg} color={colors.text} />
+          </Pressable>
+          <Text style={styles.title} numberOfLines={1}>
+            {t('reports.title')}
+          </Text>
+          <Text style={styles.period} numberOfLines={1}>
+            {periodLabel}
+          </Text>
+        </View>
 
-      {/* Kategoriler tek parça bölüm geçişidir; parçalar eşit genişlikte */}
-      <View style={styles.categoryBar}>
-        <SegmentedControl
-          options={categoryOptions}
-          value={category}
-          onChange={setCategory}
-          compact
-        />
+        {/* Kategoriler tek parça bölüm geçişidir; parçalar eşit genişlikte */}
+        <View style={styles.categoryBar}>
+          <SegmentedControl
+            options={categoryOptions}
+            value={category}
+            onChange={setCategory}
+            compact
+          />
+        </View>
       </View>
 
       <ScrollView
@@ -93,6 +100,7 @@ export default function ReportScreen() {
             tintColor={colors.orangeWhite}
             colors={[colors.orangeWhite]}
             progressBackgroundColor={colors.surface}
+            progressViewOffset={HEADER_OVERLAP}
           />
         }
       >
@@ -133,6 +141,14 @@ function createStyles(colors: AppColors) {
       flex: 1,
       backgroundColor: colors.background,
     },
+    header: {
+      zIndex: 1,
+      marginBottom: -HEADER_OVERLAP,
+      paddingBottom: SPACING.sm,
+      borderBottomLeftRadius: RADIUS.xl,
+      borderBottomRightRadius: RADIUS.xl,
+      backgroundColor: colors.background,
+    },
     // Sipariş ve ürün sayfalarının app bar'ıyla aynı yükseklikte
     topBar: {
       minHeight: 54,
@@ -158,13 +174,12 @@ function createStyles(colors: AppColors) {
     },
     categoryBar: {
       paddingHorizontal: SPACING.md,
-      paddingBottom: SPACING.sm,
     },
     // Kartlar anasayfadaki ürün kartlarıyla aynı genişliktedir
     content: {
       gap: SPACING.md,
       paddingHorizontal: SPACING.md,
-      paddingTop: SPACING.xs,
+      paddingTop: HEADER_OVERLAP + SPACING.xs,
     },
     hidden: {
       display: 'none',
