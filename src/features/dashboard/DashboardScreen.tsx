@@ -19,6 +19,7 @@ import { FONT_FAMILY, FONT_SIZE, typography } from '@/theme/typography';
 import { useNavigation } from 'expo-router';
 import { DrawerActions } from 'expo-router/react-navigation';
 import Bell from 'lucide-react-native/icons/bell';
+import ChevronLeft from 'lucide-react-native/icons/chevron-left';
 import Menu from 'lucide-react-native/icons/menu';
 import { useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -69,12 +70,21 @@ export default function DashboardScreen() {
           <Menu size={ICON_SIZE.lg} color={colors.text} />
         </Pressable>
 
-        {/* Marka adı çevrilmez; "<butik" ve "." her temada turuncu ve bir tık incedir */}
-        <Text accessibilityLabel="butiksistem" style={styles.logo}>
-          <Text style={styles.logoAccent}>{'<butik'}</Text>
-          sistem
-          <Text style={styles.logoAccent}>.</Text>
-        </Text>
+        {/* Marka adı çevrilmez; ok, "butik" ve "." her temada turuncu, "sistem" bir tık ince
+            ve daha açık aralıklı */}
+        <View accessible accessibilityLabel="butiksistem" style={styles.logo}>
+          <ChevronLeft
+            size={ICON_SIZE.md}
+            color={colors.orange}
+            strokeWidth={3}
+            style={styles.logoIcon}
+          />
+          <Text style={styles.logoText}>
+            <Text style={styles.logoBrand}>butik</Text>
+            <Text style={styles.logoSystem}>sistem</Text>
+            <Text style={styles.logoBrand}>.</Text>
+          </Text>
+        </View>
 
         <Pressable
           accessibilityRole="button"
@@ -196,15 +206,26 @@ function createStyles(colors: AppColors) {
       marginHorizontal: 20,
     },
     logo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    // İkonun sağındaki iç boşluk "butik"e yaklaşsın diye kısılır
+    logoIcon: {
+      marginRight: -(SPACING.xs + SPACING.xxs),
+    },
+    logoText: {
       ...typography.h2,
       color: colors.text,
       fontSize: FONT_SIZE.xl,
+    },
+    logoBrand: {
+      color: colors.orange,
       fontFamily: FONT_FAMILY.bold,
       letterSpacing: -1.2,
     },
-    logoAccent: {
-      color: colors.orange,
-      fontFamily: FONT_FAMILY.semiBold,
+    logoSystem: {
+      fontFamily: FONT_FAMILY.regular,
+      letterSpacing: 0,
     },
     iconButton: {
       width: 44,
