@@ -14,6 +14,7 @@ import { useLocale } from '@/hooks/useLocale';
 import type { OrderCreateFormInput } from '@/features/orders/schemas/orderCreate';
 import { formatMoney } from '@/utils/formatter';
 import { getItemsTotal } from '@/features/orders/utils/orderCreate';
+import { getCargoCompanyName } from '@/features/orders/utils/cargo';
 import { useMemo } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -42,7 +43,7 @@ export default function OrderShippingStep() {
           label:
             company.name === STORE_PICKUP_CARGO_CODE
               ? t('orders.storePickup')
-              : company.fullName || company.name,
+              : getCargoCompanyName(company, t),
         })),
     [cargoQuery.data, t],
   );

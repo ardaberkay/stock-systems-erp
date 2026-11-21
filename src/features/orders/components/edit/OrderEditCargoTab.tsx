@@ -7,6 +7,7 @@ import { SHIPPING_PAYERS, STORE_PICKUP_CARGO_CODE } from '@/features/orders/cons
 import { useLocale } from '@/hooks/useLocale';
 import type { OrderEditForm } from '@/features/orders/schemas/orderEdit';
 import type { Order } from '@/features/orders/schemas/orders';
+import { getCargoCompanyName } from '@/features/orders/utils/cargo';
 import { formatNumber } from '@/utils/formatter';
 import { useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
@@ -35,7 +36,7 @@ export default function OrderEditCargoTab({ order }: OrderEditCargoTabProps) {
           label:
             company.name === STORE_PICKUP_CARGO_CODE
               ? t('orders.storePickup')
-              : company.fullName || company.name,
+              : getCargoCompanyName(company, t),
         })),
     [cargoQuery.data, t],
   );

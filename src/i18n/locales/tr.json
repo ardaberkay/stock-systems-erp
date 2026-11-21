@@ -162,6 +162,18 @@
         "edit": "#{{id}} siparişini düzenle",
         "itemCount": "{{value}} ürün",
         "deci": "{{value}} desi",
+        "cargoStep": "Kargo adımı {{current}}/{{total}}",
+        "cargoNames": {
+            "surat": "Sürat Kargo",
+            "aras": "Aras Kargo",
+            "mng": "MNG Kargo",
+            "yurtici": "Yurtiçi Kargo",
+            "ptt": "PTT Kargo",
+            "kargoturk": "Kargo Türk",
+            "byexpress": "ByExpress",
+            "stocado": "Stocado",
+            "paykargo": "PayKargo"
+        },
         "storePickup": "Mağaza",
         "whatsappCustomer": "Müşteriye WhatsApp'tan yaz",
         "whatsappPartner": "{{name}} ortağına WhatsApp'tan yaz",
@@ -688,7 +700,7 @@
         "type": "Tip",
         "category": "Kategori",
         "status": "Durum",
-        "openDetail": "Detay",
+        "openDetail": "İncele",
         "edit": "Düzenle",
         "delete": "Sil",
         "barcodeScan": {

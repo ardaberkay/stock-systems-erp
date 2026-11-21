@@ -1,4 +1,5 @@
 import Badge from '@/components/ui/Badge';
+import CargoStepBar from '@/features/orders/components/CargoStepBar';
 import OrderStatusBadge from '@/features/orders/components/OrderStatusBadge';
 import WhatsAppIcon from '@/features/orders/components/WhatsAppIcon';
 import Checkbox from '@/components/ui/Checkbox';
@@ -16,10 +17,10 @@ import {
   formatOrderDateTime,
   formatPhone,
 } from '@/utils/formatter';
-import Pencil from 'lucide-react-native/icons/pencil';
 import Store from 'lucide-react-native/icons/store';
 import Tag from 'lucide-react-native/icons/tag';
 import Truck from 'lucide-react-native/icons/truck';
+import Weight from 'lucide-react-native/icons/weight';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import Text from '@/components/ui/Text';
@@ -36,7 +37,6 @@ type OrderCardProps = {
   isSelecting: boolean;
   isSelected: boolean;
   onOpen: (orderId: number) => void;
-  onEdit: (orderId: number) => void;
   onToggleSelect: (orderId: number) => void;
   onWhatsApp: (phone: string, message: string) => void;
 };
@@ -51,9 +51,10 @@ const STACKED_ICON_HIT_SLOP =
     typography.caption.lineHeight / 2 -
     ICON_SIZE.sm) /
   2;
-const EDIT_HIT_SLOP = (MIN_TOUCH_SIZE - ICON_SIZE.sm) / 2;
 // Uzun firma adı desiyi ve ileride eklenecek kargo adımlarını satırdan itmesin
 const MAX_CARGO_NAME_WIDTH = '55%';
+// GEÇİCİ: kargo adımı verisi yok; tasarım denemesi için adım sipariş numarasından türetilir
+const CARGO_STEP_COUNT = 5;
 
 // Yüzlerce kart aynı stili kullanır; her kartta yeniden oluşturulmasın.
 const stylesByTheme = new WeakMap<AppColors, ReturnType<typeof createStyles>>();
@@ -81,7 +82,6 @@ function OrderCard({
   isSelecting,
   isSelected,
   onOpen,
-  onEdit,
   onToggleSelect,
   onWhatsApp,
 }: OrderCardProps) {
@@ -235,23 +235,23 @@ function OrderCard({
           <Text style={styles.cargoName} numberOfLines={1}>
             {cargoName}
           </Text>
-          {deci ? (
-            <Text style={styles.deci} numberOfLines={1}>
-              {`· ${t('orders.deci', { value: formatNumber(deci, locale) })}`}
-            </Text>
-          ) : null}
         </View>
 
-        {isSelecting ? null : (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('orders.edit', { id: order.id })}
-            hitSlop={EDIT_HIT_SLOP}
-            onPress={() => onEdit(order.id)}
-          >
-            <Pencil size={ICON_SIZE.sm} color={colors.icon} />
-          </Pressable>
-        )}
+        <View style={styles.cargoProgress}>
+          <CargoStepBar
+            current={order.id % (CARGO_STEP_COUNT + 1)}
+            total={CARGO_STEP_COUNT}
+            colors={colors}
+          />
+          {deci ? (
+            <View
+              accessible
+              accessibilityLabel={t('orders.deci', { value: formatNumber(deci, locale) })}
+            >
+              <Badge label={formatNumber(deci, locale)} icon={Weight} compact slim />
+            </View>
+          ) : null}
+        </View>
       </View>
     </Pressable>
   );
@@ -364,10 +364,11 @@ function createStyles(colors: AppColors) {
       maxWidth: MAX_CARGO_NAME_WIDTH,
       color: colors.textSecondary,
     },
-    deci: {
-      ...typography.caption,
+    cargoProgress: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.sm,
       flexShrink: 0,
-      color: colors.textSecondary,
     },
   });
 }

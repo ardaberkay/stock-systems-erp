@@ -8,6 +8,7 @@ import {
   type OrderFilters,
 } from '@/features/orders/constants/list';
 import { getOrderStatusDisplay } from '@/features/orders/constants/status';
+import { getCargoCompanyName } from '@/features/orders/utils/cargo';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useOrderFilterStore } from '@/features/orders/orderFilterStore';
 import type { AppColors } from '@/theme/colors';
@@ -78,7 +79,7 @@ export default function OrderFilterModal() {
       label: t('orders.cargoTitle'),
       items: (cargoCompanies ?? [])
         .filter((company) => company.status === ACTIVE_STATUS)
-        .map((company) => ({ id: company.id, label: company.fullName || company.name })),
+        .map((company) => ({ id: company.id, label: getCargoCompanyName(company, t) })),
     },
     {
       key: 'affiliateAccountId',

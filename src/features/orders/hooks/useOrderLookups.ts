@@ -3,7 +3,9 @@ import { useCargoCompanies } from '@/features/orders/api/cargo';
 import { useOrderCustomStatuses, useOrderPaymentTypes } from '@/features/orders/api/orders';
 import { STORE_PICKUP_CARGO_CODE } from '@/features/orders/constants/detail';
 import type { Order } from '@/features/orders/schemas/orders';
+import { getCargoCompanyName } from '@/features/orders/utils/cargo';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type OrderPartner = {
   name: string;
@@ -18,6 +20,7 @@ export type OrderCargo = {
 // Kartlardaki kimlikleri ada çevirir. İstekler liste geldikten sonra sıraya girer ki
 // siparişler beklemesin; hiçbir siparişte geçmeyen ortak ve özel durum listesi istenmez.
 export function useOrderLookups(orders: Order[]) {
+  const { t } = useTranslation();
   const hasOrders = orders.length > 0;
   const { data: cargoCompanies } = useCargoCompanies({ enabled: hasOrders });
   const { data: paymentTypes } = useOrderPaymentTypes({ enabled: hasOrders });
@@ -34,7 +37,7 @@ export function useOrderLookups(orders: Order[]) {
         (cargoCompanies ?? []).map((company) => [
           company.id,
           {
-            name: company.fullName || company.name,
+            name: getCargoCompanyName(company, t),
             isStorePickup: company.name === STORE_PICKUP_CARGO_CODE,
           },
         ]),
@@ -53,6 +56,6 @@ export function useOrderLookups(orders: Order[]) {
         ]),
       ),
     }),
-    [cargoCompanies, paymentTypes, customStatuses, affiliates],
+    [cargoCompanies, paymentTypes, customStatuses, affiliates, t],
   );
 }

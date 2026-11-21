@@ -13,7 +13,6 @@ import CircleOff from 'lucide-react-native/icons/circle-off';
 import Coins from 'lucide-react-native/icons/coins';
 import Info from 'lucide-react-native/icons/info';
 import Folder from 'lucide-react-native/icons/folder';
-import Pencil from 'lucide-react-native/icons/pencil';
 import Trash from 'lucide-react-native/icons/trash';
 import { router } from 'expo-router';
 import { useMemo } from 'react';
@@ -86,9 +85,18 @@ export default function ProductCardDetails({
         </View>
       ))}
 
+      {/* Bilgiler tek kutuda, aralarında çizgiyle iki sütun; satırda tek kalan tüm genişliği alır */}
       <View style={styles.details}>
-        {details.map(({ key, icon: Icon, label, value }) => (
-          <View key={key} style={styles.detail}>
+        {details.map(({ key, icon: Icon, label, value }, index) => (
+          <View
+            key={key}
+            style={[
+              styles.detail,
+              index % 2 === 1 && styles.detailRightColumn,
+              index >= 2 && styles.detailNextRow,
+              index % 2 === 0 && index === details.length - 1 && styles.detailFullWidth,
+            ]}
+          >
             <View style={styles.detailLabelRow}>
               <Icon size={ICON_SIZE.sm - SPACING.xxs} color={colors.icon} />
               <Text style={styles.detailLabel}>{label}</Text>
@@ -117,22 +125,7 @@ export default function ProductCardDetails({
           <Text style={styles.actionText}>{t('stock.openDetail')}</Text>
         </Pressable>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('stock.edit')}
-          onPress={() =>
-            router.push({
-              pathname: '/product-detail/[id]',
-              params: { id: String(product.id), edit: '1' },
-            })
-          }
-          style={[styles.actionButton, styles.outlineButton]}
-        >
-          <Pencil size={ICON_SIZE.sm} color={colors.text} />
-          <Text style={styles.actionText}>{t('stock.edit')}</Text>
-        </Pressable>
-
-        {/* Üç buton dar ekrana sığsın diye silme yalnızca ikon. İstek sürerken tekrar basılamaz. */}
+        {/* Düzenleme detay sayfasından yapılır. Silme yalnızca ikon; istek sürerken tekrar basılamaz. */}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('stock.deleteProduct.button')}
@@ -161,17 +154,26 @@ function createStyles(colors: AppColors) {
     details: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: SPACING.xs,
+      borderRadius: RADIUS.md,
+      backgroundColor: colors.background,
     },
-    // İki sütun: satırda tek kalan bilgi tüm genişliği alır
     detail: {
-      flexBasis: '48%',
-      flexGrow: 1,
+      width: '50%',
       gap: SPACING.xxs,
       paddingHorizontal: SPACING.sm,
-      paddingVertical: SPACING.xs,
-      borderRadius: RADIUS.sm,
-      backgroundColor: colors.background,
+      paddingVertical: SPACING.sm,
+    },
+    // Ayırıcılar ekranın en ince çizgisi; kutuyu bölmeden gruplar
+    detailRightColumn: {
+      borderLeftWidth: StyleSheet.hairlineWidth,
+      borderLeftColor: colors.divider,
+    },
+    detailNextRow: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.divider,
+    },
+    detailFullWidth: {
+      width: '100%',
     },
     detailLabelRow: {
       flexDirection: 'row',

@@ -162,6 +162,18 @@
     "edit": "Edit order #{{id}}",
     "itemCount": "{{value}} items",
     "deci": "{{value}} deci",
+    "cargoStep": "Shipping step {{current}}/{{total}}",
+    "cargoNames": {
+      "surat": "Sürat Kargo",
+      "aras": "Aras Kargo",
+      "mng": "MNG Kargo",
+      "yurtici": "Yurtiçi Kargo",
+      "ptt": "PTT Kargo",
+      "kargoturk": "Kargo Türk",
+      "byexpress": "ByExpress",
+      "stocado": "Stocado",
+      "paykargo": "PayKargo"
+    },
     "storePickup": "Store",
     "whatsappCustomer": "Message the customer on WhatsApp",
     "whatsappPartner": "Message partner {{name}} on WhatsApp",
@@ -688,7 +700,7 @@
     "type": "Type",
     "category": "Category",
     "status": "Status",
-    "openDetail": "Details",
+    "openDetail": "View",
     "edit": "Edit",
     "delete": "Delete",
     "barcodeScan": {

@@ -72,11 +72,6 @@ const openOrder = (orderId: number) => {
   router.push({ pathname: '/order-detail/[id]', params: { id: String(orderId) } });
 };
 
-// Düzenleme ayrı bir sayfa değil, detay sayfasının bir modu
-const editOrder = (orderId: number) => {
-  router.push({ pathname: '/order-detail/[id]', params: { id: String(orderId), edit: '1' } });
-};
-
 const openPeriodSelect = () => {
   router.push({ pathname: '/period/[scope]', params: { scope: 'orders' } });
 };
@@ -173,7 +168,6 @@ export default function OrderScreen() {
         isSelecting={isSelecting}
         isSelected={selectedIds.has(item.id)}
         onOpen={openOrder}
-        onEdit={editOrder}
         onToggleSelect={toggle}
         onWhatsApp={openWhatsApp}
       />
