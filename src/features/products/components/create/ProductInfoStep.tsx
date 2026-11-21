@@ -93,6 +93,7 @@ export default function ProductInfoStep() {
           render={({ field: { value, onChange }, fieldState: { error } }) => (
             <PickerField
               label={t('stock.create.fields.type')}
+              sheetTitle={t('stock.sheetTitles.type')}
               placeholder={t('stock.create.fields.selectType')}
               searchPlaceholder={t('stock.create.fields.searchType')}
               value={value}

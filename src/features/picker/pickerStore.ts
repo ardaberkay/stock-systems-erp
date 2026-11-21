@@ -1,6 +1,6 @@
 import type { Product, ProductVariant } from '@/features/products/schemas/products';
 import type { BarcodeCartAddResult } from '@/features/products/stores/barcodeScanStore';
-import type { ReactNode } from 'react';
+import type { ComponentType } from 'react';
 import { create } from 'zustand';
 
 export type PickerValue = string | number;
@@ -13,8 +13,9 @@ export type PickerItem = {
   // Pasif satırda nedeni (ör. "Uygulamadan seçilemiyor")
   badge?: string;
   disabled?: boolean;
-  // Yazı yerine özel görünüm (ör. durum rozeti)
-  content?: ReactNode;
+  // Yazının solunda kendi renginde ikon (ör. sipariş durumu); yalnızca kısa listelerde
+  icon?: ComponentType<{ size?: number; color?: string }>;
+  iconColor?: string;
 };
 
 // Liste henüz gelmeden de pencere açılır; yükleniyor ve hata durumu pencerenin içinde görünür.
@@ -31,8 +32,6 @@ export type PickerRequest = PickerLoadState & {
   title: string;
   items: PickerItem[];
   value: PickerValue | null;
-  // Listenin üstünde kısa açıklama
-  note?: string;
   searchPlaceholder?: string;
   onSelect: (value: PickerValue) => void;
 };

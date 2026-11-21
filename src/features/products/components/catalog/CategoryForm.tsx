@@ -172,6 +172,7 @@ function CategoryFormContent({ categoryId }: CategoryFormContentProps) {
         render={({ field: { value, onChange } }) => (
           <PickerField
             label={t('stock.catalogPages.categories.parentLabel')}
+            sheetTitle={t('stock.sheetTitles.parentCategory')}
             placeholder={rootLabel}
             searchPlaceholder={t('stock.catalogPages.categories.searchPlaceholder')}
             value={value}

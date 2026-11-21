@@ -50,6 +50,7 @@ export default function ProductPriceStep() {
           render={({ field: { value, onChange }, fieldState: { error } }) => (
             <PickerField
               label={t('stock.create.fields.taxRate')}
+              sheetTitle={t('stock.sheetTitles.taxRate')}
               placeholder={t('stock.create.fields.selectTaxRate')}
               searchPlaceholder=""
               value={value}

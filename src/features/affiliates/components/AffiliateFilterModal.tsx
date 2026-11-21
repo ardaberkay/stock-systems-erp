@@ -66,16 +66,18 @@ export default function AffiliateFilterModal() {
 
       <View style={styles.section} accessibilityRole="radiogroup">
         <Text style={styles.sectionTitle}>{t('affiliates.sortTitle')}</Text>
-        {AFFILIATE_SORTS.map((sort) => (
-          <ChoiceOptionRow
-            key={sort}
-            value={sort}
-            label={t(`affiliates.sort.${sort}`)}
-            selected={draft.sort === sort}
-            colors={colors}
-            onSelect={() => setDraft((current) => ({ ...current, sort }))}
-          />
-        ))}
+        <View style={styles.sortOptions}>
+          {AFFILIATE_SORTS.map((sort) => (
+            <ChoiceOptionRow
+              key={sort}
+              value={sort}
+              label={t(`affiliates.sort.${sort}`)}
+              selected={draft.sort === sort}
+              colors={colors}
+              onSelect={() => setDraft((current) => ({ ...current, sort }))}
+            />
+          ))}
+        </View>
       </View>
 
       <Pressable
@@ -121,6 +123,10 @@ function createStyles(colors: AppColors) {
     sectionTitle: {
       ...typography.label,
       color: colors.textSecondary,
+    },
+    // Satırın kendi iç boşluğu (md) kadar dışa taşar: yazılar bölüm başlığıyla aynı hizada durur
+    sortOptions: {
+      marginHorizontal: -SPACING.md,
     },
     applyButton: {
       minHeight: MIN_TOUCH_SIZE + SPACING.xs,

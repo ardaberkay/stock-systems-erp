@@ -175,6 +175,13 @@
     "customStatusTitle": "Custom status",
     "paymentTitle": "Payment type",
     "cargoTitle": "Cargo company",
+    "sheetTitles": {
+      "status": "Order Status",
+      "customStatus": "Custom Status",
+      "paymentType": "Payment Type",
+      "cargoCompany": "Shipping Company",
+      "phoneCountry": "Country Code"
+    },
     "partnerTitle": "Sales partner",
     "detailTitle": "Order Details",
     "editTitle": "Edit Order",
@@ -590,7 +597,6 @@
       "save": "Save",
       "cancel": "Cancel",
       "noCustomStatus": "No custom status",
-      "statusStockNote": "Changing the status does not change stock.",
       "statusLocked": "Not available in the app",
       "locked": "Not editable for now",
       "phonePlaceholder": "(5XX) XXX XX XX",
@@ -663,6 +669,11 @@
   },
   "stock": {
     "searchPlaceholder": "Search name, code or barcode",
+    "sheetTitles": {
+      "type": "Product Type",
+      "taxRate": "VAT Rate",
+      "parentCategory": "Parent Category"
+    },
     "resultCount": "{{value}} results",
     "productCount": "{{value}} products",
     "empty": "No products yet.",

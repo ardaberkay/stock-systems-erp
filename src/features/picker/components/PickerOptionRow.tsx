@@ -53,7 +53,7 @@ function PickerOptionRow({
       </Text>
       {detail ? <Text style={[styles.detail, disabled && styles.disabled]}>{detail}</Text> : null}
       {badge ? <Badge label={badge} tone="neutral" /> : null}
-      {selected ? <Check size={ICON_SIZE.sm} color={colors.iconActive} /> : null}
+      {selected ? <Check size={ICON_SIZE.md} color={colors.iconActive} /> : null}
     </Pressable>
   );
 }

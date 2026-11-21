@@ -175,6 +175,13 @@
         "customStatusTitle": "Özel durum",
         "paymentTitle": "Ödeme türü",
         "cargoTitle": "Kargo firması",
+        "sheetTitles": {
+            "status": "Sipariş Durumu",
+            "customStatus": "Özel Durum",
+            "paymentType": "Ödeme Türü",
+            "cargoCompany": "Kargo Firması",
+            "phoneCountry": "Ülke Kodu"
+        },
         "partnerTitle": "Satış ortağı",
         "detailTitle": "Sipariş Detayı",
         "editTitle": "Siparişi Düzenle",
@@ -590,7 +597,6 @@
             "save": "Kaydet",
             "cancel": "Vazgeç",
             "noCustomStatus": "Özel durum yok",
-            "statusStockNote": "Durum değişikliği stokları değiştirmez.",
             "statusLocked": "Uygulamadan seçilemiyor",
             "locked": "Şimdilik düzenlenemiyor",
             "phonePlaceholder": "(5XX) XXX XX XX",
@@ -663,6 +669,11 @@
     },
     "stock": {
         "searchPlaceholder": "Ad, kod veya barkod ara",
+        "sheetTitles": {
+            "type": "Ürün Tipi",
+            "taxRate": "KDV Oranı",
+            "parentCategory": "Üst Kategori"
+        },
         "resultCount": "{{value}} sonuç",
         "productCount": "{{value}} ürün",
         "empty": "Henüz ürün yok.",

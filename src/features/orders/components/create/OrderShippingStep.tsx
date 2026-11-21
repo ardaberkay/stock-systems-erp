@@ -82,6 +82,7 @@ export default function OrderShippingStep() {
           render={({ field: { value, onChange }, fieldState: { error } }) => (
             <PickerField
               label={t('orders.create.shipping.cargoCompany')}
+              sheetTitle={t('orders.sheetTitles.cargoCompany')}
               placeholder={t('orders.create.shipping.selectCargo')}
               searchPlaceholder={t('orders.create.shipping.searchCargo')}
               value={value}
@@ -156,6 +157,7 @@ export default function OrderShippingStep() {
           render={({ field: { value, onChange }, fieldState: { error } }) => (
             <PickerField
               label={t('orders.create.shipping.paymentType')}
+              sheetTitle={t('orders.sheetTitles.paymentType')}
               placeholder={t('orders.create.shipping.selectPayment')}
               searchPlaceholder={t('orders.create.shipping.searchPayment')}
               value={value}

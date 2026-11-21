@@ -92,10 +92,13 @@ function createStyles(colors: AppColors) {
     },
     // TextInput'a lineHeight verilmez: yazarken metin aşağı kayar ve g, y gibi harflerin
     // alt kısmı kesilir. Preset'ten yalnızca font ailesi ve boyutu alınır.
+    // Kutunun yüksekliğini doldurur: sheet'lerde iOS alanı font ölçüsüne göre kısa kurup
+    // ipucu metnindeki g, y gibi harflerin kuyruğunu kesiyordu.
     input: {
       fontFamily: typography.bodySmall.fontFamily,
       fontSize: typography.bodySmall.fontSize,
       flex: 1,
+      alignSelf: 'stretch',
       paddingVertical: 0,
       color: colors.text,
     },

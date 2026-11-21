@@ -1,8 +1,9 @@
+import Badge from '@/components/ui/Badge';
 import type { PickerValue } from '@/features/picker/pickerStore';
 import type { AppColors } from '@/theme/colors';
-import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
+import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
-import { memo, useMemo, type ReactNode } from 'react';
+import { memo, useMemo, type ComponentType } from 'react';
 import Text from '@/components/ui/Text';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -13,16 +14,17 @@ type ChoiceOptionRowProps = {
   disabled?: boolean;
   // Pasif satırda nedeni (ör. "Uygulamadan seçilemiyor")
   badge?: string;
-  // Yazı yerine özel görünüm (ör. durum rozeti); label yine ekran okuyucuda kullanılır
-  content?: ReactNode;
+  // Yazının solunda kendi renginde ikon (ör. sipariş durumu)
+  icon?: ComponentType<{ size?: number; color?: string }>;
+  iconColor?: string;
   colors: AppColors;
   onSelect: (value: PickerValue) => void;
 };
 
 const DISABLED_OPACITY = 0.45;
 
-// Kısa listelerin (ödeme tipi, kargo, durum) satırı: her seçenek ayrı kutu. Seçili olan turuncu
-// çerçeve, açık turuncu zemin ve kalın yazıyla bir bakışta ayrışır.
+// Kısa listelerin (ödeme tipi, kargo, durum) satırı: çizgisiz sade satırlar. Seçili olanın
+// arkasında nötr gri zemin ve ince çerçeve durur; yazı rengi değişmez, yalnızca kalınlaşır.
 // Uzun listeler (il, ilçe, ülke) çizgili PickerOptionRow kullanır.
 function ChoiceOptionRow({
   value,
@@ -30,7 +32,8 @@ function ChoiceOptionRow({
   selected,
   disabled = false,
   badge,
-  content,
+  icon: Icon,
+  iconColor,
   colors,
   onSelect,
 }: ChoiceOptionRowProps) {
@@ -45,19 +48,23 @@ function ChoiceOptionRow({
       onPress={() => onSelect(value)}
       style={({ pressed }) => [
         styles.row,
+        (selected || pressed) && styles.rowHighlighted,
         selected && styles.rowSelected,
-        pressed && !selected && styles.rowPressed,
-        disabled && styles.disabled,
       ]}
     >
-      <View style={styles.main}>
-        {content ?? (
-          <Text style={[styles.label, selected && styles.labelSelected]} numberOfLines={1}>
-            {label}
-          </Text>
-        )}
-      </View>
-      {badge ? <Text style={styles.badge}>{badge}</Text> : null}
+      {Icon ? (
+        // İkon kendi rengini korur; pasifken yazıyla birlikte soluklaşır
+        <View style={disabled && styles.disabledIcon}>
+          <Icon size={ICON_SIZE.md} color={iconColor ?? colors.icon} />
+        </View>
+      ) : null}
+      <Text
+        style={[styles.label, selected && styles.labelSelected, disabled && styles.disabled]}
+        numberOfLines={1}
+      >
+        {label}
+      </Text>
+      {badge ? <Badge label={badge} tone="neutral" /> : null}
     </Pressable>
   );
 }
@@ -73,36 +80,30 @@ function createStyles(colors: AppColors) {
       gap: SPACING.md,
       paddingHorizontal: SPACING.md,
       borderRadius: RADIUS.md,
+      // Çerçeve her satırda var ama sheet zemininde görünmez; seçilince satır kaymaz
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.surface,
+    },
+    // Satırlar native sheet'in surface zemininde durur; seçili ve basılı satır zemin rengini alır
+    rowHighlighted: {
       backgroundColor: colors.background,
     },
     rowSelected: {
-      borderColor: colors.orange,
-      backgroundColor: colors.orangeLight,
+      borderColor: colors.border,
     },
-    rowPressed: {
-      borderColor: colors.textDisabled,
-    },
-    disabled: {
+    disabledIcon: {
       opacity: DISABLED_OPACITY,
-    },
-    main: {
-      flex: 1,
-      alignItems: 'flex-start',
     },
     label: {
       ...typography.body,
+      flex: 1,
       color: colors.text,
     },
     labelSelected: {
       fontFamily: FONT_FAMILY.semiBold,
     },
-    badge: {
-      ...typography.caption,
-      flexShrink: 1,
-      textAlign: 'right',
-      color: colors.textSecondary,
+    disabled: {
+      color: colors.textDisabled,
     },
   });
 }

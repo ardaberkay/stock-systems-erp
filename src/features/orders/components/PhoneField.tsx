@@ -76,7 +76,7 @@ export default function PhoneField({
   const openCountries = () => {
     openPicker(
       {
-        title: t('orders.create.phoneCountry'),
+        title: t('orders.sheetTitles.phoneCountry'),
         items: options.map((option) => ({
           value: option.code,
           label: option.label,

@@ -52,6 +52,7 @@ export default function OrderEditCargoTab({ order }: OrderEditCargoTabProps) {
         render={({ field: { value, onChange } }) => (
           <PickerField
             label={t('orders.create.shipping.cargoCompany')}
+            sheetTitle={t('orders.sheetTitles.cargoCompany')}
             placeholder={t('orders.create.shipping.selectCargo')}
             searchPlaceholder={t('orders.create.shipping.searchCargo')}
             value={value}

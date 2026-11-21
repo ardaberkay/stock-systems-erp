@@ -90,11 +90,10 @@ export default function PickerModal({ searchable }: PickerModalProps) {
     ) : null;
 
   const title = (
-    <View style={styles.header}>
+    <View style={[styles.header, !searchable && styles.headerDivided]}>
       <Text style={styles.title} accessibilityRole="header">
         {request.title}
       </Text>
-      {request.note ? <Text style={styles.note}>{request.note}</Text> : null}
     </View>
   );
 
@@ -112,7 +111,8 @@ export default function PickerModal({ searchable }: PickerModalProps) {
                 label={item.label}
                 badge={item.badge}
                 disabled={item.disabled}
-                content={item.content}
+                icon={item.icon}
+                iconColor={item.iconColor}
                 selected={item.value === selectedValue}
                 colors={colors}
                 onSelect={handleSelect}
@@ -163,7 +163,6 @@ function createStyles(colors: AppColors) {
       backgroundColor: colors.surface,
     },
     header: {
-      gap: SPACING.xs,
       paddingHorizontal: SPACING.xl,
       paddingTop: SPACING.xxl,
       paddingBottom: SPACING.md,
@@ -172,13 +171,15 @@ function createStyles(colors: AppColors) {
       ...typography.h3,
       color: colors.text,
     },
-    note: {
-      ...typography.caption,
-      color: colors.textSecondary,
+    // Kısa listede başlık seçeneklerden ince bir çizgiyle ayrılır
+    headerDivided: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.divider,
     },
+    // sm + satırın kendi iç boşluğu (md) = xl: yazılar başlıkla aynı hizada durur
     choices: {
-      gap: SPACING.sm,
-      paddingHorizontal: SPACING.xl,
+      paddingTop: SPACING.sm,
+      paddingHorizontal: SPACING.sm,
     },
     loading: {
       paddingVertical: SPACING.xxl,

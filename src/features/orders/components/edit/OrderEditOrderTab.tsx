@@ -1,5 +1,5 @@
 import { useOrderCustomStatuses, useOrderPaymentTypes } from '@/features/orders/api/orders';
-import OrderStatusBadge from '@/features/orders/components/OrderStatusBadge';
+import { getOrderStatusToneColors } from '@/features/orders/utils/orderStatusColor';
 import {
   ACTIVE_CUSTOM_STATUS,
   LOCKED_ORDER_STATUSES,
@@ -65,16 +65,18 @@ export default function OrderEditOrderTab({
     () => (paymentQuery.data ?? []).map((type) => ({ value: type.id, label: type.name })),
     [paymentQuery.data],
   );
-  // 13, 14 ve 15 listede görünür ama seçilemez; listede durumlar rozetiyle görünür
+  // 13, 14 ve 15 listede görünür ama seçilemez; listede durumlar kendi renkli ikonuyla görünür
   const statusOptions = useMemo<PickerOption[]>(
     () =>
       ORDER_EDIT_STATUSES.map((id) => {
         const locked = LOCKED_ORDER_STATUSES.includes(id);
+        const { key, icon, tone } = getOrderStatusDisplay(id);
 
         return {
           value: id,
-          label: t(`orders.status.${getOrderStatusDisplay(id).key}`),
-          content: <OrderStatusBadge statusId={id} colors={colors} />,
+          label: t(`orders.status.${key}`),
+          icon,
+          iconColor: getOrderStatusToneColors(tone, colors).text,
           disabled: locked,
           badge: locked ? t('orders.editMode.statusLocked') : undefined,
         };
@@ -106,6 +108,7 @@ export default function OrderEditOrderTab({
           render={({ field: { value, onChange }, fieldState: { error } }) => (
             <PickerField
               label={t('orders.detail.status')}
+              sheetTitle={t('orders.sheetTitles.status')}
               placeholder=""
               searchPlaceholder=""
               value={value}
@@ -114,7 +117,6 @@ export default function OrderEditOrderTab({
               options={statusOptions}
               onChange={(option) => onChange(option.value)}
               searchable={false}
-              note={t('orders.editMode.statusStockNote')}
               error={translateError(error?.message)}
               layout="inline"
             />
@@ -126,6 +128,7 @@ export default function OrderEditOrderTab({
           render={({ field: { value, onChange }, fieldState: { error } }) => (
             <PickerField
               label={t('orders.customStatusTitle')}
+              sheetTitle={t('orders.sheetTitles.customStatus')}
               placeholder={t('orders.editMode.noCustomStatus')}
               searchPlaceholder=""
               value={value ?? NO_CUSTOM_STATUS}
@@ -196,6 +199,7 @@ export default function OrderEditOrderTab({
           render={({ field: { value, onChange } }) => (
             <PickerField
               label={t('orders.detail.paymentType')}
+              sheetTitle={t('orders.sheetTitles.paymentType')}
               placeholder={t('orders.create.shipping.selectPayment')}
               searchPlaceholder={t('orders.create.shipping.searchPayment')}
               value={value}

@@ -6,7 +6,7 @@ import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import ChevronDown from 'lucide-react-native/icons/chevron-down';
-import { useEffect, useId, useMemo, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, type ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
 import Text from '@/components/ui/Text';
 import { Pressable, StyleSheet } from 'react-native';
@@ -17,12 +17,16 @@ export type PickerOption = {
   // Listede görünür ama seçilemez; nedeni sağda küçük yazıyla (ör. sipariş durumu 13–15)
   disabled?: boolean;
   badge?: string;
-  // Listede yazı yerine özel görünüm (ör. durum rozeti); alanda yine `label` yazar
-  content?: ReactNode;
+  // Listede yazının solunda kendi renginde ikon (ör. sipariş durumu); alanda yalnızca `label` yazar
+  icon?: ComponentType<{ size?: number; color?: string }>;
+  iconColor?: string;
 };
 
 type PickerFieldProps = {
   label: string;
+  // Pencere başlığı; verilmezse alanın etiketi kullanılır (ör. bölüm içinde "Durum" olan
+  // alanın penceresi "Sipariş Durumu")
+  sheetTitle?: string;
   placeholder: string;
   searchPlaceholder: string;
   value: number | null;
@@ -41,8 +45,6 @@ type PickerFieldProps = {
   // Uzun listelerde (il, ilçe) arama kutulu, neredeyse tam boy pencere; kısa listeler
   // (ödeme tipi, kargo firması) aramasız, içerik kadar açılır
   searchable?: boolean;
-  // Pencerede listenin üstünde kısa açıklama (ör. durum değişikliğinin stoğa dokunmadığı)
-  note?: string;
   // inline: etiket solda, seçim sağda (bkz. FormFieldLayout)
   layout?: FieldLayout;
 };
@@ -51,6 +53,7 @@ type PickerFieldProps = {
 // gösterge ve "Tekrar dene" pencerenin içinde görünür, form sayfası sade kalır.
 export default function PickerField({
   label,
+  sheetTitle,
   placeholder,
   searchPlaceholder,
   value,
@@ -65,7 +68,6 @@ export default function PickerField({
   loadError,
   onRetry,
   searchable = true,
-  note,
   layout = 'stacked',
 }: PickerFieldProps) {
   const { t } = useTranslation();
@@ -80,10 +82,9 @@ export default function PickerField({
 
   const buildRequest = (): PickerRequest => ({
     sourceId,
-    title: label,
+    title: sheetTitle ?? label,
     items: options,
     value,
-    note,
     searchPlaceholder,
     isLoading,
     loadError,
