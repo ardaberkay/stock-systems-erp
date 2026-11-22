@@ -1,7 +1,7 @@
 import Text from '@/components/ui/Text';
 import ColorDot from '@/features/products/components/ColorDot';
 import type { CatalogItem } from '@/features/products/schemas/catalog';
-import { getProductColorHex } from '@/features/products/utils/productColor';
+import { getProductColorSwatch } from '@/features/products/utils/productColor';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, FONT_SIZE, typography } from '@/theme/typography';
@@ -25,7 +25,7 @@ type CatalogItemRowProps = {
   // Ürün kataloğu henüz yüklenmediyse yok; sayı yazılmaz
   productCount?: number;
   onPress: (id: number) => void;
-  // Renk listesinde adın önünde renk noktası; eşleşmeyen adda yazılar hizalı kalsın diye boşluk
+  // Renk listesinde adın önünde renk noktası; eşleşmeyen adda boş halka (yazılar hizalı kalır)
   showColorDot?: boolean;
   // Adın altında küçük bilgi satırı (ör. kategoride üst kategori, gizli, pasif); parçalar
   // aralarına nokta konarak yazılır
@@ -60,7 +60,6 @@ function CatalogItemRow({
 }: CatalogItemRowProps) {
   const { t } = useTranslation();
   const styles = getStyles(colors);
-  const colorHex = showColorDot ? getProductColorHex(item.name) : null;
   const countText =
     productCount === undefined
       ? undefined
@@ -76,12 +75,7 @@ function CatalogItemRow({
       onPress={() => onPress(item.id)}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
-      {showColorDot &&
-        (colorHex ? (
-          <ColorDot hex={colorHex} size={ICON_SIZE.sm} />
-        ) : (
-          <View style={styles.dotPlaceholder} />
-        ))}
+      {showColorDot && <ColorDot swatch={getProductColorSwatch(item.name)} size={ICON_SIZE.sm} />}
 
       <View style={styles.texts}>
         <Text style={styles.name} numberOfLines={2}>
@@ -120,9 +114,6 @@ function createStyles(colors: AppColors) {
     },
     pressed: {
       backgroundColor: colors.divider,
-    },
-    dotPlaceholder: {
-      width: ICON_SIZE.sm,
     },
     texts: {
       flex: 1,
