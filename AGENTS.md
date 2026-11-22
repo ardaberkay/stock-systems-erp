@@ -21,7 +21,7 @@ Her ihtiyaç için **yalnızca** aşağıdaki araç kullanılır. Listede olmaya
 | Çoklu dil | `i18next` + `react-i18next`, cihaz dili için `expo-localization` | Koda gömülü metin |
 | UI bileşenleri | Kendi bileşenlerimiz: `src/components/ui` | panelui-native bileşenleri (grafik, takvim, raporlardaki `Kpi` ve `Leaderboard` hariç), başka UI kütüphanesi |
 | Rozet / küçük etiket (durum, adet, özel durum, aktif/pasif, yakında…) | `@/components/ui/Badge` (renk `tone` ya da `palette` ile; ölçü her yerde aynı, yalnızca sayı taşıyan rozet `compact`) | Ekranda ayrı rozet stili yazmak |
-| Formda az seçenekli tekli seçim (2–3 kısa seçenek: teslim şekli, kargoyu ödeyen…) | `@/components/ui/form/SegmentedField` (`layout="inline"`; çok seçenekte `PickerField`) | Formda çip dizisi (`FilterChip` yalnızca filtre ve sıralama içindir), ekranda ayrı seçici stili yazmak |
+| Formda az seçenekli tekli seçim (2–3 kısa seçenek: teslim şekli, kargoyu ödeyen…) | `@/components/ui/form/SegmentedField` (`layout="inline"`; çok seçenekte `PickerField`) | Formda çip dizisi, ekranda ayrı seçici stili yazmak |
 | Metin ve giriş alanı | `@/components/ui/Text` ve `@/components/ui/TextInput` (yazı büyütmeyi `MAX_FONT_SCALE` ile sınırlar) | `react-native`'den doğrudan `Text` / `TextInput` import etmek |
 | Tarih (aralığı) seçici | `panelui-native` `Calendar` (yalnızca `src/components/ui/DateRangePicker.tsx` sarmalayıcısı üzerinden; gün bazında seçilir, saat seçtirilmez) | Başka picker kütüphanesi |
 | Stil | `StyleSheet.create` + `src/theme` token'ları | `className` / Tailwind sınıfları, styled-components |
@@ -33,7 +33,7 @@ Her ihtiyaç için **yalnızca** aşağıdaki araç kullanılır. Listede olmaya
 | Hassas veri (token vb.) | `expo-secure-store` | AsyncStorage'da token tutmak |
 | Görseller | `expo-image` | React Native `Image` |
 | Kamera / barkod okutma | `expo-camera` `CameraView` (yalnızca `features/products/screens/BarcodeScanScreen.tsx` üzerinden; okutma isteği `useOpenBarcodeScanner` ile açılır) | Başka kamera veya barkod kütüphanesi, `launchScanner` (Android'de Google Play Hizmetleri gerektirir) |
-| Titreşim (dokunsal geri bildirim) | `expo-haptics` | React Native `Vibration` API |
+| Titreşim (dokunsal geri bildirim) | `@/lib/haptics` (içinde `expo-haptics`; kurallar Bölüm 4 → Titreşim) | `expo-haptics`'i ekranda doğrudan çağırmak, React Native `Vibration` API |
 | Animasyon | `react-native-reanimated` | `Animated` API |
 | Gradyan | `expo-linear-gradient` (şimdilik yalnızca detay sayfalarının modül renkli başlığı, tek renk tonlarıyla) | Başka gradyan kütüphanesi, iki farklı renk arası gradyan |
 | Fontlar | `@expo-google-fonts/inter` (`FONT_FAMILY` üzerinden) | Sistem fontuna bırakmak |
@@ -207,6 +207,23 @@ State'in nerede tutulacağı şu sırayla belirlenir:
 ### Tailwind / Uniwind
 - `className` ve Tailwind sınıfları kendi kodumuzda **kullanılmaz**. `uniwind` ve `tailwindcss` yalnızca panelui-native'in ihtiyacı için kuruludur ve kaldırılmaz.
 - Inline stil yalnızca gerçekten dinamik değerler için (ör. `{ width }`).
+
+### Titreşim (dokunsal geri bildirim)
+
+- Titreşim yalnızca `haptics` (`@/lib/haptics`) ile, **anlamına göre** çağrılır; aynı olay her yerde aynı hissi verir. Ayarlar'daki "Titreşim" anahtarı (varsayılan açık, `hapticsStore`) kapalıysa hiçbiri çalmaz. Android'de sistemin kendi dokunuşları kullanılır (iOS'a benzer, izin istemez).
+- **Kural:** pencere ya da sayfa açan dokunuşta titreşim yok; değer değiştiren dokunuşta seçim tıkı; sunucuya kaydeden işlemin sonunda başarı/hata; riskli onayda ve hatalı formda uyarı.
+
+| Çağrı | Ne zaman |
+|---|---|
+| `haptics.selection()` | Sekme/segment geçişi (`SegmentedControl`, `UnderlineTabs`, `SegmentedField`), sheet'te seçenek seçmek, onay kutusu, anahtar (`Switch`), sayaç +/−, dönem ve takvim günü seçmek, sepete beden eklemek / adet / silmek, siparişlerde seçim modunda kart işaretlemek, grafik serisini açıp kapatmak, ortak metrik seçici, stok raporunda grup seçmek, dil seçimi |
+| `haptics.scrub()` | Grafikte parmakla gezinirken işaretli nokta değişince (çok yumuşak) |
+| `haptics.longPress()` | Uzun basışla mod açılınca (siparişlerde seçim modu) |
+| `haptics.success()` | Kaydetme başarılı (mutation hook'larının `onSuccess`'inde), ürün ekleme işi bitti, barkod okundu |
+| `haptics.warning()` | Silme / değişiklikleri at / çıkış onay penceresi açılınca, formda hatalı alan varken Kaydet'e veya oluşturmada İleri'ye basınca |
+| `haptics.error()` | Kaydetme/istek başarısız (mutation `onError`), ürün ekleme işi başarısız, barkodla ürün bulunamadı, WhatsApp/telefon açılamadı |
+
+- **Titreşim olmayan yerler:** kart/satıra dokunup detay açmak, kartı genişletmek, sheet açan kutu ve çipler (dönem, filtre, marka…), düzenle moduna geçmek, ekle (+) butonları, sayfa geçişleri, sekme çubuğu, aşağı çekip yenileme, kaydırma, yazı yazma.
+- Ortak bileşenler (yukarıdakiler, seçim sheet'leri, dönem sheet'i, `DateRangePicker`, `StepperField`) titreşimi kendisi verir; onları kullanan ekran ayrıca çağırmaz. Yeni bir yer tabloya uymuyorsa önce sorulur.
 
 ### Tema (açık / koyu)
 - Kullanıcıya açık ve koyu tema seçeneği sunulur; **varsayılan açık temadır** (cihazın sistem temasını otomatik takip etmez).

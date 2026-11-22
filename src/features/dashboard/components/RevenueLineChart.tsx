@@ -1,5 +1,6 @@
 import ChartReadout, { type ChartReadoutItem } from '@/components/ui/charts/ChartReadout';
 import ChartTimeAxis, { type ChartTimeAxisLabel } from '@/components/ui/charts/ChartTimeAxis';
+import { haptics } from '@/lib/haptics';
 import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -293,10 +294,15 @@ export default function RevenueLineChart({
   );
 
   // Uzantıya basılınca grafiğin verdiği sıra gerçek noktaya çevrilir
-  const handleActiveIndexChange = (index: number) =>
-    setActiveIndex(
-      index < 0 ? -1 : Math.min(Math.max(index - edgeOffset, 0), points.length - 1),
-    );
+  const handleActiveIndexChange = (index: number) => {
+    const next = index < 0 ? -1 : Math.min(Math.max(index - edgeOffset, 0), points.length - 1);
+
+    // Parmak yeni bir noktaya geçtikçe çok yumuşak tık; uzatılmış uçlar aynı noktaya düşer, çalmaz
+    if (next >= 0 && next !== activeIndex) {
+      haptics.scrub();
+    }
+    setActiveIndex(next);
+  };
 
   const activePoint = points[activeIndex];
   const lastPoint = points[points.length - 1];

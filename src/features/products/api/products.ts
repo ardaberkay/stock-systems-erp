@@ -20,6 +20,7 @@ import { useFocusSubscribed } from '@/hooks/useFocusSubscribed';
 import { apiClient } from '@/lib/apiClient';
 import { isApiError, type ApiErrorKind } from '@/lib/apiError';
 import { CACHE } from '@/lib/cachePolicy';
+import { haptics } from '@/lib/haptics';
 import {
   keepPreviousData,
   useMutation,
@@ -260,10 +261,14 @@ export function useSaveProductEdit() {
 
   return useMutation({
     mutationFn: ({ product, plan }: SaveProductVariables) => saveProductEdit(product.id, plan),
+    onError: () => haptics.error(),
     onSuccess: (result, { product, values }) => {
+      // Kısmen kaydedildiyse (bazı adımlar hata verdi) başarı değil hata hissi
       if (result.error !== null) {
+        haptics.error();
         return;
       }
+      haptics.success();
       const next = applyProductEdit(product, values, {
         brands: queryClient.getQueryData<CatalogItem[]>(catalogKeys.brands()),
         types: queryClient.getQueryData<CatalogItem[]>(catalogKeys.types()),
@@ -308,7 +313,9 @@ export function useRemoveProduct() {
 
   return useMutation({
     mutationFn: removeProduct,
+    onError: () => haptics.error(),
     onSuccess: (_, id) => {
+      haptics.success();
       queryClient.setQueryData<Product[]>(productKeys.list(), (catalog) =>
         catalog?.filter((product) => product.id !== id),
       );
@@ -352,7 +359,10 @@ export function useCreateProduct() {
 
   return useMutation({
     mutationFn: createProduct,
+    onError: () => haptics.error(),
+    // Ürün sıraya alındı; asıl sonuç iş bitince useProductBatchWatcher'da hissettirilir
     onSuccess: (batchRequestId, values) => {
+      haptics.success();
       addPending({ batchRequestId, productName: values.name, createdAt: Date.now() });
     },
   });

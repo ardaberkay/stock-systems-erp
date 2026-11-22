@@ -1,3 +1,4 @@
+import HapticsToggle from '@/features/settings/components/HapticsToggle';
 import LanguageSwitcher from '@/features/settings/components/LanguageSwitcher';
 import ThemeToggle from '@/features/settings/components/ThemeToggle';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -28,6 +29,11 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>{t('settings.language')}</Text>
         <LanguageSwitcher />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>{t('settings.feedback')}</Text>
+        <HapticsToggle />
       </View>
     </ScrollView>
   );

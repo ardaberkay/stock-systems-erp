@@ -10,6 +10,7 @@ import LogOut from 'lucide-react-native/icons/log-out';
 import Settings from 'lucide-react-native/icons/settings';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { haptics } from '@/lib/haptics';
 import Text from '@/components/ui/Text';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
@@ -29,6 +30,7 @@ export default function AppDrawerContent(props: DrawerContentComponentProps) {
   };
 
   const confirmLogout = () => {
+    haptics.warning();
     Alert.alert(t('auth.logoutConfirmTitle'), t('auth.logoutConfirmMessage'), [
       { text: t('common.cancel'), style: 'cancel' },
       {

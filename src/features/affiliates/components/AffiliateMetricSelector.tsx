@@ -6,6 +6,7 @@ import {
   getSalesMetricColor,
   type AffiliateSalesMetric,
 } from '@/features/affiliates/affiliateSales';
+import { haptics } from '@/lib/haptics';
 import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -56,7 +57,12 @@ export default function AffiliateMetricSelector({
             accessibilityState={{ selected: isSelected }}
             accessibilityLabel={isLoading ? label : `${label}: ${value}`}
             accessibilityHint={t('affiliates.detail.metricHint')}
-            onPress={() => onSelect(metric)}
+            onPress={() => {
+              if (!isSelected) {
+                haptics.selection();
+              }
+              onSelect(metric);
+            }}
             style={styles.item}
           >
             <View style={styles.labelRow}>

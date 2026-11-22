@@ -6,6 +6,7 @@ import {
 } from '@/features/affiliates/affiliateSales';
 import type { ChartPoint } from '@/features/orders/utils/orderStats';
 import type { ChartGranularity } from '@/features/period/periodWindow';
+import { haptics } from '@/lib/haptics';
 import type { AppColors } from '@/theme/colors';
 import { RADIUS, SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -87,7 +88,13 @@ export default function AffiliateSalesChart({
         yDomain={yDomain}
         curve="monotone"
         aspectRatio={CHART_ASPECT_RATIO}
-        onActiveIndexChange={(index) => setActiveIndex(index)}
+        // Parmak yeni bir noktaya geçtikçe çok yumuşak tık
+        onActiveIndexChange={(index) => {
+          if (index >= 0) {
+            haptics.scrub();
+          }
+          setActiveIndex(index);
+        }}
       >
         <LineChart.Skeleton color={colors.chartGrid} />
         {filled ? <LineChart.Area dataKey="value" color={color} opacity={FILL_OPACITY} /> : null}

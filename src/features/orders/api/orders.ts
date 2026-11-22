@@ -20,6 +20,7 @@ import { useFocusSubscribed } from '@/hooks/useFocusSubscribed';
 import { apiClient } from '@/lib/apiClient';
 import { CACHE } from '@/lib/cachePolicy';
 import { env } from '@/lib/env';
+import { haptics } from '@/lib/haptics';
 import { addDays } from '@/utils/dateKey';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect } from 'react';
@@ -227,7 +228,9 @@ export function useCreateOrder() {
 
   return useMutation({
     mutationFn: createOrder,
+    onError: () => haptics.error(),
     onSuccess: () => {
+      haptics.success();
       void queryClient.invalidateQueries({ queryKey: orderKeys.all });
       void queryClient.invalidateQueries({ queryKey: productKeys.all });
     },
@@ -246,7 +249,9 @@ export function useUpdateOrder() {
 
   return useMutation({
     mutationFn: ({ id, update }: UpdateOrderVariables) => updateOrder(id, update),
+    onError: () => haptics.error(),
     onSuccess: async (_data, { id }) => {
+      haptics.success();
       await queryClient.refetchQueries({ queryKey: orderKeys.detail(id), exact: true });
       void queryClient.invalidateQueries({
         queryKey: orderKeys.all,

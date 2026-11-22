@@ -6,6 +6,7 @@ import { getWhatsAppUrl } from '@/features/orders/utils/whatsapp';
 import { router } from 'expo-router';
 import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { haptics } from '@/lib/haptics';
 import { Alert, Linking } from 'react-native';
 
 type ReportOrderCardProps = {
@@ -29,6 +30,7 @@ function ReportOrderCard({ order, lookups, colors, locale }: ReportOrderCardProp
   const openWhatsApp = useCallback(
     (phone: string, message: string) => {
       Linking.openURL(getWhatsAppUrl(phone, message)).catch(() => {
+        haptics.error();
         Alert.alert(t('orders.whatsappError'));
       });
     },

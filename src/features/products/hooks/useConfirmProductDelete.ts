@@ -2,6 +2,7 @@ import { useRemoveProduct } from '@/features/products/api/products';
 import type { Product } from '@/features/products/schemas/products';
 import { getErrorDetail, getErrorMessageKey, isApiError, type ApiErrorKind } from '@/lib/apiError';
 import { useTranslation } from 'react-i18next';
+import { haptics } from '@/lib/haptics';
 import { Alert } from 'react-native';
 
 // Bunlarda kendi mesajı gösterilir; sebep ürünün kendisi değildir
@@ -53,6 +54,7 @@ export function useConfirmProductDelete() {
       .filter(Boolean)
       .join('\n\n');
 
+    haptics.warning();
     Alert.alert(t('stock.deleteProduct.title'), message, [
       { text: t('common.cancel'), style: 'cancel' },
       {

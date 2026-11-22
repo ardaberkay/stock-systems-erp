@@ -3,6 +3,7 @@ import SearchBar from '@/components/ui/SearchBar';
 import StateMessage from '@/components/ui/StateMessage';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { getErrorMessageKey } from '@/lib/apiError';
+import { haptics } from '@/lib/haptics';
 import { usePickerStore, type PickerItem, type PickerValue } from '@/features/picker/pickerStore';
 import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
@@ -36,6 +37,7 @@ export default function MultiPickerModal() {
   }, [items, query]);
 
   const toggle = useCallback((value: PickerValue) => {
+    haptics.selection();
     setSelected((current) =>
       current.includes(value) ? current.filter((item) => item !== value) : [...current, value],
     );

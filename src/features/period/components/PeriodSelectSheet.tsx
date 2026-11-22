@@ -1,6 +1,7 @@
 import PeriodOption from '@/features/period/components/PeriodOption';
 import type { PeriodSelection } from '@/features/period/constants';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { haptics } from '@/lib/haptics';
 import type { AppColors } from '@/theme/colors';
 import { SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -42,6 +43,7 @@ export default function PeriodSelectSheet<TPeriod extends string>({
             label={t(`filters.${period}`)}
             active={selection.kind === 'preset' && selection.period === period}
             onPress={() => {
+              haptics.selection();
               onSelect(period);
               router.back();
             }}

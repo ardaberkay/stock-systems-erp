@@ -1,6 +1,7 @@
 import AnimatedChevron from '@/components/ui/AnimatedChevron';
 import ProductImage from '@/features/products/components/ProductImage';
 import type { Product, ProductVariant } from '@/features/products/schemas/products';
+import { haptics } from '@/lib/haptics';
 import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
@@ -86,7 +87,11 @@ function ProductPickerRow({
                 })}
                 accessibilityState={{ disabled: isDisabled, selected: isHighlighted }}
                 disabled={isDisabled}
-                onPress={() => onPick(product, variant)}
+                // Bedeni sepete eklemek bir seçim; satırı açıp kapatmak ise yalnızca görünüm
+                onPress={() => {
+                  haptics.selection();
+                  onPick(product, variant);
+                }}
                 style={({ pressed }) => [
                   styles.size,
                   isDisabled && styles.sizeDisabled,

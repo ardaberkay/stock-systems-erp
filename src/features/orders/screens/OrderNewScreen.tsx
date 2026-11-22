@@ -25,6 +25,7 @@ import { router } from 'expo-router';
 import { useLayoutEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { FormProvider, useForm, type FieldErrors } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { haptics } from '@/lib/haptics';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -69,6 +70,9 @@ export default function OrderNewScreen() {
 
     if (isValid) {
       setStepIndex(stepIndex + 1);
+    } else {
+      // Alanlar kırmızıya döner; titreşim gözden kaçmasın diye
+      haptics.warning();
     }
   };
 
@@ -111,6 +115,7 @@ export default function OrderNewScreen() {
       if (invalidStep >= 0) {
         setStepIndex(invalidStep);
       }
+      haptics.warning();
       Alert.alert(t('orders.create.invalid'));
     },
   );

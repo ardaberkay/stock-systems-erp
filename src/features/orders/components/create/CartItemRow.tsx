@@ -1,6 +1,7 @@
 import TextField from '@/components/ui/form/TextField';
 import ProductImage from '@/features/products/components/ProductImage';
 import type { OrderCreateFormInput, OrderCreateItem } from '@/features/orders/schemas/orderCreate';
+import { haptics } from '@/lib/haptics';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
@@ -50,7 +51,10 @@ function CartItemRow({ index, item, control, colors, locale, onRemove }: CartIte
           accessibilityRole="button"
           accessibilityLabel={t('orders.create.products.remove', { name: item.name })}
           hitSlop={TRASH_HIT_SLOP}
-          onPress={() => onRemove(index)}
+          onPress={() => {
+            haptics.selection();
+            onRemove(index);
+          }}
         >
           <Trash size={ICON_SIZE.md} color={colors.icon} />
         </Pressable>
@@ -66,7 +70,10 @@ function CartItemRow({ index, item, control, colors, locale, onRemove }: CartIte
                 accessibilityRole="button"
                 accessibilityLabel={t('orders.create.products.decrease')}
                 disabled={value <= 1}
-                onPress={() => onChange(value - 1)}
+                onPress={() => {
+                  haptics.selection();
+                  onChange(value - 1);
+                }}
                 style={styles.stepButton}
               >
                 <Minus size={ICON_SIZE.sm} color={value <= 1 ? colors.iconDisabled : colors.text} />
@@ -77,7 +84,10 @@ function CartItemRow({ index, item, control, colors, locale, onRemove }: CartIte
                 accessibilityRole="button"
                 accessibilityLabel={t('orders.create.products.increase')}
                 disabled={value >= item.stock}
-                onPress={() => onChange(value + 1)}
+                onPress={() => {
+                  haptics.selection();
+                  onChange(value + 1);
+                }}
                 style={styles.stepButton}
               >
                 <Plus

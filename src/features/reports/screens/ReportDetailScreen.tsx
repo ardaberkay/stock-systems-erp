@@ -32,6 +32,7 @@ import { useReportContent, type ReportRow } from '@/features/reports/hooks/useRe
 import { useReportData } from '@/features/reports/hooks/useReportData';
 import { useReportPattern } from '@/features/reports/hooks/useReportPattern';
 import { getErrorMessageKey } from '@/lib/apiError';
+import { haptics } from '@/lib/haptics';
 import { useReportFilterStore } from '@/features/reports/reportFilterStore';
 import type { AppColors } from '@/theme/colors';
 import { RADIUS, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
@@ -123,7 +124,8 @@ function ReportDetail({ id }: { id: ReportId }) {
   const selectStockGroup = (key: string) => {
     const group = REPORT_STOCK_GROUPS.find((item) => item === key);
 
-    if (group) {
+    if (group && group !== stockGroup) {
+      haptics.selection();
       setStockGroup(group);
     }
   };

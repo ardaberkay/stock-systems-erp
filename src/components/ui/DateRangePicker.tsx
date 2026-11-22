@@ -1,3 +1,4 @@
+import { haptics } from '@/lib/haptics';
 import { Calendar, type DateRange } from 'panelui-native/components/calendar';
 import { StyleSheet, View } from 'react-native';
 
@@ -19,7 +20,11 @@ export default function DateRangePicker({ value, onChange, locale, maxDate }: Da
       <Calendar
         mode="range"
         selected={value}
-        onSelect={onChange}
+        // Her gün seçimi seçim tıkı verir
+        onSelect={(range) => {
+          haptics.selection();
+          onChange(range);
+        }}
         defaultMonth={value?.to ?? value?.from}
         maxDate={maxDate}
         locale={locale}

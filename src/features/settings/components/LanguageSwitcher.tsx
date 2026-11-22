@@ -1,118 +1,72 @@
 import { SUPPORTED_LANGUAGES } from '@/constants/languages';
+import { usePickerSheet } from '@/features/picker/usePickerSheet';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useLanguageStore } from '@/stores/languageStore';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
-import { FONT_FAMILY, typography } from '@/theme/typography';
-import Check from 'lucide-react-native/icons/check';
+import { typography } from '@/theme/typography';
 import ChevronDown from 'lucide-react-native/icons/chevron-down';
-import ChevronUp from 'lucide-react-native/icons/chevron-up';
 import Languages from 'lucide-react-native/icons/languages';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import Text from '@/components/ui/Text';
-import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { Pressable, StyleSheet } from 'react-native';
 
+// Seçili dil; dokununca diller seçim sheet'inde açılır (formlardaki seçim alanlarıyla aynı).
+// Satır içinde açılan liste sayfayı aşağı itiyordu ve dil sayısı artınca uzayacaktı.
 export default function LanguageSwitcher() {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const language = useLanguageStore((state) => state.language);
   const setLanguage = useLanguageStore((state) => state.setLanguage);
-  const [open, setOpen] = useState(false);
+  const { openPicker } = usePickerSheet();
 
-  const Chevron = open ? ChevronUp : ChevronDown;
+  const openLanguages = () =>
+    openPicker({
+      title: t('settings.language'),
+      items: SUPPORTED_LANGUAGES.map((value) => ({ value, label: t(`language.${value}`) })),
+      value: language,
+      onSelect: (value) => {
+        const next = SUPPORTED_LANGUAGES.find((item) => item === value);
+
+        if (next) {
+          setLanguage(next);
+        }
+      },
+    });
 
   return (
-    <View style={styles.container}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('settings.language')}
-        accessibilityState={{ expanded: open }}
-        onPress={() => setOpen((previous) => !previous)}
-        style={styles.row}
-      >
-        <Languages size={ICON_SIZE.md} color={colors.icon} />
-        <Text style={styles.label}>{t(`language.${language}`)}</Text>
-        <Chevron size={ICON_SIZE.md} color={colors.icon} />
-      </Pressable>
-
-      {open && (
-        <Animated.View
-          entering={FadeIn.duration(150)}
-          exiting={FadeOut.duration(100)}
-          accessibilityRole="radiogroup"
-          style={styles.options}
-        >
-          {SUPPORTED_LANGUAGES.map((value) => {
-            const active = value === language;
-
-            return (
-              <Pressable
-                key={value}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: active }}
-                accessibilityLabel={t(`language.${value}`)}
-                onPress={() => {
-                  setLanguage(value);
-                  setOpen(false);
-                }}
-                style={styles.option}
-              >
-                <Text style={[styles.optionLabel, active && styles.optionLabelActive]}>
-                  {t(`language.${value}`)}
-                </Text>
-                {active && <Check size={ICON_SIZE.md} color={colors.orange} />}
-              </Pressable>
-            );
-          })}
-        </Animated.View>
-      )}
-    </View>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={t('settings.language')}
+      accessibilityHint={t(`language.${language}`)}
+      onPress={openLanguages}
+      style={styles.row}
+    >
+      <Languages size={ICON_SIZE.md} color={colors.icon} />
+      <Text style={styles.label}>{t(`language.${language}`)}</Text>
+      <ChevronDown size={ICON_SIZE.md} color={colors.icon} />
+    </Pressable>
   );
 }
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
-    container: {
-      borderRadius: RADIUS.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-      overflow: 'hidden',
-    },
     row: {
       minHeight: MIN_TOUCH_SIZE + SPACING.sm,
       flexDirection: 'row',
       alignItems: 'center',
       gap: SPACING.md,
       paddingHorizontal: SPACING.md,
+      borderRadius: RADIUS.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
     },
     label: {
       ...typography.body,
       flex: 1,
-      color: colors.text,
-    },
-    options: {
-      borderTopWidth: 1,
-      borderTopColor: colors.divider,
-    },
-    option: {
-      minHeight: MIN_TOUCH_SIZE,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: SPACING.md,
-      // İkon sütunuyla hizalı dursun diye ikon genişliği kadar içeriden başlar
-      paddingLeft: SPACING.md + ICON_SIZE.md + SPACING.md,
-    },
-    optionLabel: {
-      ...typography.body,
-      color: colors.textSecondary,
-    },
-    optionLabelActive: {
-      fontFamily: FONT_FAMILY.semiBold,
       color: colors.text,
     },
   });

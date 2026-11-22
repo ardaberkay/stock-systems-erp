@@ -1,5 +1,6 @@
 import Badge from '@/components/ui/Badge';
 import Skeleton from '@/components/ui/Skeleton';
+import { haptics } from '@/lib/haptics';
 import type { AppColors } from '@/theme/colors';
 import { FONT_FAMILY, FONT_SIZE, LINE_HEIGHT, typography } from '@/theme/typography';
 import { RADIUS, SPACING } from '@/theme/spacing';
@@ -109,7 +110,10 @@ export default function DashboardHeader({
           accessibilityRole="button"
           accessibilityLabel={t('dashboard.toggleSoldLine')}
           accessibilityState={{ selected: showSold }}
-          onPress={onToggleSold}
+          onPress={() => {
+            haptics.selection();
+            onToggleSold();
+          }}
           style={styles.metric}
         >
           <View style={styles.metricContent}>
@@ -142,7 +146,10 @@ export default function DashboardHeader({
           accessibilityRole="button"
           accessibilityLabel={t('dashboard.toggleOrdersLine')}
           accessibilityState={{ selected: showOrders }}
-          onPress={onToggleOrders}
+          onPress={() => {
+            haptics.selection();
+            onToggleOrders();
+          }}
           style={styles.metric}
         >
           <View style={styles.metricContent}>

@@ -1,4 +1,5 @@
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { haptics } from '@/lib/haptics';
 import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
@@ -103,7 +104,12 @@ export default function SegmentedControl<T extends string>({
             accessibilityState={{ selected }}
             accessibilityLabel={option.label}
             accessibilityHint={option.marked ? markedHint : undefined}
-            onPress={() => onChange(option.value)}
+            onPress={() => {
+              if (!selected) {
+                haptics.selection();
+              }
+              onChange(option.value);
+            }}
             hitSlop={compact ? COMPACT_HIT_SLOP : undefined}
             style={styles.segment}
           >

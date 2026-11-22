@@ -2,6 +2,7 @@ import FormFieldLayout, { type FieldLayout } from '@/components/ui/form/FormFiel
 import Text from '@/components/ui/Text';
 import TextInput from '@/components/ui/TextInput';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { haptics } from '@/lib/haptics';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -59,7 +60,10 @@ export default function StepperField({
           accessibilityLabel={`${label}, ${t('common.decrease')}`}
           accessibilityState={{ disabled: !canDecrease }}
           disabled={!canDecrease}
-          onPress={() => onChangeText(String(current - 1))}
+          onPress={() => {
+            haptics.selection();
+            onChangeText(String(current - 1));
+          }}
           style={styles.button}
         >
           <Minus size={ICON_SIZE.sm} color={canDecrease ? colors.icon : colors.iconDisabled} />
@@ -77,7 +81,10 @@ export default function StepperField({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${label}, ${t('common.increase')}`}
-          onPress={() => onChangeText(String(current + 1))}
+          onPress={() => {
+            haptics.selection();
+            onChangeText(String(current + 1));
+          }}
           style={styles.button}
         >
           <Plus size={ICON_SIZE.sm} color={colors.icon} />

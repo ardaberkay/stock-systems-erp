@@ -1105,7 +1105,9 @@
     "settings": {
         "title": "Ayarlar",
         "appearance": "Görünüm",
-        "language": "Dil"
+        "language": "Dil",
+        "feedback": "Geri bildirim",
+        "haptics": "Titreşim"
     },
     "auth": {
         "logout": "Çıkış yap",

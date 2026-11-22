@@ -5,6 +5,7 @@ import { getErrorMessageKey, isApiError, type ApiErrorKind } from '@/lib/apiErro
 import { formatNumber } from '@/utils/formatter';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { haptics } from '@/lib/haptics';
 import { Alert } from 'react-native';
 
 // Silme reddinde kendi mesajı gösterilen hatalar; bunların sebebi bağlı ürün değildir
@@ -30,6 +31,8 @@ export function useConfirmCatalogDelete(kind: CatalogKind) {
   const { productCounts } = useCatalogProductCounts(kind);
 
   const confirmDelete = (item: CatalogItem, blockedBy?: DeleteBlock) => {
+    // Silinemiyor bilgisi de, silme onayı da riskli bir işlemin uyarısıdır
+    haptics.warning();
     if (blockedBy) {
       Alert.alert(blockedBy.title, blockedBy.message);
       return;

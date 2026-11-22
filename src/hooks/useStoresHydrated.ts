@@ -1,3 +1,4 @@
+import { useHapticsStore } from '@/stores/hapticsStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { useThemeStore } from '@/stores/themeStore';
 import { useSyncExternalStore } from 'react';
@@ -12,6 +13,7 @@ type PersistApi = {
 const persistedStores: PersistApi[] = [
   useThemeStore.persist,
   useLanguageStore.persist,
+  useHapticsStore.persist,
 ];
 
 function allHydrated() {

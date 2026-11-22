@@ -20,6 +20,7 @@ import X from 'lucide-react-native/icons/x';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { haptics } from '@/lib/haptics';
 import { ActivityIndicator, Alert, BackHandler, Pressable, StyleSheet, View } from 'react-native';
 
 type AffiliateEditViewProps = {
@@ -36,6 +37,7 @@ type AffiliateEditViewProps = {
 const HEADER_BUTTON_HIT_SLOP = (MIN_TOUCH_SIZE - ICON_SIZE.lg) / 2;
 
 function confirmDiscard(t: TFunction, onDiscard: () => void) {
+  haptics.warning();
   Alert.alert(t('orders.editMode.discardTitle'), t('orders.editMode.discardMessage'), [
     { text: t('orders.editMode.keepEditing'), style: 'cancel' },
     { text: t('orders.editMode.discard'), style: 'destructive', onPress: onDiscard },
@@ -131,6 +133,7 @@ export default function AffiliateEditView({
     // Tüm düzenlenebilir alanlar Bilgi bölümünde
     () => {
       onTabChange('general');
+      haptics.warning();
       Alert.alert(t('orders.editMode.invalid'));
     },
   );

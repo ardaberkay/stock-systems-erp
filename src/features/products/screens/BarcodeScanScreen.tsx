@@ -25,7 +25,7 @@ import {
   type BarcodeScanningResult,
   type BarcodeType,
 } from 'expo-camera';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import Flashlight from 'lucide-react-native/icons/flashlight';
@@ -161,7 +161,7 @@ export default function BarcodeScanScreen() {
   const showMiss = (kind: MissKind) => {
     setFeedback({ kind });
     showTone('error');
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    haptics.error();
   };
 
   const handleScanned = async ({ data }: BarcodeScanningResult) => {
@@ -195,7 +195,7 @@ export default function BarcodeScanScreen() {
         return;
       }
       setTone('success');
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      haptics.success();
       closeTimerRef.current = setTimeout(() => {
         request.onScanned(barcode);
         router.back();
@@ -218,7 +218,7 @@ export default function BarcodeScanScreen() {
           setCartCount(result.cartCount);
           setFeedback(result);
           showTone('success');
-          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          haptics.success();
         }
       }
     }

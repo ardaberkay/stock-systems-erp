@@ -3,6 +3,7 @@ import { affiliateListSchema } from '@/features/affiliates/schemas/affiliates';
 import { useFocusSubscribed } from '@/hooks/useFocusSubscribed';
 import { apiClient } from '@/lib/apiClient';
 import { CACHE } from '@/lib/cachePolicy';
+import { haptics } from '@/lib/haptics';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
@@ -48,6 +49,8 @@ export function useUpdateAffiliate() {
   return useMutation({
     mutationFn: ({ id, changes }: { id: number; changes: AffiliateUpdate }) =>
       updateAffiliate(id, changes),
+    onSuccess: () => haptics.success(),
+    onError: () => haptics.error(),
     // Ortak adları siparişlerde ve raporlarda da bu listeden gelir
     onSettled: () => queryClient.invalidateQueries({ queryKey: affiliateKeys.all }),
   });

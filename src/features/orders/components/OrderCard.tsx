@@ -6,6 +6,7 @@ import Checkbox from '@/components/ui/Checkbox';
 import { getOrderPaymentDisplay } from '@/features/orders/constants/list';
 import type { OrderCargo, OrderPartner } from '@/features/orders/hooks/useOrderLookups';
 import type { Order } from '@/features/orders/schemas/orders';
+import { haptics } from '@/lib/haptics';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, FONT_SIZE, typography } from '@/theme/typography';
@@ -103,10 +104,18 @@ function OrderCard({
         id: order.id,
       })}
       accessibilityState={isSelecting ? { checked: isSelected } : undefined}
-      onPress={() => (isSelecting ? onToggleSelect(order.id) : onOpen(order.id))}
+      onPress={() => {
+        if (isSelecting) {
+          haptics.selection();
+          onToggleSelect(order.id);
+        } else {
+          onOpen(order.id);
+        }
+      }}
       // Modda da tanımlı kalmalı: kalkarsa parmak çekilince dokunuş sayılır ve seçim geri alınır
       onLongPress={() => {
         if (!isSelecting) {
+          haptics.longPress();
           onToggleSelect(order.id);
         }
       }}

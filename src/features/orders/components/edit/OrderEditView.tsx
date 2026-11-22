@@ -26,6 +26,7 @@ import X from 'lucide-react-native/icons/x';
 import { useCallback, useEffect, useMemo, useState, type RefObject } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { haptics } from '@/lib/haptics';
 import { ActivityIndicator, Alert, BackHandler, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -49,6 +50,7 @@ type OrderEditViewProps = {
 const HEADER_BUTTON_HIT_SLOP = (MIN_TOUCH_SIZE - ICON_SIZE.lg) / 2;
 
 function confirmDiscard(t: TFunction, onDiscard: () => void) {
+  haptics.warning();
   Alert.alert(t('orders.editMode.discardTitle'), t('orders.editMode.discardMessage'), [
     { text: t('orders.editMode.keepEditing'), style: 'cancel' },
     { text: t('orders.editMode.discard'), style: 'destructive', onPress: onDiscard },
@@ -179,6 +181,7 @@ export default function OrderEditView({
       if (tabs.length > 0 && !tabs.includes(activeTab)) {
         onTabChange(tabs[0]);
       }
+      haptics.warning();
       Alert.alert(t('orders.editMode.invalid'));
     },
   );

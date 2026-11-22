@@ -25,6 +25,7 @@ import { router } from 'expo-router';
 import { useLayoutEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { FormProvider, useForm, type FieldErrors } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { haptics } from '@/lib/haptics';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -77,6 +78,9 @@ export default function ProductNewScreen() {
 
     if (isValid) {
       setStepIndex(stepIndex + 1);
+    } else {
+      // Alanlar kırmızıya döner; titreşim gözden kaçmasın diye
+      haptics.warning();
     }
   };
 
@@ -110,6 +114,7 @@ export default function ProductNewScreen() {
       if (isDuplicate(values)) {
         form.setError('modelCode', { message: 'stock.create.errors.duplicate' }, { shouldFocus: true });
         setStepIndex(VARIANTS_STEP_INDEX);
+        haptics.warning();
         Alert.alert(t('stock.create.errors.duplicate'));
         return;
       }
@@ -129,6 +134,7 @@ export default function ProductNewScreen() {
       if (invalidStep >= 0) {
         setStepIndex(invalidStep);
       }
+      haptics.warning();
       Alert.alert(t('stock.create.invalid'));
     },
   );

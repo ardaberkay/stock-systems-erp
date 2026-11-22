@@ -1,5 +1,6 @@
 import type { ReportTrendPoint } from '@/features/reports/hooks/useReportContent';
 import { useLocale } from '@/hooks/useLocale';
+import { haptics } from '@/lib/haptics';
 import type { AppColors } from '@/theme/colors';
 import { RADIUS, SPACING } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -53,7 +54,13 @@ export default function ReportTrendChart({
           compact={!interactive}
           curve="monotone"
           aspectRatio={width / height}
-          onActiveIndexChange={(index) => setActiveIndex(index)}
+          // Parmak yeni bir noktaya geçtikçe çok yumuşak tık
+          onActiveIndexChange={(index) => {
+            if (index >= 0) {
+              haptics.scrub();
+            }
+            setActiveIndex(index);
+          }}
         >
           <LineChart.Line dataKey="rate" color={colors.orange} strokeWidth={STROKE_WIDTH} />
           {interactive && <LineChart.XAxis ticks={AXIS_TICKS} />}

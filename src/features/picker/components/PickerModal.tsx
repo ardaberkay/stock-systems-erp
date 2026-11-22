@@ -4,6 +4,7 @@ import SearchBar from '@/components/ui/SearchBar';
 import StateMessage from '@/components/ui/StateMessage';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { getErrorMessageKey } from '@/lib/apiError';
+import { haptics } from '@/lib/haptics';
 import { usePickerStore, type PickerItem, type PickerValue } from '@/features/picker/pickerStore';
 import type { AppColors } from '@/theme/colors';
 import { SPACING } from '@/theme/spacing';
@@ -55,6 +56,7 @@ export default function PickerModal({ searchable }: PickerModalProps) {
 
   const handleSelect = useCallback(
     (value: PickerValue) => {
+      haptics.selection();
       onSelect?.(value);
       router.back();
     },

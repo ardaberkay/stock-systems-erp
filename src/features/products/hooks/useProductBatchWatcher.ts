@@ -9,6 +9,7 @@ import { getBatchFailureReason } from '@/features/products/utils/productCreate';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { haptics } from '@/lib/haptics';
 import { Alert } from 'react-native';
 
 // Sıraya alınmış ürün işlerini takip eder: durum aralıklarla sorulur, iş bitince katalog
@@ -51,18 +52,22 @@ export function useProductBatchWatcher() {
       void queryClient.invalidateQueries({ queryKey: productKeys.list() });
 
       if (!job || isTimedOut) {
+        haptics.warning();
         Alert.alert(t('stock.create.stillProcessing', { name: batch.productName }));
         return;
       }
 
       const failedCount = job.response?.failedItemCount ?? 0;
 
+      // Başarıda pencere çıkmaz; ürünün eklendiği yalnızca titreşimle hissettirilir
       if (failedCount === 0 && job.status !== 'Failed') {
+        haptics.success();
         return;
       }
 
       const reason = getBatchFailureReason(job.response?.failedItemsDetails?.[0]);
 
+      haptics.error();
       Alert.alert(
         t('stock.create.failed', { name: batch.productName }),
         reason.kind === 'duplicate'

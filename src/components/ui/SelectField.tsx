@@ -2,6 +2,7 @@ import AnimatedChevron from '@/components/ui/AnimatedChevron';
 import Checkbox from '@/components/ui/Checkbox';
 import Collapsible from '@/components/ui/Collapsible';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { haptics } from '@/lib/haptics';
 import type { AppColors } from '@/theme/colors';
 import { ICON_SIZE, MIN_TOUCH_SIZE, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
@@ -86,7 +87,10 @@ export default function SelectField({
                 accessibilityRole={isMultiple ? 'checkbox' : 'radio'}
                 accessibilityLabel={option.label}
                 accessibilityState={{ checked: isSelected }}
-                onPress={() => onSelect(option.value)}
+                onPress={() => {
+                haptics.selection();
+                onSelect(option.value);
+              }}
                 style={styles.option}
               >
                 {isMultiple ? <Checkbox checked={isSelected} colors={colors} /> : null}

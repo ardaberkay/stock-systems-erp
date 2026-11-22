@@ -1,4 +1,5 @@
 import Text from '@/components/ui/Text';
+import { haptics } from '@/lib/haptics';
 import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
@@ -37,7 +38,12 @@ export default function UnderlineTabs<T extends string>({
               accessibilityRole="tab"
               accessibilityState={{ selected: isSelected }}
               accessibilityLabel={option.label}
-              onPress={() => onChange(option.value)}
+              onPress={() => {
+                if (!isSelected) {
+                  haptics.selection();
+                }
+                onChange(option.value);
+              }}
               style={styles.tab}
             >
               <Text style={[styles.label, isSelected && styles.labelSelected]} numberOfLines={1}>

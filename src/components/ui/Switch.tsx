@@ -1,4 +1,5 @@
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { haptics } from '@/lib/haptics';
 import { StyleSheet, Switch as NativeSwitch } from 'react-native';
 
 type SwitchProps = {
@@ -14,7 +15,12 @@ export default function Switch({ value, onValueChange, accessibilityLabel }: Swi
   return (
     <NativeSwitch
       value={value}
-      onValueChange={onValueChange}
+      // Değer değişikliği seçim tıkı verir. Önce değer yazılır: Ayarlar'daki titreşim anahtarı
+      // açılınca tık çalar (açıldığını hissettirir), kapatılınca çalmaz.
+      onValueChange={(next) => {
+        onValueChange(next);
+        haptics.selection();
+      }}
       accessibilityLabel={accessibilityLabel}
       style={styles.control}
       trackColor={{ false: colors.border, true: colors.orange }}

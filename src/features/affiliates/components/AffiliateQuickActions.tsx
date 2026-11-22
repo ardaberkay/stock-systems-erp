@@ -10,6 +10,7 @@ import Mail from 'lucide-react-native/icons/mail';
 import Phone from 'lucide-react-native/icons/phone';
 import { useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { haptics } from '@/lib/haptics';
 import { Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
 
 type AffiliateQuickActionsProps = {
@@ -85,7 +86,11 @@ export default function AffiliateQuickActions({
             accessibilityState={{ disabled }}
             disabled={disabled}
             onPress={() => {
-              if (url) Linking.openURL(url).catch(() => Alert.alert(t(action.errorKey)));
+              if (url)
+                Linking.openURL(url).catch(() => {
+                  haptics.error();
+                  Alert.alert(t(action.errorKey));
+                });
             }}
             style={({ pressed }) => [styles.button, pressed && styles.pressed]}
           >

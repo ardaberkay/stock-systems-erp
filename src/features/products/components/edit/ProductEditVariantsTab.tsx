@@ -17,6 +17,7 @@ import Plus from 'lucide-react-native/icons/plus';
 import { useMemo } from 'react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { haptics } from '@/lib/haptics';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 type ProductEditVariantsTabProps = {
@@ -62,6 +63,7 @@ export default function ProductEditVariantsTab({ product }: ProductEditVariantsT
       remove(index);
       return;
     }
+    haptics.warning();
     Alert.alert(
       t('stock.editMode.removeVariantTitle', { name: field.name }),
       t('stock.editMode.removeVariantMessage'),

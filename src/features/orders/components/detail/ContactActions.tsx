@@ -5,6 +5,7 @@ import { normalizePhone } from '@/features/orders/utils/orderList';
 import { getWhatsAppUrl } from '@/features/orders/utils/whatsapp';
 import Phone from 'lucide-react-native/icons/phone';
 import { useTranslation } from 'react-i18next';
+import { haptics } from '@/lib/haptics';
 import { Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
 
 type ContactActionsProps = {
@@ -25,7 +26,10 @@ export default function ContactActions({
   const { colors } = useAppTheme();
 
   const openUrl = (url: string, errorKey: string) => {
-    Linking.openURL(url).catch(() => Alert.alert(t(errorKey)));
+    Linking.openURL(url).catch(() => {
+      haptics.error();
+      Alert.alert(t(errorKey));
+    });
   };
 
   return (

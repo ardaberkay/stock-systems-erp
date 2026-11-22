@@ -1,5 +1,6 @@
 import FormFieldLayout, { type FieldLayout } from '@/components/ui/form/FormFieldLayout';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { haptics } from '@/lib/haptics';
 import type { AppColors } from '@/theme/colors';
 import { MIN_TOUCH_SIZE, RADIUS, SPACING } from '@/theme/spacing';
 import { FONT_FAMILY, typography } from '@/theme/typography';
@@ -54,7 +55,12 @@ export default function SegmentedField<T extends string>({
               accessibilityRole="radio"
               accessibilityState={{ checked: selected }}
               accessibilityLabel={option.label}
-              onPress={() => onChange(option.value)}
+              onPress={() => {
+                if (!selected) {
+                  haptics.selection();
+                }
+                onChange(option.value);
+              }}
               style={[styles.segment, selected && styles.segmentSelected]}
             >
               {/* Satır sınırı yok: büyük yazıda metin kesilmez, kutu uzar */}

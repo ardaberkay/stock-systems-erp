@@ -34,6 +34,7 @@ import {
 } from '@/features/products/utils/catalog';
 import { useFocusSubscribed } from '@/hooks/useFocusSubscribed';
 import { CACHE } from '@/lib/cachePolicy';
+import { haptics } from '@/lib/haptics';
 import { queryClient } from '@/lib/queryClient';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
@@ -136,7 +137,9 @@ export function useSaveCatalogItem(kind: CatalogKind) {
 
       return id;
     },
+    onError: () => haptics.error(),
     onSuccess: (savedId, { id, name }) => {
+      haptics.success();
       queryClient.setQueryData<CatalogItem[]>(resource.queryKey, (items = []) =>
         id === undefined
           ? [...items, { id: savedId, name }]
@@ -171,7 +174,9 @@ export function useSaveCategory() {
 
       return original.id;
     },
+    onError: () => haptics.error(),
     onSuccess: (savedId, { original, values }) => {
+      haptics.success();
       const { description, ...payload } = toCategoryPayload(values);
       // Boş açıklama gönderilmediği için eski açıklama sunucuda kalır
       const saved: Category = {
@@ -200,7 +205,9 @@ export function useDeleteCatalogItem(kind: CatalogKind) {
 
   return useMutation({
     mutationFn: (id: number) => resource.remove(id),
+    onError: () => haptics.error(),
     onSuccess: (_, id) => {
+      haptics.success();
       queryClient.setQueryData<CatalogItem[]>(resource.queryKey, (items = []) =>
         items.filter((item) => item.id !== id),
       );

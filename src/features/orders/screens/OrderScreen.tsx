@@ -35,6 +35,7 @@ import ShoppingCart from 'lucide-react-native/icons/shopping-cart';
 import X from 'lucide-react-native/icons/x';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { haptics } from '@/lib/haptics';
 import Text from '@/components/ui/Text';
 import {
   Alert,
@@ -141,6 +142,7 @@ export default function OrderScreen() {
   const openWhatsApp = useCallback(
     (phone: string, message: string) => {
       Linking.openURL(getWhatsAppUrl(phone, message)).catch(() => {
+        haptics.error();
         Alert.alert(t('orders.whatsappError'));
       });
     },
