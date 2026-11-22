@@ -168,6 +168,50 @@ export const PRODUCT_COLOR_HEX: Record<string, string> = {
   çikolata: '#4A2C20',
   'acı kahve': '#3F2A1D',
 
+  // Sık kullanılan, yukarıda olmayan tonlar
+  'ördek başı': '#00676B',
+  ördekbaşı: '#00676B',
+  'antik pembe': '#C88A93',
+  rose: '#E8A0A8',
+  'rose gold': '#B76E79',
+  'off white': '#F7F4EC',
+  'neon sarı': '#E9F542',
+  'neon yeşil': '#6CE84A',
+  'neon pembe': '#FF5FA2',
+  'neon turuncu': '#FF7A1F',
+
+  // Eksiz yazılan birleşik adlar tek tondur ("Pudra Pembe" iki renk değil); ekli halleriyle aynı
+  'pudra pembe': '#EFC9C4',
+  'bebe mavi': '#BCDDF5',
+  'buz mavi': '#D6E9F5',
+  'gece mavi': '#1B2A4A',
+  'petrol mavi': '#1E5B6E',
+  'saks mavi': '#2C5AA0',
+  'havacı mavi': '#6E8FB4',
+  'su yeşil': '#7DCFB6',
+  'mint yeşil': '#9FE2BF',
+  'zümrüt yeşil': '#0F7A5A',
+  'fıstık yeşil': '#9CC56B',
+  'çağla yeşil': '#A7C77A',
+  'zeytin yeşil': '#6B6E3A',
+  'haki yeşil': '#7A7346',
+  'yağ yeşil': '#4E5530',
+  'asker yeşil': '#4B5320',
+  'nefti yeşil': '#2F4A2E',
+  'petrol yeşil': '#14505C',
+  'hardal sarı': '#B8901A',
+  'altın sarı': '#E8B923',
+  'limon sarı': '#F4E04D',
+  'ateş kırmızı': '#E3242B',
+  'kan kırmızı': '#8A0303',
+
+  // Yazım farkları
+  sax: '#2C5AA0',
+  turkuvaz: '#27B5B5',
+  fusya: '#D1246E',
+  fume: '#5F6368',
+  grimelanj: '#AFAFB3',
+
   // İngilizce yazılan yaygın adlar
   white: '#FFFFFF',
   black: '#1F1F1F',
@@ -188,4 +232,6 @@ export const PRODUCT_COLOR_HEX: Record<string, string> = {
   beige: '#CDB591',
   cream: '#F5E6C4',
   ecru: '#EDE5D5',
+  fuchsia: '#D1246E',
+  turquoise: '#27B5B5',
 };
