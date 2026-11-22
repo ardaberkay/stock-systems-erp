@@ -7,10 +7,12 @@ import { router } from 'expo-router';
 export default function PeriodFilter() {
   const selection = useDashboardFilterStore((state) => state.selection);
   const label = usePeriodLabel(selection);
+  const shortLabel = usePeriodLabel(selection, { short: true });
 
   return (
     <PeriodPill
-      label={label}
+      label={shortLabel}
+      accessibilityHint={label}
       onPress={() => router.push({ pathname: '/period/[scope]', params: { scope: 'dashboard' } })}
     />
   );

@@ -145,7 +145,15 @@
     "selectRangeHint": "Pick a start and end day",
     "maxRangeError": "You can select up to {{days}} days.",
     "thisMonth": "This month",
-    "lastMonth": "Last month"
+    "lastMonth": "Last month",
+    "short": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "weekly": "7 Days",
+      "monthly": "30 Days",
+      "thisMonth": "This Month",
+      "lastMonth": "Last Month"
+    }
   },
   "orders": {
     "searchPlaceholder": "Search name, phone or order no",

@@ -72,6 +72,7 @@ export default function AffiliateOrdersScreen() {
   const title = affiliate ? getAffiliateTitle(affiliate) : '';
   const lookups = useOrderLookups(orders);
   const periodLabel = usePeriodLabel(selection);
+  const periodShortLabel = usePeriodLabel(selection, { short: true });
   const [activeTab, setActiveTab] = useState<ReportTab>('report');
   const [metric, setMetric] = useState<AffiliateSalesMetric>('revenue');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -115,7 +116,8 @@ export default function AffiliateOrdersScreen() {
               trailing={
                 <PeriodPill
                   compact
-                  label={periodLabel}
+                  label={periodShortLabel}
+                  accessibilityHint={periodLabel}
                   onPress={() =>
                     router.push({ pathname: '/period/[scope]', params: { scope: 'affiliates' } })
                   }

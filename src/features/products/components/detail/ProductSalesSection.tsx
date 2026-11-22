@@ -32,6 +32,7 @@ export default function ProductSalesSection({ productId }: ProductSalesSectionPr
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { selection, window, points, sold, hasData, error, refetch } = useProductSales(productId);
   const periodLabel = usePeriodLabel(selection);
+  const periodShortLabel = usePeriodLabel(selection, { short: true });
 
   const renderBody = () => {
     if (error && !hasData) {
@@ -72,7 +73,8 @@ export default function ProductSalesSection({ productId }: ProductSalesSectionPr
         </Text>
         <PeriodPill
           compact
-          label={periodLabel}
+          label={periodShortLabel}
+          accessibilityHint={periodLabel}
           onPress={() => router.push({ pathname: '/period/[scope]', params: { scope: 'product' } })}
         />
       </View>

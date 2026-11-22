@@ -58,11 +58,12 @@ export function parseMoneyInput(text: string, previousRaw: string, locale: strin
 }
 
 // 0.128 → "%12,8"
-export function formatPercent(ratio: number, locale: string): string {
+// 0.125 → "%12,5"; fractionDigits 0 ile "%13" (ör. dashboard değişim rozeti)
+export function formatPercent(ratio: number, locale: string, fractionDigits = 1): string {
   return new Intl.NumberFormat(locale, {
     style: 'percent',
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
   }).format(ratio);
 }
 
@@ -133,4 +134,32 @@ export function formatDateRange(from: Date, to: Date, locale: string): string {
       : formatDate(from, locale);
 
   return `${start} – ${formatDate(to, locale)}`;
+}
+
+// Dönem seçicideki kısa aralık: "12–18 Eki", "28 Eki – 3 Kas"; yıl yalnızca bu yıl değilse yazılır.
+export function formatShortDateRange(from: Date, to: Date, locale: string): string {
+  if (from.getFullYear() !== to.getFullYear()) {
+    return `${formatDate(from, locale)} – ${formatDate(to, locale)}`;
+  }
+
+  const options: Intl.DateTimeFormatOptions = {
+    day: 'numeric',
+    month: 'short',
+    year: to.getFullYear() === new Date().getFullYear() ? undefined : 'numeric',
+  };
+
+  if (from.toDateString() === to.toDateString()) {
+    return to.toLocaleDateString(locale, options);
+  }
+
+  if (from.getMonth() !== to.getMonth()) {
+    const start = from.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+    return `${start} – ${to.toLocaleDateString(locale, options)}`;
+  }
+
+  // Aynı ay: bitişin günü "12–18" olur; gün ve ayın sırası dile göre kalır ("12–18 Eki", "Oct 12–18")
+  return new Intl.DateTimeFormat(locale, options)
+    .formatToParts(to)
+    .map((part) => (part.type === 'day' ? `${from.getDate()}–${part.value}` : part.value))
+    .join('');
 }

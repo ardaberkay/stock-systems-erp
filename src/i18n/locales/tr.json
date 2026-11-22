@@ -145,7 +145,15 @@
         "selectRangeHint": "Başlangıç ve bitiş gününü seçin",
         "maxRangeError": "En fazla {{days}} gün seçebilirsiniz.",
         "thisMonth": "Bu ay",
-        "lastMonth": "Geçen ay"
+        "lastMonth": "Geçen ay",
+        "short": {
+            "today": "Bugün",
+            "yesterday": "Dün",
+            "weekly": "7 Gün",
+            "monthly": "30 Gün",
+            "thisMonth": "Bu Ay",
+            "lastMonth": "Geçen Ay"
+        }
     },
     "orders": {
         "searchPlaceholder": "Ad, telefon veya sipariş no ara",

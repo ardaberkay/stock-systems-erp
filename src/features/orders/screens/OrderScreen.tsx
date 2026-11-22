@@ -89,6 +89,7 @@ export default function OrderScreen() {
   const [searchText, setSearchText] = useState('');
   const periodSelection = useOrderFilterStore((state) => state.selection);
   const periodLabel = usePeriodLabel(periodSelection);
+  const periodShortLabel = usePeriodLabel(periodSelection, { short: true });
   const {
     orders,
     lookupOrders,
@@ -212,7 +213,12 @@ export default function OrderScreen() {
         </View>
       )}
 
-      <PeriodPill label={periodLabel} onPress={openPeriodSelect} compact />
+      <PeriodPill
+        label={periodShortLabel}
+        accessibilityHint={periodLabel}
+        onPress={openPeriodSelect}
+        compact
+      />
     </View>
   );
 

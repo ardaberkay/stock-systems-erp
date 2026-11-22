@@ -52,7 +52,7 @@ export default function DashboardHeader({
   const ChangeIcon = isDown ? TrendingDown : TrendingUp;
   const changeLabel =
     change?.kind === 'percent'
-      ? formatPercent(Math.abs(change.ratio), locale)
+      ? formatPercent(Math.abs(change.ratio), locale, 0)
       : change
         ? `+${formatMoney(change.amount, locale)}`
         : '';

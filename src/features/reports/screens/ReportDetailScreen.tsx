@@ -84,6 +84,7 @@ function ReportDetail({ id }: { id: ReportId }) {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const selection = useReportFilterStore((state) => state.selection);
   const periodLabel = usePeriodLabel(selection);
+  const periodShortLabel = usePeriodLabel(selection, { short: true });
   const {
     stats,
     productsById,
@@ -247,7 +248,8 @@ function ReportDetail({ id }: { id: ReportId }) {
               <View style={styles.summaryRow}>
                 {summary ?? summaryPlaceholder}
                 <PeriodPill
-                  label={periodLabel}
+                  label={periodShortLabel}
+                  accessibilityHint={periodLabel}
                   onPress={() =>
                     router.push({ pathname: '/period/[scope]', params: { scope: 'reports' } })
                   }
