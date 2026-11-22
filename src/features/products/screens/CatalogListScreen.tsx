@@ -1,13 +1,13 @@
 import Divider from '@/components/ui/Divider';
 import FloatingActionButton from '@/components/ui/FloatingActionButton';
 import SearchBar from '@/components/ui/SearchBar';
-import Skeleton from '@/components/ui/Skeleton';
 import StateMessage from '@/components/ui/StateMessage';
 import { useCategories } from '@/features/products/api/catalog';
 import { useCatalogItems, useCatalogProductCounts } from '@/features/products/api/catalogItems';
 import CatalogItemRow, {
   type CatalogSubtitlePart,
 } from '@/features/products/components/catalog/CatalogItemRow';
+import CatalogItemRowSkeleton from '@/features/products/components/catalog/CatalogItemRowSkeleton';
 import {
   catalogKindSchema,
   type CatalogItem,
@@ -19,11 +19,10 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useLocale } from '@/hooks/useLocale';
 import { getErrorMessageKey } from '@/lib/apiError';
 import type { AppColors } from '@/theme/colors';
-import { MIN_TOUCH_SIZE, SCREEN_CONTENT, SPACING } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
+import { SCREEN_CONTENT, SPACING } from '@/theme/spacing';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import Plus from 'lucide-react-native/icons/plus';
-import { useCallback, useMemo, useState } from 'react';
+import { Fragment, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, RefreshControl, StyleSheet, View, type ListRenderItem } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -145,11 +144,17 @@ function CatalogListContent({ kind }: CatalogListContentProps) {
       {error && !data ? (
         <StateMessage message={t(getErrorMessageKey(error))} onRetry={refresh} />
       ) : isPending ? (
+        // Gerçek listeyle aynı satır şekli ve aralarında aynı çizgi
         <View>
-          {SKELETON_ROW_KEYS.map((key) => (
-            <View key={key} style={styles.skeletonRow}>
-              <Skeleton width="50%" height={typography.body.lineHeight} />
-            </View>
+          {SKELETON_ROW_KEYS.map((key, index) => (
+            <Fragment key={key}>
+              {index > 0 && <RowDivider />}
+              <CatalogItemRowSkeleton
+                showColorDot={kind === 'colors'}
+                showSubtitle={kind === 'categories'}
+                colors={colors}
+              />
+            </Fragment>
           ))}
         </View>
       ) : (
@@ -203,11 +208,6 @@ function createStyles(colors: AppColors) {
       flexDirection: 'row',
       paddingHorizontal: SPACING.xl,
       paddingVertical: SPACING.sm,
-    },
-    skeletonRow: {
-      minHeight: MIN_TOUCH_SIZE + SPACING.sm,
-      justifyContent: 'center',
-      paddingHorizontal: SPACING.xl,
     },
   });
 }

@@ -100,6 +100,32 @@ export const REPORT_HEAT_HOURS_PER_COLUMN = 2;
 export const REPORT_HEAT_COLUMNS = 12;
 export const REPORT_HEAT_DAYS = 7;
 
+// Detay yüklenirken iskeletin şekli: grafik kutusu gerçek grafiğin yaklaşık boyunda, altındaki
+// satırlar o raporun listesindeki kart ya da satır türünde. Veri gelince sayfa zıplamaz.
+export type ReportSkeletonRow = 'list' | 'bestSeller' | 'product' | 'order';
+
+const SKELETON_BAR_ROWS = 5;
+const SKELETON_BAR_HEIGHT = SKELETON_BAR_ROWS * REPORT_BAR_ROW_HEIGHT;
+
+export const REPORT_DETAIL_SKELETON: Record<
+  ReportId,
+  { chartHeight: number; row: ReportSkeletonRow }
+> = {
+  profit: { chartHeight: REPORT_DETAIL_DIAL_SIZE, row: 'list' },
+  orderStatus: { chartHeight: SKELETON_BAR_HEIGHT, row: 'list' },
+  returns: { chartHeight: REPORT_DETAIL_TREND_HEIGHT, row: 'order' },
+  stock: { chartHeight: REPORT_STOCK_GROUPS.length * REPORT_BAR_ROW_HEIGHT, row: 'product' },
+  topProducts: { chartHeight: SKELETON_BAR_HEIGHT, row: 'bestSeller' },
+  unsold: { chartHeight: REPORT_SMALL_BODY_HEIGHT, row: 'product' },
+  customers: { chartHeight: REPORT_DETAIL_PODIUM_HEIGHT, row: 'list' },
+  partners: { chartHeight: REPORT_SMALL_BODY_HEIGHT, row: 'list' },
+  payment: { chartHeight: REPORT_DETAIL_DIAL_SIZE, row: 'list' },
+  brands: { chartHeight: REPORT_DETAIL_TREEMAP_HEIGHT, row: 'list' },
+  cities: { chartHeight: REPORT_DETAIL_DIAL_SIZE, row: 'list' },
+  busyHours: { chartHeight: REPORT_DETAIL_COLUMN_HEIGHT, row: 'list' },
+  weekdays: { chartHeight: REPORT_DETAIL_COLUMN_HEIGHT, row: 'list' },
+};
+
 export function isReportId(value: string): value is ReportId {
   return REPORT_IDS.some((id) => id === value);
 }

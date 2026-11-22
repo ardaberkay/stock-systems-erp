@@ -1,8 +1,12 @@
 import ProductCard from '@/features/products/components/ProductCard';
+import ProductCardSkeleton from '@/features/products/components/ProductCardSkeleton';
 import ReportCustomerCard from '@/features/reports/components/ReportCustomerCard';
 import ReportListRow from '@/features/reports/components/ReportListRow';
+import ReportListRowSkeleton from '@/features/reports/components/ReportListRowSkeleton';
 import ReportOrderCard from '@/features/reports/components/ReportOrderCard';
+import OrderCardSkeleton from '@/features/orders/components/OrderCardSkeleton';
 import TopSellingCard from '@/features/dashboard/components/TopSellingCard';
+import TopSellingCardSkeleton from '@/features/dashboard/components/TopSellingCardSkeleton';
 import ReportChart from '@/features/reports/components/charts/ReportChart';
 import Skeleton from '@/components/ui/Skeleton';
 import PeriodPill from '@/components/ui/PeriodPill';
@@ -10,12 +14,14 @@ import StateMessage from '@/components/ui/StateMessage';
 import UnderlineTabs from '@/components/ui/UnderlineTabs';
 import {
   isReportId,
+  REPORT_DETAIL_SKELETON,
   REPORT_PATTERN_IDS,
   REPORT_PATTERN_SPANS,
   REPORT_SNAPSHOT_IDS,
   REPORT_STOCK_GROUPS,
   type ReportId,
   type ReportPatternSpan,
+  type ReportSkeletonRow,
   type ReportStockGroup,
 } from '@/features/reports/constants';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -37,7 +43,21 @@ import Text from '@/components/ui/Text';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const SKELETON_CHART_HEIGHT = 220;
+const SKELETON_ROW_KEYS = ['first', 'second', 'third', 'fourth'];
+
+// Liste iskeletinin satırı; gerçek listedeki kart ya da satır türüyle aynı
+function SkeletonRow({ row }: { row: ReportSkeletonRow }) {
+  switch (row) {
+    case 'bestSeller':
+      return <TopSellingCardSkeleton />;
+    case 'product':
+      return <ProductCardSkeleton />;
+    case 'order':
+      return <OrderCardSkeleton />;
+    case 'list':
+      return <ReportListRowSkeleton />;
+  }
+}
 
 function openCustomer(row: ReportRow) {
   if (row.customer) {
@@ -97,6 +117,8 @@ function ReportDetail({ id }: { id: ReportId }) {
   const hasPeriod = !REPORT_SNAPSHOT_IDS.includes(id) && !isPattern;
   const shownError = (!stats ? error : null) ?? (isPattern && !pattern ? patternError : null);
   const hasContent = Boolean(content && stats && !content.isEmpty);
+  const isWaiting = !shownError && Boolean(isLoading || (stats && !content));
+  const skeleton = REPORT_DETAIL_SKELETON[id];
 
   const selectStockGroup = (key: string) => {
     const group = REPORT_STOCK_GROUPS.find((item) => item === key);
@@ -179,6 +201,13 @@ function ReportDetail({ id }: { id: ReportId }) {
       </View>
     ) : null;
 
+  // Yüklenirken özetin yerinde aynı yükseklikte çubuk durur
+  const summaryPlaceholder = (
+    <View style={styles.summary}>
+      {isWaiting && <Skeleton width="40%" height={typography.bodySmall.lineHeight} />}
+    </View>
+  );
+
   return (
     <>
       <Stack.Screen options={{ title: t(`reports.${id}.title`) }} />
@@ -214,7 +243,7 @@ function ReportDetail({ id }: { id: ReportId }) {
             {/* Dönem seçici yüklenirken ve hata varken de görünür; kullanıcı dönemi değiştirebilir */}
             {hasPeriod && (
               <View style={styles.summaryRow}>
-                {summary ?? <View style={styles.summary} />}
+                {summary ?? summaryPlaceholder}
                 <PeriodPill
                   label={periodLabel}
                   onPress={() =>
@@ -224,8 +253,19 @@ function ReportDetail({ id }: { id: ReportId }) {
               </View>
             )}
 
-            {!shownError && (isLoading || (stats && !content)) && (
-              <Skeleton width="100%" height={SKELETON_CHART_HEIGHT} radius={RADIUS.md} />
+            {/* İskelet raporun gerçek düzenini taklit eder: grafik boyunda kutu, altında o
+                raporun kart ya da satır türünde birkaç satır */}
+            {isWaiting && (
+              <>
+                <Skeleton width="100%" height={skeleton.chartHeight} radius={RADIUS.md} />
+                <View>
+                  {SKELETON_ROW_KEYS.map((key) => (
+                    <View key={key} style={skeleton.row !== 'list' && styles.listCard}>
+                      <SkeletonRow row={skeleton.row} />
+                    </View>
+                  ))}
+                </View>
+              </>
             )}
             {shownError && (
               <StateMessage message={t(getErrorMessageKey(shownError))} onRetry={refresh} />
