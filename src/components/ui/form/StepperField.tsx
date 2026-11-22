@@ -1,4 +1,4 @@
-import FieldLabel from '@/components/ui/form/FieldLabel';
+import FormFieldLayout, { type FieldLayout } from '@/components/ui/form/FormFieldLayout';
 import Text from '@/components/ui/Text';
 import TextInput from '@/components/ui/TextInput';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -19,6 +19,7 @@ type StepperFieldProps = {
   onBlur?: () => void;
   error?: string;
   required?: boolean;
+  layout?: FieldLayout;
 };
 
 const MIN_VALUE = 0;
@@ -37,6 +38,7 @@ export default function StepperField({
   onBlur,
   error,
   required = false,
+  layout,
 }: StepperFieldProps) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -45,8 +47,12 @@ export default function StepperField({
   const canDecrease = current > MIN_VALUE;
 
   return (
-    <View style={styles.field}>
-      <FieldLabel label={label} required={required} />
+    <FormFieldLayout
+      label={label}
+      required={required}
+      layout={layout}
+      message={error ? <Text style={styles.error}>{error}</Text> : null}
+    >
       <View style={[styles.box, error ? styles.boxError : null]}>
         <Pressable
           accessibilityRole="button"
@@ -77,16 +83,12 @@ export default function StepperField({
           <Plus size={ICON_SIZE.sm} color={colors.icon} />
         </Pressable>
       </View>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-    </View>
+    </FormFieldLayout>
   );
 }
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
-    field: {
-      gap: SPACING.xs,
-    },
     box: {
       minHeight: MIN_TOUCH_SIZE,
       flexDirection: 'row',

@@ -205,7 +205,6 @@ export function getBestSellers(
   revenueOrders: Order[],
   window: PeriodWindow,
   limit: number,
-  sortBy: 'sold' | 'revenue' = 'sold',
 ): BestSeller[] {
   const trendKeys = getTrendKeys(window);
   const trendIndex = new Map(trendKeys.map((key, index) => [key, index]));
@@ -256,10 +255,6 @@ export function getBestSellers(
         trend,
       };
     })
-    .sort((a, b) =>
-      sortBy === 'sold'
-        ? b.sold - a.sold || b.revenue - a.revenue
-        : b.revenue - a.revenue || b.sold - a.sold,
-    )
+    .sort((a, b) => b.sold - a.sold || b.revenue - a.revenue)
     .slice(0, limit);
 }

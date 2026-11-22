@@ -18,7 +18,7 @@ type FormFieldLayoutProps = {
 };
 
 // Form alanlarının etiket + alan + mesaj yerleşimi (TextField, PickerField, MultiPickerField,
-// LockedField, SegmentedField, PhoneField)
+// LockedField, SegmentedField, PhoneField, StepperField)
 export default function FormFieldLayout({
   label,
   required = false,

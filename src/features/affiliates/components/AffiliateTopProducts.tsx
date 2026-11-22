@@ -50,17 +50,9 @@ export default function AffiliateTopProducts({
     [items, productsById, t, locale, colors.purple],
   );
 
-  // Satış yoksa bölüm hiç görünmez
-  if (!isLoading && rows.length === 0) {
-    return null;
-  }
-
-  return (
-    <View style={styles.section}>
-      <Text style={styles.title} accessibilityRole="header">
-        {t('affiliates.detail.topProductsTitle')}
-      </Text>
-      {isLoading ? (
+  const renderBody = () => {
+    if (isLoading) {
+      return (
         <View style={styles.skeletons}>
           {SKELETON_KEYS.map((key) => (
             <Skeleton
@@ -71,9 +63,23 @@ export default function AffiliateTopProducts({
             />
           ))}
         </View>
-      ) : (
-        <ReportBarChart rows={rows} colors={colors} selectedKey={null} />
-      )}
+      );
+    }
+
+    // Satış yoksa başlık kalır, altında kısa bir not; bölüm boş bir boşluk gibi görünmez
+    if (rows.length === 0) {
+      return <Text style={styles.empty}>{t('affiliates.detail.topProductsEmpty')}</Text>;
+    }
+
+    return <ReportBarChart rows={rows} colors={colors} selectedKey={null} />;
+  };
+
+  return (
+    <View style={styles.section}>
+      <Text style={styles.title} accessibilityRole="header">
+        {t('affiliates.detail.topProductsTitle')}
+      </Text>
+      {renderBody()}
     </View>
   );
 }
@@ -91,6 +97,10 @@ function createStyles(colors: AppColors) {
     },
     skeletons: {
       gap: SPACING.md,
+    },
+    empty: {
+      ...typography.bodySmall,
+      color: colors.textSecondary,
     },
   });
 }

@@ -68,6 +68,7 @@
         "orders": "Orders"
       },
       "topProductsTitle": "Best-selling products",
+      "topProductsEmpty": "No products sold in this period.",
       "orderCount": "Orders",
       "revenue": "Revenue",
       "unitCount": "Units",

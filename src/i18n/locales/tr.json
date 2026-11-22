@@ -68,6 +68,7 @@
                 "orders": "Siparişler"
             },
             "topProductsTitle": "En çok satan ürünler",
+            "topProductsEmpty": "Bu dönemde satılan ürün yok.",
             "orderCount": "Sipariş",
             "revenue": "Ciro",
             "unitCount": "Adet",

@@ -97,6 +97,7 @@ function CatalogItemFormContent({ kind, itemId }: CatalogItemFormContentProps) {
           <TextField
             label={t(`stock.catalogPages.${kind}.nameLabel`)}
             placeholder={t(`stock.catalogPages.${kind}.namePlaceholder`)}
+            layout="inline"
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}

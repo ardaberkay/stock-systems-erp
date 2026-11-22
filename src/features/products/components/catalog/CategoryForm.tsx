@@ -155,6 +155,7 @@ function CategoryFormContent({ categoryId }: CategoryFormContentProps) {
           <TextField
             label={t('stock.catalogPages.categories.nameLabel')}
             placeholder={t('stock.catalogPages.categories.namePlaceholder')}
+            layout="inline"
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
@@ -174,6 +175,7 @@ function CategoryFormContent({ categoryId }: CategoryFormContentProps) {
             label={t('stock.catalogPages.categories.parentLabel')}
             sheetTitle={t('stock.sheetTitles.parentCategory')}
             placeholder={rootLabel}
+            layout="inline"
             searchPlaceholder={t('stock.catalogPages.categories.searchPlaceholder')}
             value={value}
             options={parentOptions}
@@ -189,6 +191,7 @@ function CategoryFormContent({ categoryId }: CategoryFormContentProps) {
         render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
           <StepperField
             label={t('stock.catalogPages.categories.sortLabel')}
+            layout="inline"
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
